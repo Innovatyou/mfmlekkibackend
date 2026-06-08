@@ -1,20 +1,3 @@
-  // Mark notifications as read
-  public function markNotificationsRead()
-  {
-    $data = $this->get_data();
-    $user_id = isset($data->user_id) ? filter_var($data->user_id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
-    $notification_ids = isset($data->notification_ids) ? $data->notification_ids : [];
-    $notificationmodel = new notificationmodel();
-    if (!empty($notification_ids) && is_array($notification_ids)) {
-      foreach ($notification_ids as $nid) {
-        $notificationmodel->markAsRead($nid, $user_id);
-      }
-    } else if ($user_id) {
-      $notificationmodel->markAllAsRead($user_id);
-    }
-    echo json_encode(["status" => "ok"]);
-    exit;
-  }
 <?php
 
 namespace App\Controllers;
@@ -48,6 +31,24 @@ class Api extends BaseController
   public function __construct()
   {
     $this->apitoken = $this->check_headers();
+  }
+
+  // Mark notifications as read
+  public function markNotificationsRead()
+  {
+    $data = $this->get_data();
+    $user_id = isset($data->user_id) ? filter_var($data->user_id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+    $notification_ids = isset($data->notification_ids) ? $data->notification_ids : [];
+    $notificationmodel = new notificationmodel();
+    if (!empty($notification_ids) && is_array($notification_ids)) {
+      foreach ($notification_ids as $nid) {
+        $notificationmodel->markAsRead($nid, $user_id);
+      }
+    } else if ($user_id) {
+      $notificationmodel->markAllAsRead($user_id);
+    }
+    echo json_encode(["status" => "ok"]);
+    exit;
   }
 
   //test notifications
@@ -115,13 +116,22 @@ class Api extends BaseController
   public function getunseenmessages()
   {
     $data = $this->get_data();
-    $user_id = isset($data->user_id) ? filter_var($data->user_id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
-    $notificationmodel = new notificationmodel();
-    $notification_count = $notificationmodel->getUnreadCount($user_id);
+    // The app sends 'email' and 'lastid' (the last notification id already seen).
+    $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+    $lastid = isset($data->lastid) ? intval($data->lastid) : 0;
+
+    // Count unseen items from the SAME table the in-app notifications list reads
+    // (tbl_notifications via userNotifications), scoped to this app's apitoken, so
+    // the badge matches what the user actually sees when they open the screen.
+    // Previously this counted unread rows in the separate `notifications` table
+    // keyed by user_id (which the app never sends), so the badge could show a
+    // count while the opened notifications list was empty.
+    $inboxmodel = new inboxmodel();
+    $notification_count = $inboxmodel->get_last_seen_notification_count($email, $lastid, $this->apitoken);
     $chatmodel = new chatmodel();
     $unseen_chat_count = 0;
-    if ($user_id != "") {
-      $unseen_chat_count = $chatmodel->get_user_unseen_messages($user_id, $this->apitoken);
+    if ($email != "") {
+      $unseen_chat_count = $chatmodel->get_user_unseen_messages($email, $this->apitoken);
     }
     echo json_encode(array(
       "status" => "ok",
