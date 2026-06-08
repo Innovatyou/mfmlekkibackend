@@ -1,0 +1,24 @@
+{
+	"description": "The CodeIgniter framework",
+	"name": "codeigniter/framework",
+	"type": "project",
+	"homepage": "https://codeigniter.com",
+	"license": "MIT",
+	"author": {
+		"name": "Innovative IT Solutions",
+		"email": "info@innovative.ng"
+	},
+	"support": {
+		"email": "info@innovative.ng",
+		"forum": "http://forum.codeigniter.com/",
+		"wiki": "https://github.com/bcit-ci/CodeIgniter/wiki",
+		"slack": "https://codeigniterchat.slack.com",
+		"source": "https://github.com/bcit-ci/CodeIgniter"
+	},
+	"require": {
+		"khill/php-duration": "~1.0",
+		"kreait/firebase-php": "^7.0", 
+		"phpmailer/phpmailer": "^6.6"
+	}
+}
+ 

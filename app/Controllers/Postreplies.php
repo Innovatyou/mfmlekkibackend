@@ -1,0 +1,102 @@
+<?php
+
+namespace App\Controllers;
+
+use CodeIgniter\Controller;
+use App\Models\Socials_model as repliesmodel;
+
+class Postreplies extends BaseController
+{
+
+  public $apitoken = "";
+
+  public function __construct()
+  {
+    $this->apitoken = $this->check_headers();
+  }
+
+  public function replycomment()
+  {
+    $repliesmodel = new repliesmodel();
+    $data = $this->get_data();
+    $reply = [];
+    $total_count = 0;
+    if (!empty($data)) {
+      $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+      $content = isset($data->content) ? filter_var($data->content, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+      $comment = isset($data->comment) ? filter_var($data->comment, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+
+      if ($email != "" || $content != "") {
+        $reply = $repliesmodel->replyComment($comment, $email, $content);
+        $total_count = $repliesmodel->get_total_replies($comment, $this->apitoken);
+      }
+    }
+    echo json_encode(array(
+      "status" => $repliesmodel->status, "message" => $repliesmodel->message,
+      "comment" => $reply, "total_count" => $total_count
+    ));
+    exit;
+  }
+
+  public function editreply()
+  {
+    $repliesmodel = new repliesmodel();
+    $data = $this->get_data();
+    $comment = [];
+    $total_count = 0;
+    if (!empty($data)) {
+      $content = isset($data->content) ? filter_var($data->content, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+      $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+
+      if ($content != "" || $id != "") {
+        $comment = $repliesmodel->editReply($id, $content, $this->apitoken);
+      }
+    }
+    echo json_encode(array(
+      "status" => $repliesmodel->status, "message" => $repliesmodel->message,
+      "comment" => $comment
+    ));
+    exit;
+  }
+
+  public function deletereply()
+  {
+    $data = $this->get_data();
+    $comments = [];
+    $repliesmodel = new repliesmodel();
+    if (!empty($data)) {
+      $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+      $comment_id = isset($data->comment) ? filter_var($data->comment, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
+
+      if ($id != "") {
+        $repliesmodel->deleteReply($id, $this->apitoken);
+        $total_count = $repliesmodel->get_total_replies($comment_id, $this->apitoken);
+      }
+    }
+    echo json_encode(array("status" => $repliesmodel->status, "message" => $repliesmodel->message, "total_count" => $total_count));
+    exit;
+  }
+
+  function loadreplies()
+  {
+    $repliesmodel = new repliesmodel();
+    $data = $this->get_data();
+    $results = [];
+    $total_count = 0;
+    http_response_code(404);
+    $id = 0;
+    if (isset($data->id)) {
+      $id = $data->id;
+    }
+
+    $comment = 0;
+    if (isset($data->comment)) {
+      $comment = $data->comment;
+    }
+    $results = $repliesmodel->loadreplies($comment, $id, $this->apitoken);
+    $has_more = $repliesmodel->checkIfCommentHaveMoreReplies($comment, $id, $this->apitoken);
+    $total_count = $repliesmodel->get_total_replies($comment, $this->apitoken);
+    echo json_encode(array("status" => "ok", "comments" => $results, "has_more" => $has_more, "total_count" => $total_count));
+    exit;
+  }
+}

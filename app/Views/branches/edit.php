@@ -1,0 +1,85 @@
+<div class="main-container">
+  <div class="pd-ltr-20 xs-pd-20-10">
+    <div class="min-height-200px">
+      <div class="page-header">
+        <div class="row">
+          <div class="col-md-6 col-sm-12">
+            <div class="title">
+              <h4><?php echo $locale['church_loc']; ?></h4>
+            </div>
+            <nav aria-label="breadcrumb" role="navigation">
+              <ol class="breadcrumb">
+                <li class="breadcrumb-item active" aria-current="page"><?php echo $locale['edit_loc']; ?></li>
+              </ol>
+            </nav>
+          </div>
+
+        </div>
+      </div>
+      <!-- Default Basic Forms Start -->
+      <div class="pd-20 card-box mb-30">
+        <div class="pd-20 card-box mb-30">
+          <?= view('_flash') ?>
+
+          <form method="POST" action="<?php echo base_url(); ?>/editBranchData" style="margin-top:30px;">
+            <input type="hidden" class="form-control" name="id" placeholder="<?php echo $locale['branch_name']; ?>" required="" autofocus="" value="<?php echo $branch->id; ?>">
+            <div class="form-group" style="margin-top:20px;">
+              <label><?php echo $locale['branch_name']; ?></label>
+              <div class="form-line">
+                <input type="text" class="form-control" value="<?php echo $branch->name; ?>" name="name" placeholder="<?php echo $locale['branch_name']; ?>" required="" autofocus="">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;">
+              <label><?php echo $locale['loc_address']; ?></label>
+              <div class="form-line">
+                <input type="text" class="form-control" value="<?php echo $branch->address; ?>" name="address" placeholder="<?php echo $locale['loc_address']; ?>" required="" autofocus="" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;">
+              <label><?php echo $locale['loc_pastor']; ?></label>
+              <div class="form-line">
+                <input type="text" class="form-control" value="<?php echo $branch->pastor; ?>" name="pastor" placeholder="<?php echo $locale['loc_pastor']; ?>" autofocus="" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;">
+              <label><?php echo $locale['loc_phone']; ?></label>
+              <div class="form-line">
+                <input type="text" class="form-control" value="<?php echo $branch->phone; ?>" name="phone" placeholder="<?php echo $locale['loc_phone']; ?>" autofocus="" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;">
+              <label><?php echo $locale['loc_email']; ?></label>
+              <div class="form-line">
+                <input type="text" class="form-control" value="<?php echo $branch->email; ?>" name="email" placeholder="<?php echo $locale['loc_email']; ?>" autofocus="">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;">
+              <label><?php echo $locale['loc_latitude']; ?></label>
+              <div class="form-line">
+                <input type="number" step="any" class="form-control" value="<?php echo $branch->latitude; ?>" name="latitude" placeholder="<?php echo $locale['loc_latitude']; ?>" autofocus="" value="0.0">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:20px;">
+              <label><?php echo $locale['loc_longitude']; ?></label>
+              <div class="form-line">
+                <input type="number" step="any" class="form-control" value="<?php echo $branch->longitude; ?>" name="longitude" placeholder="<?php echo $locale['loc_longitude']; ?>" autofocus="" value="0.0">
+              </div>
+            </div>
+            <div class="box-footer text-center">
+              <button class="btn btn-primary waves-effect" type="submit"><?php echo $locale['update_loc']; ?></button>
+            </div>
+
+          </form>
+
+
+        </div>
+      </div>
+
+    </div>
+  </div>

@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "churchapppro",
+  "private_key_id": "3290e949e4eb25bf4cbfa0abe98976752a7d12b2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCqySpNAUbz5rQX\nGy+AzrL+IV074GF3BR/C0RkJdxC4SMe0t7Nd4RQ+CH/TCsSVAWZjb6wNhJdRStYY\nYLmOBmvZzJJ66iRYJNNx+ZZJGvf9/MEkBxyaJQAxEOiJfnwreN7bfthTRz4g4DCv\ngbGR+mOIAe5S6cowW8/YVBnbWiV2bhEYTGba6AECmrSPzSkU5qCO00CO+UGCi26P\n0RPJdvVy+fgNhpBaeQBGq4yNSbqB6fLQ4T2YCpvPWj5AzMtGd6lvrMfPy53YrTVM\nk6F6WiY5tWbgcJj2+c2VFlJ8bvDHvA3tFdGZx0feukBg3CQOu2bW7870XKwijCpl\n/21RwWjHAgMBAAECggEACDNut5HnIVEjtrRUfJ/wUmmxu21T4M47LzSxOhYglGjS\nRihIEar8ONpZoP20YN9XVlEHdwK17W5lh3glkN9YEHZVVlel9SGXkbKFd+82l1iq\nwZsh0XkTYEfKksejGMdOFEYsBxu1rQh27gaRS0w1uVM2aX7Wean++glX0IOsptog\nGE3RnPA/z1ZZhx4ngjoD3BQCnTrdx/mC2ZcoZhcP9IQB2e0UP/PxSyMwOpvrYpd0\n+Y51caEqgXrAzg4sIQvDHHypFwgOko710rEJRe0/xxkUo9A2Q0NNkPZLjMdDqpYj\nZxirG5cGiJp7kvBsIYKG5BdgO3TVVUJdKWJ8plbp8QKBgQDabBLb6PUQ1+ogXBnd\nyJGvk3zplolxkvouB9KSsmhGaBACGvaIzIu9u4qtjk4RoG3XQZSW231XY88ZL64s\nR62UwiNspq5Aba+qNYmPBNNhI+KsqERarZRGgSK0l5X6fqasFWTcXtq7tpwkiJcS\nhov5E9xgK0C6n4IeMDgDAvnomQKBgQDIKw1gvt/CuixmhzBGJG3Tm5ogh5Gm3kxI\nqF6oXFPoGfdaarfgGS2BF9HvM1vQDHLzX4Nl5UHY6GP+XHL2lqx1IrH7mkHCZreN\nuLAa10NwNjX+Elu+c5HgNokXa7yJIShrGNg7aXGfJAyF9/7cLHQNo/rCGU/xBCl+\nr6pz67vYXwKBgH51xBV+sySlXfCOYot97JtzEQdNGRaguiicbtZwZN8esOYHJmXd\nx6p6Qrhpg9nAwNe4KIePXOqT5vv2Fymb9mwCWvA1MP4sg2BQzuv3J0s+s6azZZ/6\nj7aiXa2hdjwpx+YqHNNaN9omyBB+5LjdHX2Aej9Ty45Be9xunn9f4cFBAoGBAIqm\n57lf/fcQprjOY+3yRfESE4z82zNPQGAD4K2WZribY+9JhNzCE/cb3NtoI+zU8rsK\nKiZmy1nIf5stxqRwcj0hL1As5egW5oZQrAurmJcdtgCsDsi5nQ5GOGf0xL/oK+sj\nZoSg4YdunQ4fXnZ8hFb+gy/4AJveWi/a1qM9YvzZAoGBALv7aM3PMPeQB9WvNuXh\nntd2DnIG6AFmivRK3Pc4kMNB2DmXXQR2B9rxYtW4xQdZQLyvc3BL+0XvspGjKXYS\nghHrZU0iaxqn2+lD7/6oQr6S2qI6l/YmaHFjj+YP7c49NE35xSCkIvXLOVUYRVd7\n5ZfdUsPbiSmUOx12L4q3wbQ8\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-vrnzr@churchapppro.iam.gserviceaccount.com",
+  "client_id": "100745450871779383880",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-vrnzr%40churchapppro.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
