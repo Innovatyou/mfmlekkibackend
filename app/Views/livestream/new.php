@@ -21,7 +21,7 @@
     <form method="POST" action="<?= base_url('savenewlivestream') ?>" enctype="multipart/form-data" id="new_livestream_form">
       <?= csrf_field() ?>
 
-      <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+      <div class="nl-main-grid">
 
         <!-- Left: Main details -->
         <div>
@@ -51,7 +51,7 @@
                      placeholder="Brief description of this stream">
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="nl-grid-2">
               <div class="nl-field">
                 <label class="nl-label"><?= $locale['livestream_src'] ?> <span class="nl-required">*</span></label>
                 <div class="nl-select-wrap">
@@ -171,6 +171,9 @@
   .nl-breadcrumb a:hover { color:var(--accent); }
   .nl-breadcrumb span { margin:0 5px; }
 
+  .nl-main-grid { display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start; }
+  .nl-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+
   .nl-card { padding:22px;margin-bottom:20px; }
   .nl-card-header { display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border); }
   .nl-card-icon { width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;flex-shrink:0; }
@@ -247,8 +250,14 @@
   }
   @keyframes nl-spin { to { transform:rotate(360deg); } }
 
-  @media(max-width:768px) {
-    .nl-grid-2 { grid-template-columns:1fr !important; }
+  @media(max-width:900px) {
+    .nl-main-grid { grid-template-columns:1fr; }
+  }
+  @media(max-width:576px) {
+    .nl-grid-2 { grid-template-columns:1fr; }
+    .nl-submit-bar { flex-direction:column-reverse; }
+    .nl-submit-bar .btn { width:100%;text-align:center; }
+    .page-header { flex-wrap:wrap;gap:12px; }
   }
 </style>
 
