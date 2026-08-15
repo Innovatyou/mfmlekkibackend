@@ -64,7 +64,11 @@ Ask me for a random secret if you'd rather not generate one by hand.
 
 ### 5. Make the webhook reachable
 Copy `/home/mfmlbbcm/repositories/church-staging/deploy/webhook-staging.php`
-→ into the staging document root as `deploy-hook.php`.
+→ into the staging document root as `deploy-hook.php`. This is a one-time
+copy — it now `require`s the core logic by its absolute path inside the
+repo clone, not relative to itself, so it never needs to be re-copied
+after future pushes; a plain `git push` is enough to update the deploy
+behavior.
 
 Public URL: `https://church.mfmlekkiphaseone.org/deploy-hook.php`
 
@@ -152,7 +156,8 @@ generate a fresh one; either is fine as long as it matches step 5.)
 
 ### 4. Make the webhook reachable
 Copy `/home/mfmlbbcm/repositories/mfmadmin/deploy/webhook-production.php`
-→ into `/home/mfmlbbcm/app/deploy-hook.php`.
+→ into `/home/mfmlbbcm/app/deploy-hook.php`. One-time copy — see the
+staging section's note on why it never needs to be re-copied after this.
 
 Public URL: `https://app.mfmlekkiphaseone.org/deploy-hook.php`
 
