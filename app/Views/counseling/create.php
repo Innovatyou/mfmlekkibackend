@@ -21,7 +21,7 @@
       </div>
     <?php endif; ?>
 
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;">
+    <div class="cc-main-grid">
 
       <!-- Main Form -->
       <div class="card-box" style="padding:28px;">
@@ -52,7 +52,7 @@
           </div>
 
           <!-- Category & Priority in a row -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div class="cc-field-grid">
             <div>
               <label style="display:block;margin-bottom:6px;">Category <span style="color:#ef4444;">*</span></label>
               <select name="category" class="form-control" required>
@@ -88,7 +88,7 @@
           </div>
 
           <!-- Assigned To & Follow-up -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div class="cc-field-grid">
             <div>
               <label style="display:block;margin-bottom:6px;">Assigned Counselor / Pastor</label>
               <input type="text" name="assigned_to" class="form-control"
@@ -154,3 +154,14 @@ document.getElementById('member_select').addEventListener('change', function(){
   }
 });
 </script>
+
+<style>
+  .cc-main-grid { display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start; }
+  .cc-field-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px; }
+  @media(max-width:900px) {
+    .cc-main-grid { grid-template-columns:1fr; }
+  }
+  @media(max-width:576px) {
+    .cc-field-grid { grid-template-columns:1fr; }
+  }
+</style>

@@ -59,7 +59,7 @@
       </div>
     <?php endif; ?>
 
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+    <div class="cs-main-grid">
 
       <!-- LEFT COLUMN -->
       <div>
@@ -85,7 +85,7 @@
               <?= csrf_field() ?>
               <input type="hidden" name="case_id" value="<?= $case->id ?>">
 
-              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div class="cs-grid-3">
                 <div>
                   <label style="display:block;margin-bottom:5px;font-size:.8rem;">Session Type</label>
                   <select name="session_type" class="form-control form-control-sm" required>
@@ -113,7 +113,7 @@
                           placeholder="What was discussed, counselee's state, key observations…" required></textarea>
               </div>
 
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+              <div class="cs-grid-2" style="margin-bottom:16px;">
                 <div>
                   <label style="display:block;margin-bottom:5px;font-size:.8rem;">Outcome / Summary</label>
                   <textarea name="outcome" class="form-control form-control-sm" rows="2" placeholder="Session outcome…"></textarea>
@@ -136,7 +136,7 @@
             <!-- Platform picker -->
             <div style="margin-bottom:18px;">
               <label style="display:block;margin-bottom:10px;font-size:.85rem;font-weight:600;">Select Platform <span style="color:#ef4444;">*</span></label>
-              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;" id="platform-grid">
+              <div class="cs-grid-4" id="platform-grid">
                 <?php
                   $platforms = [
                     'zoom'        => ['label'=>'Zoom',           'color'=>'#2D8CFF', 'bg'=>'#EFF6FF'],
@@ -171,7 +171,7 @@
               <input type="hidden" name="case_id" value="<?= $case->id ?>">
               <input type="hidden" name="meeting_platform" id="hidden_platform">
 
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div class="cs-grid-2" style="margin-bottom:14px;">
                 <div>
                   <label style="display:block;margin-bottom:5px;font-size:.8rem;">Date &amp; Time <span style="color:#ef4444;">*</span></label>
                   <input type="datetime-local" name="meeting_scheduled_at" class="form-control form-control-sm" required>
@@ -483,6 +483,17 @@
   border-color: var(--accent) !important;
   background: #f0f0ff !important;
   box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+.cs-main-grid { display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start; }
+.cs-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.cs-grid-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px; }
+.cs-grid-4 { display:grid;grid-template-columns:repeat(4,1fr);gap:10px; }
+@media(max-width:900px) {
+  .cs-main-grid { grid-template-columns:1fr; }
+}
+@media(max-width:576px) {
+  .cs-grid-2, .cs-grid-3 { grid-template-columns:1fr; }
+  .cs-grid-4 { grid-template-columns:repeat(2,1fr); }
 }
 </style>
 

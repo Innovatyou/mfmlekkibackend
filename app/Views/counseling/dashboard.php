@@ -89,7 +89,7 @@
 
     <!-- Middle Row: Today's Reminders + Upcoming -->
     <?php if (!empty($today_reminders) || !empty($upcoming_reminders)): ?>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="cd-split-grid" style="display:grid;gap:16px;margin-bottom:24px;">
 
       <!-- Today -->
       <div class="card-box" style="padding:20px;">
@@ -239,5 +239,9 @@
 .mc-btn-view   { background:#e0f2fe;color:#0369a1; }
 .mc-btn-delete { background:#fee2e2;color:#dc2626; }
 .mc-action-btn:hover { opacity:.75; }
+.cd-split-grid { grid-template-columns:1fr 1fr; }
+@media(max-width:768px) {
+  .cd-split-grid { grid-template-columns:1fr; }
+}
 </style>
 

@@ -75,7 +75,7 @@
     </div>
 
     <!-- ── Middle Row: Birthdays + Members Needing Care ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="mc-split-grid" style="display:grid;gap:16px;margin-bottom:24px;">
 
       <!-- Upcoming Birthdays -->
       <div class="card-box" style="padding:0;overflow:hidden;">
@@ -160,7 +160,7 @@
     </div>
 
     <!-- ── Bottom Row: New Members + Recent Activity ── -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="mc-split-grid" style="display:grid;gap:16px;margin-bottom:24px;">
 
       <!-- New Members (last 30 days) -->
       <div class="card-box" style="padding:0;overflow:hidden;">
@@ -379,6 +379,10 @@
     font-size:.875rem;vertical-align:middle;
   }
   #care_table tbody tr:hover td { background:#f8fafc; }
+  .mc-split-grid { grid-template-columns:1fr 1fr; }
+  @media(max-width:768px) {
+    .mc-split-grid { grid-template-columns:1fr; }
+  }
 </style>
 
 <script>

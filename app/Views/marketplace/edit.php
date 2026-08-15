@@ -27,7 +27,7 @@
       <?= csrf_field() ?>
       <input type="hidden" name="id" value="<?= $item->id ?>">
 
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;">
+      <div class="mp-main-grid">
 
         <!-- Left -->
         <div>
@@ -45,7 +45,7 @@
               <textarea name="description" class="form-control" rows="5"><?= esc($item->description) ?></textarea>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="mp-field-grid">
               <div class="form-group">
                 <label>Category</label>
                 <select name="category_id" class="form-control">
@@ -200,6 +200,14 @@
     position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;
     background:rgba(0,0,0,.55);color:#fff;border:none;cursor:pointer;
     font-size:11px;line-height:18px;text-align:center;padding:0;
+  }
+  .mp-main-grid { display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start; }
+  .mp-field-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+  @media(max-width:900px) {
+    .mp-main-grid { grid-template-columns:1fr; }
+  }
+  @media(max-width:576px) {
+    .mp-field-grid { grid-template-columns:1fr; }
   }
 </style>
 

@@ -20,7 +20,7 @@
     <form action="<?= base_url('saveNewMarketplaceListing') ?>" method="post" enctype="multipart/form-data">
       <?= csrf_field() ?>
 
-      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start;">
+      <div class="mp-main-grid">
 
         <!-- Left column -->
         <div>
@@ -38,7 +38,7 @@
               <textarea name="description" class="form-control" rows="5" placeholder="Describe the item — condition, dimensions, pick-up details…"></textarea>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="mp-field-grid">
               <div class="form-group">
                 <label>Category</label>
                 <select name="category_id" class="form-control">
@@ -159,6 +159,14 @@
     content:'Cover';position:absolute;bottom:0;left:0;right:0;
     background:rgba(99,102,241,.8);color:#fff;font-size:.6rem;font-weight:700;
     text-align:center;padding:2px 0;
+  }
+  .mp-main-grid { display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start; }
+  .mp-field-grid { display:grid;grid-template-columns:1fr 1fr;gap:16px; }
+  @media(max-width:900px) {
+    .mp-main-grid { grid-template-columns:1fr; }
+  }
+  @media(max-width:576px) {
+    .mp-field-grid { grid-template-columns:1fr; }
   }
 </style>
 
