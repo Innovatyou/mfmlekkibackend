@@ -31,15 +31,6 @@ class Api extends BaseController
   {
   }
 
-  //test notifications
-  function testnotifications()
-  {
-    $fcmmodel = new fcmmodel();
-    $fcmmodel->createNotificationMessage(["cMtRrpTuT1aR0PFwQuyWLV:APA91bH-SZP_ph9gOxzRejw-og7N9ICpgmHV1MLA8S5AZR9OhlnM_xIO4tF5Bmc_r99Mh1FLr2Va5rXD2cC_OKx-Mp7PqR0QUZZ-58DFBaJJ5amKuHrm3BUx3aGSEWcWg-jTVn8Q_fAY"]);
-    exit;
-  }
-
-
   //store user fcm token
   function storeFcmToken()
   {

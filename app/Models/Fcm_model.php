@@ -43,7 +43,10 @@ class Fcm_model extends Model
     $message = CloudMessage::new();
     $message = $message->withData($data);
     $sendReport = $this->cloudMessaging->sendMulticast($message, $tokens);
-    var_dump($sendReport);
+    log_message('info', 'FCM multicast: {success} sent, {failures} failed', [
+      'success'  => $sendReport->successes()->count(),
+      'failures' => $sendReport->failures()->count(),
+    ]);
   }
 
   function storeUserFcmToken($token)

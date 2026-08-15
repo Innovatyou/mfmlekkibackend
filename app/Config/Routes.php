@@ -465,7 +465,6 @@ $routes->post('fetch_hymns', 'Api::fetch_hymns');
 $routes->post('fetch_inbox', 'Api::fetch_inbox');
 $routes->post('search', 'Api::search');
 $routes->get('testemail', 'Api::testemail');
-$routes->get('testnotifications', 'Api::testnotifications');
 
 //socials and chats
 $routes->post('updateUserSocialFcmToken', "Socials::updateUserSocialFcmToken");
