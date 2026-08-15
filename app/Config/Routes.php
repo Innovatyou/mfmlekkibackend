@@ -58,8 +58,7 @@ $routes->post('forgot-password', 'Login::sendAdminResetEmail');
 $routes->get('admin-reset/(:any)', 'Login::adminResetForm/$1');
 $routes->post('admin-change-password', 'Login::adminChangePassword');
 // Public church website (landing page)
-$routes->get('/', 'Landing::index');
-$routes->post('joinUs', 'Landing::signup');
+$routes->get('/', 'Home::index', ['filter' => 'auth']);
 
 $routes->get('dashboard', 'Home::index', ['filter' => 'auth']);
 $routes->get('logout', 'Login::logout');
