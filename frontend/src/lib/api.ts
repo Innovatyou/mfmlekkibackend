@@ -55,6 +55,8 @@ export interface LandingContent {
   contact_phone: string;
   contact_email: string;
   contact_map_embed: string;
+  contact_form_title: string;
+  contact_form_subtitle: string;
   signup_title: string;
   signup_subtitle: string;
   footer_text: string;
@@ -65,6 +67,14 @@ export interface LandingContent {
   ios_app_url: string;
   app_download_title: string;
   app_download_subtitle: string;
+  seo_meta_title: string;
+  seo_meta_description: string;
+  seo_meta_keywords: string;
+  seo_og_image: string;
+  seo_twitter_handle: string;
+  seo_google_site_verification: string;
+  seo_google_analytics_id: string;
+  seo_robots_index: boolean;
   show_hero: boolean;
   show_about: boolean;
   show_service_times: boolean;
@@ -74,6 +84,7 @@ export interface LandingContent {
   show_gallery: boolean;
   show_leadership: boolean;
   show_contact: boolean;
+  show_contact_form: boolean;
   show_signup: boolean;
   show_app_download: boolean;
 }
@@ -218,6 +229,8 @@ export const FALLBACK_LANDING_CONTENT: LandingContentResponse = {
     contact_phone: "",
     contact_email: "",
     contact_map_embed: "",
+    contact_form_title: "Send Us a Message",
+    contact_form_subtitle: "We'd love to hear from you — we'll get back to you soon.",
     signup_title: "Become Part of Our Family",
     signup_subtitle: "We'd love to have you join our church community.",
     footer_text: "",
@@ -228,6 +241,14 @@ export const FALLBACK_LANDING_CONTENT: LandingContentResponse = {
     ios_app_url: "",
     app_download_title: "Get Our App",
     app_download_subtitle: "Take church with you wherever you go",
+    seo_meta_title: "",
+    seo_meta_description: "",
+    seo_meta_keywords: "",
+    seo_og_image: "",
+    seo_twitter_handle: "",
+    seo_google_site_verification: "",
+    seo_google_analytics_id: "",
+    seo_robots_index: true,
     show_hero: true,
     show_about: true,
     show_service_times: true,
@@ -237,6 +258,7 @@ export const FALLBACK_LANDING_CONTENT: LandingContentResponse = {
     show_gallery: true,
     show_leadership: true,
     show_contact: true,
+    show_contact_form: true,
     show_signup: true,
     show_app_download: true,
   },
@@ -323,6 +345,11 @@ function normalizeLandingContent(raw: unknown): LandingContentResponse {
       contact_phone: toStr(content.contact_phone),
       contact_email: toStr(content.contact_email),
       contact_map_embed: toStr(content.contact_map_embed),
+      contact_form_title: toStr(
+        content.contact_form_title,
+        FALLBACK_LANDING_CONTENT.content.contact_form_title
+      ),
+      contact_form_subtitle: toStr(content.contact_form_subtitle),
       signup_title: toStr(content.signup_title, FALLBACK_LANDING_CONTENT.content.signup_title),
       signup_subtitle: toStr(content.signup_subtitle),
       footer_text: toStr(content.footer_text),
@@ -339,6 +366,14 @@ function normalizeLandingContent(raw: unknown): LandingContentResponse {
         FALLBACK_LANDING_CONTENT.content.app_download_title
       ),
       app_download_subtitle: toStr(content.app_download_subtitle),
+      seo_meta_title: toStr(content.seo_meta_title),
+      seo_meta_description: toStr(content.seo_meta_description),
+      seo_meta_keywords: toStr(content.seo_meta_keywords),
+      seo_og_image: toStr(content.seo_og_image),
+      seo_twitter_handle: toStr(content.seo_twitter_handle),
+      seo_google_site_verification: toStr(content.seo_google_site_verification),
+      seo_google_analytics_id: toStr(content.seo_google_analytics_id),
+      seo_robots_index: toBool(content.seo_robots_index ?? true),
       show_hero: toBool(content.show_hero ?? true),
       show_about: toBool(content.show_about ?? true),
       show_service_times: toBool(content.show_service_times ?? true),
@@ -348,6 +383,7 @@ function normalizeLandingContent(raw: unknown): LandingContentResponse {
       show_gallery: toBool(content.show_gallery ?? true),
       show_leadership: toBool(content.show_leadership ?? true),
       show_contact: toBool(content.show_contact ?? true),
+      show_contact_form: toBool(content.show_contact_form ?? true),
       show_signup: toBool(content.show_signup ?? true),
       show_app_download: toBool(content.show_app_download ?? true),
     },
@@ -507,6 +543,58 @@ export async function submitMembershipForm(
           : status === "ok"
             ? "Your application has been submitted."
             : "Something went wrong submitting your application.";
+      return { status, message };
+    }
+
+    if (!res.ok) {
+      return { status: "error", message: `Request failed with status ${res.status}.` };
+    }
+
+    return { status: "error", message: "Received an unexpected response from the server." };
+  } catch {
+    return {
+      status: "error",
+      message: "Could not reach the server. Please check your connection and try again.",
+    };
+  }
+}
+
+export interface ContactPayload {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+}
+
+export interface ContactResponse {
+  status: "ok" | "error";
+  message: string;
+}
+
+/**
+ * Submits the "Get In Touch" contact form. Never throws — network failures
+ * are translated into a `{ status: 'error' }` response so the form can show
+ * an inline message and preserve the user's entered values.
+ */
+export async function submitContactForm(payload: ContactPayload): Promise<ContactResponse> {
+  try {
+    const res = await fetch(`${API_URL}/api/contactUs`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const json = await res.json().catch(() => null);
+
+    if (json && typeof json === "object" && "status" in json) {
+      const status = (json as { status?: unknown }).status === "ok" ? "ok" : "error";
+      const message =
+        typeof (json as { message?: unknown }).message === "string"
+          ? (json as { message: string }).message
+          : status === "ok"
+            ? "Thank you — your message has been sent."
+            : "Something went wrong sending your message.";
       return { status, message };
     }
 

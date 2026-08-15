@@ -24,7 +24,10 @@ export function EventsSection({ content, events }: { content: LandingContent; ev
             No upcoming events posted yet — check back soon.
           </p>
         ) : (
-          <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            className="mt-14 grid justify-center gap-6"
+            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 360px))" }}
+          >
             {events.map((event, i) => (
               <Reveal key={`${event.id}-${i}`} delay={Math.min(i * 0.06, 0.3)}>
                 <TiltCard className="h-full overflow-hidden rounded-2xl border border-border bg-surface">

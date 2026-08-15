@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { getLandingContent } from "@/lib/api";
+import { buildMetadata, isValidAnalyticsId } from "@/lib/seo";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -20,11 +22,7 @@ const inter = Inter({
 
 export async function generateMetadata(): Promise<Metadata> {
   const { data } = await getLandingContent();
-  const name = data.church.name || "Our Church";
-  return {
-    title: `${name} | Home`,
-    description: data.content.hero_subtitle || `Welcome to ${name}.`,
-  };
+  return buildMetadata(data);
 }
 
 export default async function RootLayout({
@@ -34,6 +32,8 @@ export default async function RootLayout({
 }) {
   const { data } = await getLandingContent();
   const primaryColor = data.content.primary_color;
+  const gaId = data.content.seo_google_analytics_id;
+  const hasAnalytics = isValidAnalyticsId(gaId);
 
   return (
     <html
@@ -47,6 +47,20 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
+        {hasAnalytics && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}');`}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

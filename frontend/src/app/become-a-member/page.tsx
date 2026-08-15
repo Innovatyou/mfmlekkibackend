@@ -4,13 +4,14 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { MembershipHeader } from "@/components/membership/membership-header";
 import { MembershipForm } from "@/components/membership/membership-form";
+import { buildMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { data } = await getLandingContent();
-  return {
+  return buildMetadata(data, {
     title: `Become a Member | ${data.church.name || "Our Church"}`,
     description: "Join our church family — fill out a short form to get started.",
-  };
+  });
 }
 
 export default async function BecomeAMemberPage() {

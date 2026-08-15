@@ -24,7 +24,10 @@ export function SermonsSection({ content, sermons }: { content: LandingContent; 
             No sermons published yet — check back soon.
           </p>
         ) : (
-          <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            className="mt-14 grid justify-center gap-6"
+            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 360px))" }}
+          >
             {sermons.map((sermon, i) => (
               <Reveal key={`${sermon.id}-${i}`} delay={Math.min(i * 0.06, 0.3)}>
                 <a

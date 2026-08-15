@@ -100,9 +100,18 @@ $routes->get('moveMembershipFieldDown/(:num)', 'LandingContent::moveMembershipFi
 $routes->get('api/landingContent', 'LandingApi::landingContent');
 $routes->get('api/membershipForm', 'LandingApi::membershipForm');
 $routes->post('api/joinChurch', 'LandingApi::join');
+$routes->post('api/contactUs', 'LandingApi::contactUs');
 $routes->options('api/landingContent', 'LandingApi::preflight');
 $routes->options('api/membershipForm', 'LandingApi::preflight');
 $routes->options('api/joinChurch', 'LandingApi::preflight');
+$routes->options('api/contactUs', 'LandingApi::preflight');
+
+// Contact messages (admin)
+$routes->get('contactMessages', 'LandingContent::contactMessages', ['filter' => 'auth']);
+$routes->post('getContactMessages', 'LandingContent::getContactMessages', ['filter' => 'auth']);
+$routes->get('viewContactMessage/(:num)', 'LandingContent::viewContactMessage/$1', ['filter' => 'auth']);
+$routes->post('replyContactMessage', 'LandingContent::replyContactMessage', ['filter' => 'auth']);
+$routes->get('deleteContactMessage/(:num)', 'LandingContent::deleteContactMessage/$1', ['filter' => 'auth']);
 
 //audios
 $routes->get('audios', 'Audios::index', ['filter' => 'auth']);

@@ -11,6 +11,7 @@ use App\Models\Photos_model as photosmodel;
 use App\Models\Members_model as membersmodel;
 use App\Models\MembershipForm_model as membershipformmodel;
 use App\Models\Livestream_model as livestreammodel;
+use App\Models\ContactMessage_model as contactmessagemodel;
 
 /**
  * JSON API for the Next.js public frontend.
@@ -158,6 +159,66 @@ class LandingApi extends BaseController
         $this->notifyChurchOfNewSignup($info);
 
         return $this->json(['status' => 'ok', 'message' => 'Thank you! Your membership request has been received and is awaiting review.']);
+    }
+
+    public function contactUs()
+    {
+        $data = $this->get_data();
+        $name = trim((string) ($data->name ?? ''));
+        $email = trim((string) ($data->email ?? ''));
+        $phone = trim((string) ($data->phone ?? ''));
+        $subject = trim((string) ($data->subject ?? ''));
+        $message = trim((string) ($data->message ?? ''));
+
+        if ($name === '' || $email === '' || $message === '') {
+            return $this->json(['status' => 'error', 'message' => 'Please fill in your name, email and message.'], 422);
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return $this->json(['status' => 'error', 'message' => 'Please enter a valid email address.'], 422);
+        }
+
+        $model = new contactmessagemodel();
+        $id = $model->addMessage([
+            'name'    => $name,
+            'email'   => $email,
+            'phone'   => $phone,
+            'subject' => $subject,
+            'message' => $message,
+        ]);
+
+        $this->notifyChurchOfNewContactMessage($name, $email, $phone, $subject, $message);
+
+        return $this->json(['status' => $model->status, 'message' => $model->message]);
+    }
+
+    private function notifyChurchOfNewContactMessage($name, $email, $phone, $subject, $message)
+    {
+        try {
+            $settingsmodel = new settingsmodel();
+            $content = (new landingcontentmodel())->getContent();
+            $church = $settingsmodel->getChurchProfile();
+            $emailconfig = $settingsmodel->getEmailConfig();
+            if (!$church || !$emailconfig || empty($emailconfig->mail_username)) {
+                return;
+            }
+            $recipient = !empty($content->contact_notification_email) ? $content->contact_notification_email : $church->email;
+            $htmlContent = '<p>A new message was submitted through your church website contact form.<br><br>
+                Name: ' . esc($name) . '<br>
+                Email: ' . esc($email) . '<br>'
+                . ($phone !== '' ? 'Phone: ' . esc($phone) . '<br>' : '')
+                . ($subject !== '' ? 'Subject: ' . esc($subject) . '<br>' : '') . '<br>
+                Message:<br>' . nl2br(esc($message)) . '<br><br>
+                Reply from the "Contact Messages" page in your admin dashboard.</p>';
+            $this->sendEmail(
+                'no-reply',
+                $emailconfig,
+                $recipient,
+                'New Contact Form Message' . ($subject !== '' ? ': ' . $subject : ''),
+                $this->getChurchEmailTemplate($church->fullname, $htmlContent)
+            );
+        } catch (\Throwable $e) {
+            log_message('error', 'Contact form notification email failed: ' . $e->getMessage());
+        }
     }
 
     private function notifyChurchOfNewSignup($info)

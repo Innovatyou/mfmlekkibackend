@@ -12,6 +12,7 @@ import { LeadershipSection } from "@/components/sections/leadership-section";
 import { CtaBandSection } from "@/components/sections/cta-band-section";
 import { AppDownloadSection } from "@/components/sections/app-download-section";
 import { ContactSection } from "@/components/sections/contact-section";
+import { buildOrganizationJsonLd } from "@/lib/seo";
 
 export default async function HomePage() {
   const { data, error } = await getLandingContent();
@@ -20,6 +21,10 @@ export default async function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildOrganizationJsonLd(data)) }}
+      />
       <Navbar church={church} content={content} isLive={Boolean(live)} />
 
       <main className="flex-1">

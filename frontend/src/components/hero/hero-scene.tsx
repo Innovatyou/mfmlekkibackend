@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Icosahedron, MeshDistortMaterial, Points, PointMaterial } from "@react-three/drei";
+import { Points, PointMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
 interface SceneProps {
@@ -11,7 +11,7 @@ interface SceneProps {
   parallaxEnabled: boolean;
 }
 
-function ParticleField({ color, count = 380 }: { color: string; count?: number }) {
+function ParticleField({ color, count = 260 }: { color: string; count?: number }) {
   // Random particle placement only needs to happen once per mount, not on
   // every render — a useState lazy initializer (guaranteed by React to run
   // exactly once) is the correct tool here, rather than useMemo, whose
@@ -20,11 +20,11 @@ function ParticleField({ color, count = 380 }: { color: string; count?: number }
   const [positions] = useState(() => {
     const arr = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      const radius = 3.4 + Math.random() * 6.2;
+      const radius = 2.6 + Math.random() * 5.4;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
       arr[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
-      arr[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+      arr[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta) * 0.6;
       arr[i * 3 + 2] = radius * Math.cos(phi);
     }
     return arr;
@@ -34,8 +34,7 @@ function ParticleField({ color, count = 380 }: { color: string; count?: number }
 
   useFrame((_, delta) => {
     if (!ref.current) return;
-    ref.current.rotation.y += delta * 0.025;
-    ref.current.rotation.x += delta * 0.006;
+    ref.current.rotation.y += delta * 0.018;
   });
 
   return (
@@ -43,38 +42,84 @@ function ParticleField({ color, count = 380 }: { color: string; count?: number }
       <PointMaterial
         transparent
         color={color}
-        size={0.045}
+        size={0.05}
         sizeAttenuation
         depthWrite={false}
-        opacity={0.55}
+        opacity={0.5}
       />
     </Points>
   );
 }
 
-function Centerpiece({ primaryColor, isDark }: { primaryColor: string; isDark: boolean }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+/** Nested translucent shells around the core, additively blended, giving a
+ * soft glow falloff instead of a hard silhouette edge. */
+function GlowShell({ color, scale, opacity }: { color: string; scale: number; opacity: number }) {
+  return (
+    <mesh scale={scale}>
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshBasicMaterial
+        color={color}
+        transparent
+        opacity={opacity}
+        side={THREE.BackSide}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  );
+}
 
+/** A slowly rotating wireframe shell — a "sacred geometry" accent that reads
+ * as crisp and intentional at any angle, unlike faceted lit surfaces which
+ * need very particular lighting to avoid looking flat or muddy. */
+function WireframeShell({ color, radius, detail, speed }: { color: string; radius: number; detail: number; speed: number }) {
+  const ref = useRef<THREE.Mesh>(null);
   useFrame((_, delta) => {
-    if (!meshRef.current) return;
-    meshRef.current.rotation.x += delta * 0.09;
-    meshRef.current.rotation.y += delta * 0.13;
+    if (!ref.current) return;
+    ref.current.rotation.y += delta * speed;
+    ref.current.rotation.x += delta * speed * 0.4;
+  });
+  return (
+    <mesh ref={ref}>
+      <icosahedronGeometry args={[radius, detail]} />
+      <meshBasicMaterial color={color} wireframe transparent opacity={0.5} toneMapped={false} />
+    </mesh>
+  );
+}
+
+function Centerpiece({ primaryColor, isDark }: { primaryColor: string; isDark: boolean }) {
+  const coreRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (coreRef.current) {
+      const pulse = 1 + Math.sin(t * 0.6) * 0.05;
+      coreRef.current.scale.setScalar(pulse);
+    }
   });
 
+  const glowColor = isDark ? "#fde68a" : primaryColor;
+  // The core reads as a bright "light" against a light background, but the
+  // same brightness washes out text legibility against a dark background —
+  // dial it back and lean on the primary color glow instead in dark mode.
+  const coreScale = isDark ? 0.5 : 0.85;
+  const coreColor = isDark ? primaryColor : "#fff8ee";
+
   return (
-    <Icosahedron ref={meshRef} args={[1.55, 3]}>
-      <MeshDistortMaterial
-        color={primaryColor}
-        emissive={primaryColor}
-        emissiveIntensity={isDark ? 0.55 : 0.18}
-        distort={0.4}
-        speed={1.4}
-        roughness={0.15}
-        metalness={0.15}
-        transparent
-        opacity={isDark ? 0.88 : 0.92}
-      />
-    </Icosahedron>
+    <group>
+      {/* Bright core — the "light" at the centre of the piece */}
+      <mesh ref={coreRef} scale={coreScale}>
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshBasicMaterial color={coreColor} toneMapped={false} />
+      </mesh>
+
+      <GlowShell color={primaryColor} scale={1.05} opacity={isDark ? 0.32 : 0.55} />
+      <GlowShell color={glowColor} scale={1.3} opacity={isDark ? 0.16 : 0.3} />
+      <GlowShell color={glowColor} scale={1.7} opacity={isDark ? 0.07 : 0.14} />
+
+      <WireframeShell color={primaryColor} radius={1.85} detail={1} speed={0.09} />
+    </group>
   );
 }
 
@@ -85,24 +130,23 @@ function DriftingLights({ primaryColor, isDark }: { primaryColor: string; isDark
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (lightA.current) {
-      lightA.current.intensity = (isDark ? 2.2 : 1.3) + Math.sin(t * 0.5) * 0.45;
+      lightA.current.intensity = (isDark ? 2.4 : 1.5) + Math.sin(t * 0.5) * 0.4;
     }
     if (lightB.current) {
-      lightB.current.intensity = (isDark ? 1.6 : 1) + Math.cos(t * 0.35) * 0.35;
+      lightB.current.intensity = (isDark ? 1.6 : 1) + Math.cos(t * 0.35) * 0.3;
     }
   });
 
   return (
     <>
-      <ambientLight intensity={isDark ? 0.22 : 0.6} />
-      <pointLight ref={lightA} position={[4, 3, 4]} color={primaryColor} intensity={1.3} />
+      <ambientLight intensity={isDark ? 0.3 : 0.7} />
+      <pointLight ref={lightA} position={[4, 3, 4]} color={primaryColor} intensity={1.5} />
       <pointLight
         ref={lightB}
-        position={[-4.5, -2, -2.5]}
-        color={isDark ? "#7dd3fc" : "#fbcfe8"}
+        position={[-4.5, -1.5, -2.5]}
+        color={isDark ? "#fde68a" : "#fff7ed"}
         intensity={1}
       />
-      <directionalLight position={[0, 6, 4]} intensity={isDark ? 0.25 : 0.5} color="#ffffff" />
     </>
   );
 }
@@ -118,8 +162,8 @@ function ParallaxGroup({
 
   useFrame((state) => {
     if (!group.current) return;
-    const targetX = enabled ? state.pointer.y * 0.14 : 0;
-    const targetY = enabled ? state.pointer.x * 0.22 : 0;
+    const targetX = enabled ? state.pointer.y * 0.12 : 0;
+    const targetY = enabled ? state.pointer.x * 0.2 : 0;
     group.current.rotation.x += (targetX - group.current.rotation.x) * 0.05;
     group.current.rotation.y += (targetY - group.current.rotation.y) * 0.05;
   });
@@ -128,16 +172,16 @@ function ParallaxGroup({
 }
 
 export function HeroScene({ primaryColor, isDark, parallaxEnabled }: SceneProps) {
-  const bg = isDark ? "#07070b" : "#fdf8f1";
+  const bg = isDark ? "#0a0808" : "#fdf8f1";
 
   return (
     <>
       <color attach="background" args={[bg]} />
-      <fog attach="fog" args={[bg, 6.5, 15]} />
+      <fog attach="fog" args={[bg, 7, 15]} />
       <DriftingLights primaryColor={primaryColor} isDark={isDark} />
       <ParallaxGroup enabled={parallaxEnabled}>
         <Centerpiece primaryColor={primaryColor} isDark={isDark} />
-        <ParticleField color={primaryColor} />
+        <ParticleField color={isDark ? "#fde68a" : primaryColor} />
       </ParallaxGroup>
     </>
   );

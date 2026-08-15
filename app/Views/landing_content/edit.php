@@ -10,6 +10,10 @@
           <i class="dw dw-user2" style="margin-right:6px;"></i>Signup Requests
           <?php if($pendingCount > 0): ?><span class="lc-nav-badge"><?= $pendingCount ?></span><?php endif; ?>
         </a>
+        <a href="<?= base_url('contactMessages') ?>" class="btn btn-outline-secondary">
+          <i class="dw dw-mail-1" style="margin-right:6px;"></i>Contact Messages
+          <?php if($unreadMessages > 0): ?><span class="lc-nav-badge"><?= $unreadMessages ?></span><?php endif; ?>
+        </a>
         <a href="<?= base_url('/') ?>" target="_blank" class="btn btn-outline-secondary">
           <i class="dw dw-browser" style="margin-right:6px;"></i>View Live Site
         </a>
@@ -53,6 +57,11 @@
             <a class="st-nav-item" data-tab="apps" href="#apps">
               <span class="st-nav-icon"><i class="dw dw-smartphone"></i></span>
               <span class="st-nav-label">Apps &amp; Login</span>
+              <span class="st-nav-arrow"><i class="dw dw-next"></i></span>
+            </a>
+            <a class="st-nav-item" data-tab="seo" href="#seo">
+              <span class="st-nav-icon"><i class="dw dw-search"></i></span>
+              <span class="st-nav-label">SEO</span>
               <span class="st-nav-arrow"><i class="dw dw-next"></i></span>
             </a>
             <a class="st-nav-item" data-tab="branding" href="#branding">
@@ -268,6 +277,35 @@
                 </div>
               </div>
             </div>
+
+            <div class="nf-card" style="margin-top:16px;">
+              <div class="nf-card-head">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <h3 class="nf-card-title">Contact Form</h3>
+                    <p class="nf-card-sub">Submissions land in <a href="<?= base_url('contactMessages') ?>">Contact Messages</a>, and you'll get an email notification</p>
+                  </div>
+                  <label class="lc-toggle"><input type="checkbox" name="show_contact_form" value="1" <?= $content->show_contact_form ? 'checked' : '' ?>><span class="lc-toggle-track"><span class="lc-toggle-thumb"></span></span></label>
+                </div>
+              </div>
+              <div class="nf-card-body">
+                <div class="nf-row" style="margin-bottom:16px;">
+                  <div class="nf-col-half">
+                    <label class="nf-label">Form Title</label>
+                    <input type="text" name="contact_form_title" class="nf-input" value="<?= esc($content->contact_form_title) ?>">
+                  </div>
+                  <div class="nf-col-half">
+                    <label class="nf-label">Form Subtitle</label>
+                    <input type="text" name="contact_form_subtitle" class="nf-input" value="<?= esc($content->contact_form_subtitle) ?>">
+                  </div>
+                </div>
+                <div>
+                  <label class="nf-label">Notify This Email On New Messages</label>
+                  <input type="email" name="contact_notification_email" class="nf-input" value="<?= esc($content->contact_notification_email) ?>" placeholder="Leave blank to use your church's registered email">
+                </div>
+              </div>
+            </div>
+
             <div class="st-panel-footer">
               <button type="submit" class="btn btn-primary nf-submit"><i class="dw dw-check" style="margin-right:6px;"></i>Save Changes</button>
             </div>
@@ -326,6 +364,85 @@
                 <p class="nf-setting-hint">Leave either blank to hide just that badge — the section itself only shows once at least one is filled in.</p>
               </div>
             </div>
+            <div class="st-panel-footer">
+              <button type="submit" class="btn btn-primary nf-submit"><i class="dw dw-check" style="margin-right:6px;"></i>Save Changes</button>
+            </div>
+          </div>
+
+          <!-- ══ SEO ══ -->
+          <div class="st-panel" id="tab-seo">
+            <div class="st-panel-head">
+              <div><h2 class="st-panel-title">SEO &amp; Sharing</h2><p class="st-panel-sub">How your website appears in Google search results and when shared on social media</p></div>
+            </div>
+
+            <div class="nf-card" style="margin-bottom:16px;">
+              <div class="nf-card-head"><h3 class="nf-card-title">Search Engine Listing</h3></div>
+              <div class="nf-card-body">
+                <div style="margin-bottom:16px;">
+                  <label class="nf-label">Meta Title</label>
+                  <input type="text" name="seo_meta_title" class="nf-input" maxlength="70" value="<?= esc($content->seo_meta_title) ?>" placeholder="e.g. Grace Community Church | Home">
+                  <p class="nf-setting-hint">Shown as the blue link text in Google results and the browser tab. Leave blank to use your church name.</p>
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label class="nf-label">Meta Description</label>
+                  <textarea name="seo_meta_description" class="nf-input" rows="3" maxlength="300" placeholder="A short, compelling summary of your church — shown under the title in search results."><?= esc($content->seo_meta_description) ?></textarea>
+                  <p class="nf-setting-hint">Aim for under 160 characters. Leave blank to use the hero subtitle.</p>
+                </div>
+                <div>
+                  <label class="nf-label">Meta Keywords (optional)</label>
+                  <input type="text" name="seo_meta_keywords" class="nf-input" value="<?= esc($content->seo_meta_keywords) ?>" placeholder="church, worship, community, your city">
+                  <p class="nf-setting-hint">Comma-separated. Most search engines ignore this today, but it doesn't hurt to set it.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="nf-card" style="margin-bottom:16px;">
+              <div class="nf-card-head"><h3 class="nf-card-title">Social Sharing Preview</h3></div>
+              <div class="nf-card-body">
+                <label class="nf-label">Preview Image</label>
+                <?php if(!empty($content->seo_og_image)):?>
+                  <div style="margin-bottom:10px;"><img src="<?=esc($content->seo_og_image)?>" style="max-width:280px;border-radius:10px;"></div>
+                <?php endif;?>
+                <label class="nf-upload-zone" style="display:block;margin-bottom:16px;" onclick="document.getElementById('og-image-input').click()">
+                  <div class="nf-upload-icon"><i class="dw dw-upload"></i></div>
+                  <p class="nf-upload-text">Click to upload / replace</p>
+                  <p class="nf-upload-hint">Shown when your site is shared on WhatsApp, Facebook, X, etc. — 1200×630px recommended</p>
+                </label>
+                <input type="file" name="seo_og_image" id="og-image-input" accept=".jpg,.jpeg,.png,.webp" style="display:none;">
+                <div>
+                  <label class="nf-label">X (Twitter) Handle (optional)</label>
+                  <input type="text" name="seo_twitter_handle" class="nf-input" value="<?= esc($content->seo_twitter_handle) ?>" placeholder="@yourchurch">
+                </div>
+              </div>
+            </div>
+
+            <div class="nf-card" style="margin-bottom:16px;">
+              <div class="nf-card-head"><h3 class="nf-card-title">Verification &amp; Analytics</h3></div>
+              <div class="nf-card-body">
+                <div style="margin-bottom:16px;">
+                  <label class="nf-label">Google Site Verification Code (optional)</label>
+                  <input type="text" name="seo_google_site_verification" class="nf-input" value="<?= esc($content->seo_google_site_verification) ?>" placeholder="Paste just the content value from Google Search Console">
+                  <p class="nf-setting-hint">Search Console → Settings → Ownership verification → HTML tag → copy only the "content" value.</p>
+                </div>
+                <div>
+                  <label class="nf-label">Google Analytics Measurement ID (optional)</label>
+                  <input type="text" name="seo_google_analytics_id" class="nf-input" value="<?= esc($content->seo_google_analytics_id) ?>" placeholder="G-XXXXXXXXXX">
+                </div>
+              </div>
+            </div>
+
+            <div class="nf-card">
+              <div class="nf-card-head">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <h3 class="nf-card-title">Allow Search Engines To Index This Site</h3>
+                    <p class="nf-card-sub">Turn off while building or testing so the site doesn't appear in search results yet</p>
+                  </div>
+                  <label class="lc-toggle"><input type="checkbox" name="seo_robots_index" value="1" <?= $content->seo_robots_index ? 'checked' : '' ?>><span class="lc-toggle-track"><span class="lc-toggle-thumb"></span></span></label>
+                </div>
+              </div>
+            </div>
+
             <div class="st-panel-footer">
               <button type="submit" class="btn btn-primary nf-submit"><i class="dw dw-check" style="margin-right:6px;"></i>Save Changes</button>
             </div>

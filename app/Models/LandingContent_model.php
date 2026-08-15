@@ -34,6 +34,7 @@ class LandingContent_model extends Basemodel
     if ($row) {
       $row->hero_image = $row->hero_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->hero_image : "";
       $row->about_image = $row->about_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->about_image : "";
+      $row->seo_og_image = $row->seo_og_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->seo_og_image : "";
     }
 
     return $row;

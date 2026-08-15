@@ -7,6 +7,8 @@ use App\Models\ServiceTimes_model as servicetimesmodel;
 use App\Models\Leadership_model as leadershipmodel;
 use App\Models\Members_model as membersmodel;
 use App\Models\MembershipForm_model as membershipformmodel;
+use App\Models\ContactMessage_model as contactmessagemodel;
+use App\Models\Settings_model as settingsmodel;
 
 class LandingContent extends BaseController
 {
@@ -33,6 +35,7 @@ class LandingContent extends BaseController
         $model = new landingcontentmodel();
         $this->viewdata['content'] = $model->getContent();
         $this->viewdata['pendingCount'] = (new membersmodel())->getPendingSignupsTotal();
+        $this->viewdata['unreadMessages'] = (new contactmessagemodel())->getUnreadTotal();
         return $this->view('landing_content/edit', $this->viewdata);
     }
 
@@ -54,18 +57,21 @@ class LandingContent extends BaseController
             'gallery_title', 'gallery_subtitle',
             'leadership_title', 'leadership_subtitle',
             'contact_title', 'contact_address', 'contact_phone', 'contact_email', 'contact_map_embed',
+            'contact_form_title', 'contact_form_subtitle', 'contact_notification_email',
             'signup_title', 'signup_subtitle',
             'footer_text', 'primary_color',
             'web_app_url', 'web_app_login_text',
             'android_app_url', 'ios_app_url',
             'app_download_title', 'app_download_subtitle',
+            'seo_meta_title', 'seo_meta_description', 'seo_meta_keywords',
+            'seo_twitter_handle', 'seo_google_site_verification', 'seo_google_analytics_id',
         ];
         $info = [];
         foreach ($fields as $f) {
             $info[$f] = $this->request->getVar($f);
         }
 
-        $toggles = ['show_hero', 'show_about', 'show_service_times', 'show_events', 'show_sermons', 'show_live', 'show_gallery', 'show_leadership', 'show_contact', 'show_signup', 'show_app_download'];
+        $toggles = ['show_hero', 'show_about', 'show_service_times', 'show_events', 'show_sermons', 'show_live', 'show_gallery', 'show_leadership', 'show_contact', 'show_contact_form', 'show_signup', 'show_app_download', 'seo_robots_index'];
         foreach ($toggles as $t) {
             $info[$t] = $this->request->getVar($t) ? 1 : 0;
         }
@@ -77,6 +83,10 @@ class LandingContent extends BaseController
         if (!empty($_FILES['about_image']['name'])) {
             $upload = $this->uploadLandingImage('about_image');
             if ($upload) $info['about_image'] = $upload;
+        }
+        if (!empty($_FILES['seo_og_image']['name'])) {
+            $upload = $this->uploadLandingImage('seo_og_image');
+            if ($upload) $info['seo_og_image'] = $upload;
         }
 
         $model->updateContent($info);
@@ -439,5 +449,119 @@ class LandingContent extends BaseController
     {
         (new membershipformmodel())->moveDown($id);
         return redirect()->to(base_url('membershipFormListing'));
+    }
+
+    // ─── Contact Messages ────────────────────────────────────────────
+
+    public function contactMessages()
+    {
+        if (!hasPermission('landing.view') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
+        return $this->view('landing_content/contact_messages', $this->viewdata);
+    }
+
+    public function getContactMessages()
+    {
+        $model = new contactmessagemodel();
+        $draw = intval($_POST['draw']);
+        $start = intval($_POST['start']);
+        $length = intval($_POST['length']);
+        $search = $_POST['search']['value'] ?? '';
+
+        $rows = $model->getListing($search, $start, $length);
+        $total = $model->getTotal($search);
+
+        $statusBadge = [
+            'unread'  => '<span class="badge badge-pill badge-warning">Unread</span>',
+            'read'    => '<span class="badge badge-pill badge-secondary">Read</span>',
+            'replied' => '<span class="badge badge-pill badge-success">Replied</span>',
+        ];
+
+        $dat = [];
+        $count = $start + 1;
+        foreach ($rows as $r) {
+            $actions = '
+                <div style="display:flex;gap:6px;justify-content:center;">
+                  <a href="' . base_url('viewContactMessage/' . $r->id) . '" class="mp-act-btn mp-act-view" title="View / Reply"><i class="dw dw-eye"></i></a>
+                  <a href="javascript:void(0)" class="mp-act-btn mp-act-reject" onclick="cmDelConfirm(' . $r->id . ')" title="Delete"><i class="dw dw-trash"></i></a>
+                </div>';
+
+            $dat[] = [
+                $count,
+                ($r->status === 'unread' ? '<strong>' . esc($r->name) . '</strong>' : esc($r->name))
+                    . '<br><span style="font-size:.75rem;color:var(--t3);">' . esc($r->email) . '</span>',
+                esc($r->subject ?: '(no subject)'),
+                $statusBadge[$r->status] ?? esc($r->status),
+                $r->created_at ? date('M j, Y g:i A', strtotime($r->created_at)) : '—',
+                $actions,
+            ];
+            $count++;
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode([
+            'draw' => $draw,
+            'recordsTotal' => $total,
+            'recordsFiltered' => $total,
+            'data' => $dat,
+        ]);
+    }
+
+    public function viewContactMessage($id = 0)
+    {
+        $model = new contactmessagemodel();
+        $item = $model->getInfo($id);
+        if (!$item) {
+            return redirect()->to(base_url('contactMessages'));
+        }
+        $model->markAsRead($id);
+        $this->viewdata['item'] = $item;
+        return $this->view('landing_content/contact_message_view', $this->viewdata);
+    }
+
+    public function replyContactMessage()
+    {
+        $id = (int) $this->request->getVar('id');
+        $reply = trim((string) $this->request->getVar('reply'));
+        $model = new contactmessagemodel();
+        $item = $model->getInfo($id);
+
+        if (!$item || $reply === '') {
+            $this->session->setFlashdata('error', 'Please write a reply before sending.');
+            return redirect()->to(base_url('viewContactMessage/' . $id));
+        }
+
+        $model->saveReply($id, $reply);
+
+        try {
+            $settingsmodel = new settingsmodel();
+            $church = $settingsmodel->getChurchProfile();
+            $emailconfig = $settingsmodel->getEmailConfig();
+            if ($church && $emailconfig && !empty($emailconfig->mail_username)) {
+                $htmlContent = '<p>Hi ' . esc($item->name) . ',</p><p>' . nl2br(esc($reply)) . '</p>'
+                    . '<p style="color:#888;font-size:.85em;">— In reply to your message' . ($item->subject !== '' ? ' "' . esc($item->subject) . '"' : '') . '</p>';
+                $this->sendEmail(
+                    'no-reply',
+                    $emailconfig,
+                    $item->email,
+                    'Re: ' . ($item->subject ?: 'Your message to ' . $church->fullname),
+                    $this->getChurchEmailTemplate($church->fullname, $htmlContent)
+                );
+            }
+        } catch (\Throwable $e) {
+            log_message('error', 'Contact reply email failed: ' . $e->getMessage());
+        }
+
+        $this->session->setFlashdata('success', 'Reply sent to ' . $item->email . '.');
+        return redirect()->to(base_url('viewContactMessage/' . $id));
+    }
+
+    public function deleteContactMessage($id = 0)
+    {
+        $model = new contactmessagemodel();
+        $model->deleteMessage($id);
+        $this->session->setFlashdata('success', $model->message);
+        return redirect()->to(base_url('contactMessages'));
     }
 }

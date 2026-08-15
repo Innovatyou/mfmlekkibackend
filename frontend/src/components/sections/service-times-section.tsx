@@ -29,7 +29,10 @@ export function ServiceTimesSection({
             Service times will be posted here soon — check back shortly.
           </p>
         ) : (
-          <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            className="mt-14 grid justify-center gap-6"
+            style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 340px))" }}
+          >
             {serviceTimes.map((service, i) => (
               <Reveal key={`${service.id}-${i}`} delay={Math.min(i * 0.06, 0.3)}>
                 <TiltCard className="h-full rounded-2xl border border-border bg-surface p-7">

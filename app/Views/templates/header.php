@@ -416,7 +416,7 @@ if ('serviceWorker' in navigator) {
         </li>
 
         <li class="dropdown">
-          <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'landingcontent') !== false || strpos(strtolower($url), 'servicetimes') !== false || strpos(strtolower($url), 'leadership') !== false || strpos(strtolower($url), 'signuprequests') !== false || strpos(strtolower($url), 'membershipform') !== false) ? 'active' : '' ?>">
+          <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'landingcontent') !== false || strpos(strtolower($url), 'servicetimes') !== false || strpos(strtolower($url), 'leadership') !== false || strpos(strtolower($url), 'signuprequests') !== false || strpos(strtolower($url), 'membershipform') !== false || strpos(strtolower($url), 'contactmessage') !== false) ? 'active' : '' ?>">
             <span class="micon dw dw-browser"></span><span class="mtext">Website</span>
           </a>
           <ul class="submenu">
@@ -425,6 +425,7 @@ if ('serviceWorker' in navigator) {
             <li><a href="<?= base_url() ?>/leadershipListing" <?= strpos(strtolower($url), 'leader') !== false ? 'class="active"' : '' ?>>Leadership</a></li>
             <li><a href="<?= base_url() ?>/membershipFormListing" <?= strpos(strtolower($url), 'membershipfield') !== false || strpos(strtolower($url), 'membershipform') !== false ? 'class="active"' : '' ?>>Membership Form</a></li>
             <li><a href="<?= base_url() ?>/signupRequests" <?= strpos(strtolower($url), 'signuprequests') !== false ? 'class="active"' : '' ?>>Signup Requests</a></li>
+            <li><a href="<?= base_url() ?>/contactMessages" <?= strpos(strtolower($url), 'contactmessage') !== false ? 'class="active"' : '' ?>>Contact Messages</a></li>
           </ul>
         </li>
 

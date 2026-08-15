@@ -2,11 +2,15 @@
 
 import type { LandingContent } from "@/lib/api";
 import { Reveal } from "@/components/ui/reveal";
+import { ContactForm } from "@/components/contact/contact-form";
 import { hasText } from "@/lib/utils";
 
 export function ContactSection({ content }: { content: LandingContent }) {
   const hasDetails =
     hasText(content.contact_address) || hasText(content.contact_phone) || hasText(content.contact_email);
+  const hasMap = hasText(content.contact_map_embed);
+  const showInfo = hasDetails || hasMap;
+  const showForm = content.show_contact_form;
 
   return (
     <section id="contact" className="bg-background py-24">
@@ -17,9 +21,15 @@ export function ContactSection({ content }: { content: LandingContent }) {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-1 gap-10 lg:grid-cols-2">
-          {hasDetails && (
-            <Reveal className="space-y-6">
+        <div
+          className={
+            showInfo && showForm
+              ? "mt-14 grid grid-cols-1 gap-10 lg:grid-cols-2"
+              : "mt-14 flex justify-center"
+          }
+        >
+          {showInfo && (
+            <Reveal className={`space-y-6 ${!showForm ? "w-full max-w-xl" : ""}`}>
               {hasText(content.contact_address) && (
                 <ContactRow icon={<PinIcon />} label="Address" value={content.contact_address} />
               )}
@@ -39,20 +49,34 @@ export function ContactSection({ content }: { content: LandingContent }) {
                   href={`mailto:${content.contact_email}`}
                 />
               )}
+              {hasMap && (
+                <div className="overflow-hidden rounded-2xl border border-border [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:min-h-[280px]">
+                  <div dangerouslySetInnerHTML={{ __html: content.contact_map_embed }} />
+                </div>
+              )}
             </Reveal>
           )}
 
-          {hasText(content.contact_map_embed) && (
-            <Reveal delay={0.1}>
-              <div
-                className="overflow-hidden rounded-2xl border border-border [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:min-h-[320px]"
-                dangerouslySetInnerHTML={{ __html: content.contact_map_embed }}
-              />
+          {showForm && (
+            <Reveal delay={0.1} className={!showInfo ? "w-full max-w-xl" : ""}>
+              {(hasText(content.contact_form_title) || hasText(content.contact_form_subtitle)) && (
+                <div className="mb-5">
+                  {hasText(content.contact_form_title) && (
+                    <h3 className="font-heading text-xl font-semibold text-foreground">
+                      {content.contact_form_title}
+                    </h3>
+                  )}
+                  {hasText(content.contact_form_subtitle) && (
+                    <p className="mt-1.5 text-sm text-muted-foreground">{content.contact_form_subtitle}</p>
+                  )}
+                </div>
+              )}
+              <ContactForm />
             </Reveal>
           )}
         </div>
 
-        {!hasDetails && !hasText(content.contact_map_embed) && (
+        {!showInfo && !showForm && (
           <p className="mt-6 text-center text-muted-foreground">
             Contact details will be added here soon.
           </p>
