@@ -1,0 +1,52 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          port: ${{ secrets.PROD_SSH_PORT }}
+          username: ${{ secrets.PROD_SSH_USERNAME }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -e
+
+            REPO_DIR="${{ secrets.PROD_REPO_DIR }}"       # e.g. /home/USERNAME/repositories/mfmadmin
+            DEPLOY_DIR="${{ secrets.PROD_DEPLOY_DIR }}"   # e.g. /home/USERNAME/public_html/app.mfmlekkiphaseone.org
+
+            # First run on the server: clone once, out-of-band, before this
+            # workflow is ever triggered. See the setup notes for the exact
+            # command. This just keeps that clone in sync from here on.
+            cd "$REPO_DIR"
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Sync into the live document root, but never touch anything
+            # that's environment-specific / not meant to travel through git:
+            # this server has only ever been deployed manually before, so its
+            # current Database.php / App.php / firebase.json / .env are the
+            # real, working production values — not necessarily what's
+            # committed in this repo's history.
+            rsync -a --delete \
+              --exclude='.git' \
+              --exclude='.env' \
+              --exclude='writable' \
+              --exclude='uploads' \
+              --exclude='app/Config/Database.php' \
+              --exclude='app/Config/App.php' \
+              --exclude='firebase.json' \
+              "$REPO_DIR"/ "$DEPLOY_DIR"/
+
+            cd "$DEPLOY_DIR"
+            composer install --no-dev --optimize-autoloader --no-interaction
+            php spark migrate --no-interaction
+            rm -rf writable/cache/*
