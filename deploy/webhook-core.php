@@ -58,8 +58,18 @@ $commands = [
     'rsync -a --delete '
         . "--exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' "
         . "--exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' "
+        . "--exclude='deploy-hook.php' --exclude='deploy.log' --exclude='test.php' "
         . escapeshellarg(rtrim($repoDir, '/') . '/') . ' ' . escapeshellarg(rtrim($deployDir, '/') . '/'),
-    'cd ' . escapeshellarg($deployDir) . ' && composer install --no-dev --optimize-autoloader --no-interaction',
+    // rsync -a preserves the source file's mode bits as they exist in the
+    // git checkout, which have occasionally come through non-world-readable
+    // and made LiteSpeed unable to open .htaccess at all (seen as a site-wide
+    // 500 on every request, including plain static files). Force it back to
+    // a known-good, world-readable mode on every deploy so this can't regress.
+    'chmod 644 ' . escapeshellarg(rtrim($deployDir, '/') . '/.htaccess'),
+    'cd ' . escapeshellarg($deployDir) . ' && (composer install --no-dev --optimize-autoloader --no-interaction'
+        . ' || /usr/local/bin/composer.phar install --no-dev --optimize-autoloader --no-interaction'
+        . ' || /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction'
+        . ' || php $HOME/composer.phar install --no-dev --optimize-autoloader --no-interaction)',
 ];
 if ($runMigrations) {
     $commands[] = 'cd ' . escapeshellarg($deployDir) . ' && php spark migrate --no-interaction';
