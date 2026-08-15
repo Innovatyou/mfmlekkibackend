@@ -2,8 +2,8 @@
 /**
  * Copy this file OUTSIDE the git repo (e.g. to /home/mfmlbbcm/deploy-config.php)
  * and fill in real values. Never commit the filled-in version — it holds
- * your webhook secret. deploy/webhook.php loads it via MFMADMIN_DEPLOY_CONFIG
- * or its own default path.
+ * your webhook secret. deploy/webhook-production.php loads it via
+ * MFMADMIN_DEPLOY_CONFIG or its own default path.
  */
 
 // A long random string — generate one with, e.g., bin2hex(random_bytes(32))
@@ -19,3 +19,8 @@ $repoDir = '/home/mfmlbbcm/repositories/mfmadmin';
 $deployDir = '/home/mfmlbbcm/REPLACE_WITH_REAL_DOCUMENT_ROOT';
 
 $branch = 'main';
+
+// Set to false once you're confident in the pipeline and would rather run
+// production migrations by hand after reviewing them. true for now to
+// match what was chosen when this was set up.
+$runMigrations = true;

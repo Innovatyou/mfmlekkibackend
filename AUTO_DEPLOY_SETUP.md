@@ -1,134 +1,200 @@
-# Auto-deploy setup — app.mfmlekkiphaseone.org
+# Auto-deploy setup
 
-SSH turned out not to be network-reachable on this hosting account (timed
-out against both the domain and the shared IP `199.188.200.152`, on ports
-22 and 2222). So this uses a webhook instead: GitHub calls a small PHP
-script (`deploy/webhook.php`) over plain HTTPS on every push, and that
-script does the `git pull` + deploy using PHP's `exec()` — no SSH needed.
+SSH isn't network-reachable on this hosting account (timed out against
+both the domain and the shared IP `199.188.200.152`, on ports 22 and
+2222), so this uses a webhook instead: GitHub calls a small PHP script on
+your server over plain HTTPS on every push, and that script does the
+`git pull` + deploy using PHP's `exec()` — no SSH needed.
 
 cPanel account: username `mfmlbbcm`, home directory `/home/mfmlbbcm`.
 
-**Read the whole thing before running anything for real.** The first sync
-(step 6) is the one that can silently delete files if skipped.
+Two independent deploy targets, sharing the same core logic
+(`deploy/webhook-core.php`):
+
+| | Staging | Production |
+|---|---|---|
+| Domain | `church.mfmlekkiphaseone.org` (new) | `app.mfmlekkiphaseone.org` (live) |
+| Branch | `upgrade/churchbackend-merge` | `main` |
+| Entry script | `deploy/webhook-staging.php` | `deploy/webhook-production.php` |
+| Config file | `/home/mfmlbbcm/church-deploy-config.php` | `/home/mfmlbbcm/deploy-config.php` |
+| Database | fresh, to be created | existing production DB |
+
+**Do staging first.** It's where the whole pipeline (including automatic
+migrations) gets proven safe before it ever touches the real site.
 
 ---
 
-## 1. Find the live document root
+## Staging — church.mfmlekkiphaseone.org
 
-cPanel → **Domains**. Find `app.mfmlekkiphaseone.org` in the list and copy
-its **Document Root** column exactly — you'll need it in step 3 and 4.
+### 1. Create the subdomain
+cPanel → **Domains → Create A New Domain**. Domain: `church.mfmlekkiphaseone.org`.
+Note the **document root** cPanel assigns (it'll suggest one — you can
+accept the default).
 
-## 2. Set up the git clone via cPanel (no SSH needed)
+### 2. Create a fresh database
+cPanel → **MySQL® Databases**.
+- Create a new database (e.g. `mfmlbbcm_churchstaging`)
+- Create a new database user with its own password
+- Add that user to the new database with **All Privileges**
 
+Keep the database name, username, and password — you'll need them in step 6.
+
+### 3. Clone the repo
 cPanel → **Git™ Version Control → Create**.
-
 - Clone URL: `https://github.com/Innovatyou/mfmlekkibackend.git`
-- Repository Path: `/home/mfmlbbcm/repositories/mfmadmin`
-- Branch: `main`
+- Repository Path: `/home/mfmlbbcm/repositories/church-staging`
+- Branch: `upgrade/churchbackend-merge`
 
-If the repo is private, GitHub will ask for credentials — use a
-[fine-grained Personal Access Token](https://github.com/settings/tokens)
-scoped to read-only on this one repo, not your real password.
+(Private repo → use a [fine-grained Personal Access Token](https://github.com/settings/tokens),
+read-only, scoped to just this repo — not your GitHub password.)
 
-## 3. Create the deploy config (holds the secret — never goes in git)
-
-In cPanel's **File Manager**, create `/home/mfmlbbcm/deploy-config.php`
-with this content (copy `deploy/deploy-config.example.php` from the repo
-after step 2 and edit it in place, or just paste this directly):
+### 4. Create the staging config
+cPanel File Manager → create `/home/mfmlbbcm/church-deploy-config.php`:
 
 ```php
 <?php
-$secret    = 'PASTE_A_LONG_RANDOM_STRING_HERE';
-$repoDir   = '/home/mfmlbbcm/repositories/mfmadmin';
-$deployDir = '/home/mfmlbbcm/PASTE_THE_DOCUMENT_ROOT_FROM_STEP_1';
-$branch    = 'main';
+$secret        = 'PASTE_A_DIFFERENT_LONG_RANDOM_SECRET_THAN_PRODUCTION';
+$repoDir       = '/home/mfmlbbcm/repositories/church-staging';
+$deployDir     = '/home/mfmlbbcm/PASTE_STAGING_DOCUMENT_ROOT_FROM_STEP_1';
+$branch        = 'upgrade/churchbackend-merge';
+$runMigrations = true;
 ```
 
-Generate the random secret with cPanel's **Terminal** if available, or ask
-me and I'll generate one for you to paste in (it doesn't need to be typed
-by hand — any long random string works, it just has to match what you put
-in GitHub in step 5).
+Ask me for a random secret if you'd rather not generate one by hand.
 
-## 4. Point the webhook script at that config, and make it web-reachable
+### 5. Make the webhook reachable
+Copy `/home/mfmlbbcm/repositories/church-staging/deploy/webhook-staging.php`
+→ into the staging document root as `deploy-hook.php`.
 
-The webhook script (`deploy/webhook.php` in the repo) already looks for
-the config at `/home/mfmlbbcm/deploy-config.php` by default, matching step
-3 — no edit needed there.
+Public URL: `https://church.mfmlekkiphaseone.org/deploy-hook.php`
 
-It needs to be reachable at a URL. Since it lives inside the git clone at
-`/home/mfmlbbcm/repositories/mfmadmin/deploy/webhook.php`, which is
-**outside** the document root, it isn't web-accessible yet. Simplest fix:
-in cPanel's File Manager, create a **symlink** from inside your document
-root to it — e.g. if the document root is `/home/mfmlbbcm/public_html/app`:
-
-```
-/home/mfmlbbcm/public_html/app/deploy-hook.php  →  /home/mfmlbbcm/repositories/mfmadmin/deploy/webhook.php
-```
-
-(cPanel File Manager doesn't always expose "create symlink" directly — if
-not, cPanel's Terminal can do `ln -s /home/mfmlbbcm/repositories/mfmadmin/deploy/webhook.php /home/mfmlbbcm/public_html/app/deploy-hook.php`,
-or just copy the file there manually and re-copy it after any future
-change to `deploy/webhook.php` itself.)
-
-Its public URL will then be something like:
-`https://app.mfmlekkiphaseone.org/deploy-hook.php`
-
-## 5. Add the GitHub webhook
-
-Repo → **Settings → Webhooks → Add webhook**.
-
-- Payload URL: the URL from step 4
+### 6. Add the GitHub webhook
+Repo → **Settings → Webhooks → Add webhook**
+- Payload URL: `https://church.mfmlekkiphaseone.org/deploy-hook.php`
 - Content type: `application/json`
-- Secret: the same random string from step 3
-- Which events: **Just the push event**
-- Active: checked
+- Secret: the one from step 4
+- Events: **Just the push event**
 
-## 6. Dry-run the sync before trusting it
+### 7. First push — expect it to partially fail, that's normal
+Push any commit to `upgrade/churchbackend-merge` (or use GitHub's webhook
+page → **Recent Deliveries → Redeliver**). The code will sync
+successfully, but `php spark migrate` will fail — there's no
+`app/Config/Database.php` yet, since that file is deliberately excluded
+from every sync. Check `deploy/deploy.log` in the staging document root
+to confirm that's what happened (not something else).
 
-Before the webhook ever fires for real, check what it *would* do. If
-cPanel's Terminal is available, run this from `/home/mfmlbbcm`:
+### 8. Staging: first-time config (only once)
+Now that the code is there, cPanel File Manager → in the staging document
+root, create/edit:
+
+- **`app/Config/Database.php`** — set `'database'` to the DB name from
+  step 2, `'username'`/`'password'` to that DB user's credentials,
+  `'hostname' => 'localhost'`.
+- **`app/Config/App.php`** — set `$baseURL = 'https://church.mfmlekkiphaseone.org/';`
+- **`.env`** — at minimum, add the license-activation block so the
+  `License` filter doesn't lock you out:
+  ```
+  ACTIVATION_CODE = "DEV-OWNER-INSTALL"
+  ACTIVATION_STATUS = "activated"
+  ACTIVATION_LAST_VERIFIED = "9999999999"
+  LICENSE_SERVER_URL = "https://your-license-server.com"
+  ```
+
+Then push another trivial commit (or redeliver the webhook again) — this
+time `php spark migrate` should succeed and build out the full schema
+fresh, since the database is empty. Check `deploy/deploy.log` again to
+confirm.
+
+### 9. Validate
+- Visit `https://church.mfmlekkiphaseone.org/login` — should load
+- Check `deploy/deploy.log` shows a clean run top to bottom
+- Try a couple of admin pages, and the new modules (Marketplace,
+  Counseling, etc.) if you want to exercise them
+
+Once staging looks right, you've proven the whole pipeline end to end —
+sync, exclusions, composer, migrations — without any risk to the live site.
+
+---
+
+## Production — app.mfmlekkiphaseone.org
+
+Only do this once staging has been running cleanly for a while and you're
+intentionally ready to commit to it. This is the actual "go live" step
+flagged earlier (unreviewed migrations and licensing changes going out to
+real production).
+
+### 1. Find the live document root
+cPanel → **Domains** → find `app.mfmlekkiphaseone.org` → copy its
+**Document Root** column.
+
+### 2. Clone the repo
+cPanel → **Git™ Version Control → Create**.
+- Clone URL: `https://github.com/Innovatyou/mfmlekkibackend.git`
+- Repository Path: `/home/mfmlbbcm/repositories/mfmadmin`
+- Branch: `main` (merge `upgrade/churchbackend-merge` into `main` first,
+  if you haven't already — this repo won't have any of the new work on
+  `main` until that PR is merged)
+
+### 3. Create the production config
+cPanel File Manager → create `/home/mfmlbbcm/deploy-config.php`:
+
+```php
+<?php
+$secret        = '73bcd32e3c6909e733c95fcff6f18e17fa785d30cac333f77a471d8fe08d907d';
+$repoDir       = '/home/mfmlbbcm/repositories/mfmadmin';
+$deployDir     = '/home/mfmlbbcm/app';
+$branch        = 'main';
+$runMigrations = true;
+```
+
+(That secret was already generated earlier in this setup — reuse it, or
+generate a fresh one; either is fine as long as it matches step 5.)
+
+### 4. Make the webhook reachable
+Copy `/home/mfmlbbcm/repositories/mfmadmin/deploy/webhook-production.php`
+→ into `/home/mfmlbbcm/app/deploy-hook.php`.
+
+Public URL: `https://app.mfmlekkiphaseone.org/deploy-hook.php`
+
+### 5. Add the GitHub webhook
+Same as staging, but Payload URL `https://app.mfmlekkiphaseone.org/deploy-hook.php`
+and the secret from step 3.
+
+### 6. Dry-run the sync before trusting it — do not skip this
+Unlike staging, this server already has real production config and real
+user data. Before the webhook ever fires for real, if cPanel's Terminal
+is available:
 
 ```bash
 rsync -a --delete --dry-run \
   --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' \
   --exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' \
-  repositories/mfmadmin/ PASTE_THE_DOCUMENT_ROOT_FROM_STEP_1/
+  repositories/mfmadmin/ app/
 ```
 
-`--dry-run` prints what would happen without touching anything. Anything
-listed under a `deleting` line exists live but not in this repo — since
-this server has only ever been deployed manually before, review that list
-carefully before letting the real sync (which the webhook runs
-automatically) delete anything you don't recognize.
+Anything listed under a `deleting` line exists live but isn't in this
+repo. Since this server has only ever been deployed manually before,
+review that list before letting the real sync delete anything you don't
+recognize.
 
-If Terminal isn't available either, the very first automatic deploy *is*
-your first real run — reasonable to accept given this is a
-straightforward CodeIgniter app, but check `deploy/deploy.log` (created
-next to `webhook.php` after the first run) right after the first push to
-main, to confirm it did what you expected.
-
-## 7. Test it
-
-Push a trivial commit to `main` (or use GitHub's webhook page → **Recent
-Deliveries → Redeliver** to replay the last push). Check:
-- GitHub's webhook delivery log shows a `200` response
-- `deploy/deploy.log` on the server shows the commands and their output
-- The site still loads correctly
+### 7. Test
+Push to `main`, check `deploy/deploy.log` in `/home/mfmlbbcm/app/`, check
+the webhook delivery shows `200` in GitHub, check the live site still works.
 
 ---
 
-## Rolling back
+## Rolling back (either target)
 
-The webhook doesn't roll back on failure automatically. If a deploy
-breaks production, via cPanel Terminal (or ask me to walk you through
-File Manager equivalents if Terminal isn't available):
+The webhook doesn't roll back on failure automatically. Via cPanel
+Terminal (or ask me to walk through File Manager equivalents if Terminal
+isn't available):
 
 ```bash
-cd /home/mfmlbbcm/repositories/mfmadmin
+cd /home/mfmlbbcm/repositories/<mfmadmin-or-church-staging>
 git reset --hard <last-good-commit>
 rsync -a --delete \
   --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' \
   --exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' \
-  ./ /path/to/document/root/
-php spark migrate --version <corresponding-earlier-migration>  # if needed, in the document root
+  ./ /path/to/that/document/root/
+php spark migrate --version <corresponding-earlier-migration>  # if needed
 ```

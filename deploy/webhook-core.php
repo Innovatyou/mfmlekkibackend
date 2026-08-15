@@ -1,28 +1,26 @@
 <?php
 /**
- * GitHub webhook receiver — deploys mfmadmin to production on push to main.
+ * Shared logic for the GitHub webhook deploy receivers. Not called
+ * directly — see webhook-production.php / webhook-staging.php, which
+ * each set $configPath then include this file.
  *
  * No SSH needed: this runs as a normal PHP request under the hosting
  * account, using exec() to run git/rsync/composer/spark the same way a
  * human would over SSH.
- *
- * One-time setup: see AUTO_DEPLOY_SETUP.md. In short —
- *  1. Copy deploy/deploy-config.example.php to a location OUTSIDE this
- *     repo (e.g. /home/mfmlbbcm/deploy-config.php) and fill in real values.
- *     Never commit that file — it holds your webhook secret.
- *  2. Point a GitHub webhook (Settings > Webhooks) at this file's public
- *     URL, content type application/json, secret matching the config,
- *     "Just the push event".
  */
 
-$configPath = getenv('MFMADMIN_DEPLOY_CONFIG') ?: '/home/mfmlbbcm/deploy-config.php';
+if (!isset($configPath)) {
+    http_response_code(500);
+    exit('webhook-core.php included without $configPath set.');
+}
 if (!is_file($configPath)) {
     http_response_code(500);
     exit('Deploy config not found. See AUTO_DEPLOY_SETUP.md.');
 }
 require $configPath;
-// Expects $secret, $repoDir, $deployDir, $branch (all strings) to be
-// defined by the config file above.
+// Expects $secret, $repoDir, $deployDir, $branch, and optionally
+// $runMigrations (bool, default true) to be defined by the config file.
+$runMigrations = $runMigrations ?? true;
 
 function respond(int $code, string $msg): never
 {
@@ -48,13 +46,12 @@ if (!isset($data['ref']) || $data['ref'] !== "refs/heads/$branch") {
 
 $logFile = __DIR__ . '/deploy.log';
 $log = fopen($logFile, 'a');
-fwrite($log, "\n==== Deploy triggered " . date('c') . " ====\n");
+fwrite($log, "\n==== Deploy triggered " . date('c') . " (target: $deployDir) ====\n");
 
 // Pull into a separate clone first, then rsync into the live document
-// root — never git-reset the live directory directly. This server has
-// only ever been deployed manually/via FTP before, so its current
-// Database.php / App.php / firebase.json / .env are the real working
-// production values, not necessarily what's committed in this repo.
+// root — never git-reset the live directory directly. Once a target has
+// its own real Database.php / App.php / firebase.json / .env in place,
+// those stay excluded here so a deploy never clobbers them.
 $commands = [
     'cd ' . escapeshellarg($repoDir) . ' && git fetch origin ' . escapeshellarg($branch)
         . ' && git reset --hard origin/' . escapeshellarg($branch),
@@ -63,9 +60,11 @@ $commands = [
         . "--exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' "
         . escapeshellarg(rtrim($repoDir, '/') . '/') . ' ' . escapeshellarg(rtrim($deployDir, '/') . '/'),
     'cd ' . escapeshellarg($deployDir) . ' && composer install --no-dev --optimize-autoloader --no-interaction',
-    'cd ' . escapeshellarg($deployDir) . ' && php spark migrate --no-interaction',
-    'rm -rf ' . escapeshellarg(rtrim($deployDir, '/') . '/writable/cache') . '/*',
 ];
+if ($runMigrations) {
+    $commands[] = 'cd ' . escapeshellarg($deployDir) . ' && php spark migrate --no-interaction';
+}
+$commands[] = 'rm -rf ' . escapeshellarg(rtrim($deployDir, '/') . '/writable/cache') . '/*';
 
 foreach ($commands as $cmd) {
     fwrite($log, "\$ $cmd\n");
