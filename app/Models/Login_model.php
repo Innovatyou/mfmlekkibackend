@@ -35,4 +35,19 @@ class Login_model extends Basemodel
 
         return false;
     }
+
+    public function emailExists(string $email): bool
+    {
+        $db  = \Config\Database::connect('default');
+        $row = $db->table('tbl_churches')->where('email', $email)->get()->getRow();
+        return $row !== null;
+    }
+
+    public function updatePassword(string $email, string $password): void
+    {
+        $db = \Config\Database::connect('default');
+        $db->table('tbl_churches')
+           ->where('email', $email)
+           ->update(['password' => password_hash($password, PASSWORD_BCRYPT)]);
+    }
 }

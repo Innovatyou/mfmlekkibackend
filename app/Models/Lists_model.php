@@ -17,42 +17,39 @@ class Lists_model extends Basemodel
   }
 
 
-  function listsListing($apitoken)
+  function listsListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_lists');
     $builder->select('tbl_lists.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('date', 'DESC');
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->count = $this->getListMembersCount($res->id, $apitoken);
+      $res->count = $this->getListMembersCount($res->id);
     }
     return $result;
   }
 
-  function listsListingbybranch($apitoken)
+  function listsListingbybranch()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_lists');
     $builder->select('tbl_lists.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('date', 'DESC');
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->count = $this->getListMembersCount($res->id, $apitoken);
+      $res->count = $this->getListMembersCount($res->id);
     }
     return $result;
   }
 
-  public function getListMembersCount($listid, $apitoken)
+  public function getListMembersCount($listid)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_list_members');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $builder->where('listid', $listid);
     $query = $builder->get();
     $result = $query->getRow(0);
@@ -71,55 +68,50 @@ class Lists_model extends Basemodel
   }
 
 
-  function editList($info, $id, $apitoken)
+  function editList($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_lists');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['edit_list'];
   }
 
 
-  function getListInfo($id, $apitoken)
+  function getListInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_lists');
     $builder->select('tbl_lists.*');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     return $row;
   }
 
-  function deleteList($id, $apitoken)
+  function deleteList($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_lists');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['list_delete_success'];
   }
 
-  function deleteListMembers($listid, $apitoken)
+  function deleteListMembers($listid)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_list_members');
-    $builder->where('apitoken', $apitoken);
     $builder->where('listid', $listid);
     $builder->delete();
   }
 
-  function removeFromList($id, $apitoken)
+  function removeFromList($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_list_members');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $builder->delete();
     $this->status = $this->applocal['ok'];
@@ -128,48 +120,44 @@ class Lists_model extends Basemodel
 
   function addNewListMember($info)
   {
-    if (empty($this->checkMemberListExists($info['email'], $info['listid'], $info['apitoken']))) {
+    if (empty($this->checkMemberListExists($info['email'], $info['listid']))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_list_members');
       $builder->insert($info);
     }
   }
 
-  function checkMemberListExists($email, $listid, $apitoken)
+  function checkMemberListExists($email, $listid)
   {
-    //echo $name . " and ". $group;
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_list_members');
     $builder->select("id");
-    $builder->where('apitoken', $apitoken);
     $builder->where("email", $email);
     $builder->where("listid", $listid);
     $query = $builder->get();
     return $query->getResult();
   }
 
-  function listsMembersListing($listid, $apitoken)
+  function listsMembersListing($listid)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_list_members');
     $builder->select('tbl_list_members.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where("listid", $listid);
     $builder->orderBy('date', 'DESC');
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->name = $this->getMemberName($res->email, $apitoken);
+      $res->name = $this->getMemberName($res->email);
     }
     return $result;
   }
 
-  function getMemberName($email, $apitoken)
+  function getMemberName($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.firstname, tbl_members.lastname');
-    $builder->where('apitoken', $apitoken);
     $builder->where('email', $email);
     $query = $builder->get();
     $row = $query->getRow(0);
@@ -180,19 +168,17 @@ class Lists_model extends Basemodel
     }
   }
 
-  function fetchMembersNotinList($list, $apitoken)
+  function fetchMembersNotinList($list)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.*');
-    $builder->where('apitoken', $apitoken);
-    $subQuery = $db->table('tbl_list_members')->select('email')->where('apitoken', $apitoken)->where('listid', $list->id)->get();
+    $subQuery = $db->table('tbl_list_members')->select('email')->where('listid', $list->id)->get();
     $items = $subQuery->getResult();
     $_itms = [];
     foreach ($items as $ress) {
       array_push($_itms, $ress->email);
     }
-    //var_dump($_itms); die;
     if (count($items) > 0) {
       $builder->whereNotIn('email', $_itms);
     }
@@ -200,21 +186,20 @@ class Lists_model extends Basemodel
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->name = $this->getMemberName($res->email, $apitoken);
+      $res->name = $this->getMemberName($res->email);
     }
     return $result;
   }
 
-  function getBranchMembers($apitoken)
+  function getBranchMembers()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.*');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->name = $this->getMemberName($res->email, $apitoken);
+      $res->name = $this->getMemberName($res->email);
     }
     return $result;
   }

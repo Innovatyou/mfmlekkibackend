@@ -8,7 +8,6 @@ use App\Models\Groups_model as groupsmodel;
 class Groups extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -17,7 +16,6 @@ class Groups extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
       exit();
@@ -27,7 +25,7 @@ class Groups extends BaseController
   public function index()
   {
     $groupsmodel = new groupsmodel();
-    $this->viewdata['groups'] = $groupsmodel->groupsListing($this->apitoken);
+    $this->viewdata['groups'] = $groupsmodel->groupsListing();
     return $this->view("groups/listing", $this->viewdata);
   }
 
@@ -39,7 +37,7 @@ class Groups extends BaseController
   public function editGroup($id = 0)
   {
     $groupsmodel = new groupsmodel();
-    $this->viewdata['group'] = $groupsmodel->getGroupInfo($id, $this->apitoken);
+    $this->viewdata['group'] = $groupsmodel->getGroupInfo($id);
     if (count((array)$this->viewdata['group']) == 0) {
       return redirect()->to(base_url() . '/groups');
     }
@@ -55,7 +53,6 @@ class Groups extends BaseController
     $location = $this->request->getVar('location');
     $time = $this->request->getVar('time');
     $info = array(
-      'apitoken' => $this->apitoken,
       'leader' => $leader,
       'title' => $title,
       'description' => $description,
@@ -98,7 +95,7 @@ class Groups extends BaseController
       'location' => $location,
       'time' => $time,
     );
-    $groupsmodel->editGroup($info, $id, $this->apitoken);
+    $groupsmodel->editGroup($info, $id);
     if ($groupsmodel->status == "ok") {
       $this->session->setFlashdata('success', $groupsmodel->message);
     } else {
@@ -112,8 +109,8 @@ class Groups extends BaseController
   function deleteGroup($id = 0)
   {
     $groupsmodel = new groupsmodel();
-    $groupsmodel->deleteGroupMembers($id, $this->apitoken);
-    $groupsmodel->deleteGroup($id, $this->apitoken);
+    $groupsmodel->deleteGroupMembers($id);
+    $groupsmodel->deleteGroup($id);
     if ($groupsmodel->status == "ok") {
       $this->session->setFlashdata('success', $groupsmodel->message);
     } else {
@@ -128,8 +125,8 @@ class Groups extends BaseController
     $info = array(
       'status' => $status,
     );
-    $groupsmodel->editMemberStatus($info, $id, $this->apitoken);
-    $group = $groupsmodel->getGroupMemberInfo($id, $this->apitoken);
+    $groupsmodel->editMemberStatus($info, $id);
+    $group = $groupsmodel->getGroupMemberInfo($id);
     if ($groupsmodel->status == "ok") {
       $this->session->setFlashdata('success', $groupsmodel->message);
     } else {
@@ -141,7 +138,7 @@ class Groups extends BaseController
   function removeFromGroup($id, $groupid)
   {
     $groupsmodel = new groupsmodel();
-    $groupsmodel->removeFromGroup($id, $this->apitoken);
+    $groupsmodel->removeFromGroup($id);
     if ($groupsmodel->status == "ok") {
       $this->session->setFlashdata('success', $groupsmodel->message);
     } else {
@@ -153,22 +150,22 @@ class Groups extends BaseController
   public function viewGroupMembers($groupid)
   {
     $groupsmodel = new groupsmodel();
-      $this->viewdata['group'] = $groupsmodel->getGroupInfo($groupid, $this->apitoken);
+      $this->viewdata['group'] = $groupsmodel->getGroupInfo($groupid);
     if (count((array)$this->viewdata['group']) == 0) {
       return redirect()->to(base_url() . '/groups');
     }
-      $this->viewdata['members'] = $groupsmodel->groupsMembersListing($groupid, $this->apitoken);
+      $this->viewdata['members'] = $groupsmodel->groupsMembersListing($groupid);
     return $this->view("groups/members", $this->viewdata);
   }
 
   public function addMemberstoGroup($groupid)
   {
     $groupsmodel = new groupsmodel();
-      $this->viewdata['group'] = $groupsmodel->getGroupInfo($groupid, $this->apitoken);
+      $this->viewdata['group'] = $groupsmodel->getGroupInfo($groupid);
     if (count((array)$this->viewdata['group']) == 0) {
       return redirect()->to(base_url() . '/groups');
     }
-      $this->viewdata['members'] = $groupsmodel->fetchMembersNotinGroup($this->viewdata['group'], $this->apitoken);
+      $this->viewdata['members'] = $groupsmodel->fetchMembersNotinGroup($this->viewdata['group']);
     //var_dump($data); die;
     return $this->view("groups/addmembers", $this->viewdata);
   }
@@ -181,7 +178,6 @@ class Groups extends BaseController
     if ($members != NULL && $members != "" && count($members) > 0) {
       foreach ($members as $itm) {
         $info2 = array(
-          'apitoken' => $this->apitoken,
           'groupid' => $groupid,
           'email' => $itm,
         );
@@ -198,11 +194,11 @@ class Groups extends BaseController
   public function groupEvents($groupid)
   {
     $groupsmodel = new groupsmodel();
-      $this->viewdata['group'] = $groupsmodel->getGroupInfo($groupid, $this->apitoken);
+      $this->viewdata['group'] = $groupsmodel->getGroupInfo($groupid);
     if (count((array)$this->viewdata['group']) == 0) {
       return redirect()->to(base_url() . '/groups');
     }
-      $this->viewdata['events'] = $groupsmodel->groupEventsListing($groupid, $this->apitoken);
+      $this->viewdata['events'] = $groupsmodel->groupEventsListing($groupid);
     //var_dump($data['members']); die;
       $this->viewdata['groupid'] = $groupid;
     return $this->view("groups/events/listing", $this->viewdata);
@@ -219,7 +215,7 @@ class Groups extends BaseController
   public function editEvent($id = 0)
   {
     $groupsmodel = new groupsmodel();
-      $this->viewdata['event'] = $groupsmodel->getEventInfo($id, $this->apitoken);
+      $this->viewdata['event'] = $groupsmodel->getEventInfo($id);
     if (count((array)$this->viewdata['event']) == 0) {
       return redirect()->to(base_url() . '/events');
     }
@@ -248,7 +244,6 @@ class Groups extends BaseController
       $day =  $_date->format("d") + 0;
       $info = array(
         'groupid' => $groupid,
-        'apitoken' => $this->apitoken,
         'title' => $title,
         'details' => $details,
         'date' => $date,
@@ -311,7 +306,7 @@ class Groups extends BaseController
       }
     }
 
-    $groupsmodel->editEvent($info, $id, $this->apitoken);
+    $groupsmodel->editEvent($info, $id);
     if ($groupsmodel->status == "ok") {
       $this->session->setFlashdata('success', $groupsmodel->message);
     } else {
@@ -325,12 +320,12 @@ class Groups extends BaseController
   function deleteEvent($id = 0)
   {
     $groupsmodel = new groupsmodel();
-    $event = $groupsmodel->getEventInfo($id, $this->apitoken);
+    $event = $groupsmodel->getEventInfo($id);
     if (!$event) {
       return redirect()->to(base_url() . '/groups');
     }
     $groupid = $event->groupid;
-    $groupsmodel->deleteEvent($id, $this->apitoken);
+    $groupsmodel->deleteEvent($id);
     //var_dump($events); die;
     if ($groupsmodel->status == "ok") {
       $this->session->setFlashdata('success', $groupsmodel->message);
@@ -343,8 +338,8 @@ class Groups extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/events/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/events/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/events/')) {
+      mkdir('./uploads/thumbnails/events/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -359,7 +354,7 @@ class Groups extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('thumbnail');
-      $img->move('./uploads/thumbnails/events/' . $this->apitoken);
+      $img->move('./uploads/thumbnails/events/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

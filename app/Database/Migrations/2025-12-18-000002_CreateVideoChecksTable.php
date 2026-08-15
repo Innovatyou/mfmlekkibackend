@@ -21,12 +21,6 @@ class CreateVideoChecksTable extends Migration
                 'null' => false,
                 'comment' => 'YouTube video ID',
             ],
-            'apitoken' => [
-                'type' => 'VARCHAR',
-                'constraint' => 500,
-                'null' => false,
-                'comment' => 'API token used for the check',
-            ],
             'is_embeddable' => [
                 'type' => 'TINYINT',
                 'constraint' => 1,
@@ -70,8 +64,7 @@ class CreateVideoChecksTable extends Migration
         ]);
 
         $this->forge->addKey('id', false, false, 'PRIMARY');
-        $this->forge->addUniqueKey(['video_id', 'apitoken'], 'unique_video_apitoken');
-        $this->forge->addKey('video_id', false, false, 'idx_video_id');
+        $this->forge->addUniqueKey('video_id', 'unique_video_id');
         $this->forge->addKey('created_at', false, false, 'idx_created_at');
 
         $this->forge->createTable('tbl_video_checks', true);

@@ -6,11 +6,11 @@ use App\Models\Basemodel;
 
 class YouTube_model extends Basemodel
 {
-    public function getCheck($video_id, $apitoken)
+    public function getCheck($video_id)
     {
         try {
             $db = \Config\Database::connect('default');
-            
+
             // Check if table exists
             if (!$db->tableExists('tbl_video_checks')) {
                 if (function_exists('log_message')) {
@@ -18,11 +18,10 @@ class YouTube_model extends Basemodel
                 }
                 return null;
             }
-            
+
             $builder = $db->table('tbl_video_checks');
             $builder->select('*');
             $builder->where('video_id', $video_id);
-            $builder->where('apitoken', $apitoken);
             $query = $builder->get();
             
             if (!$query) {
@@ -39,11 +38,11 @@ class YouTube_model extends Basemodel
         }
     }
 
-    public function setCheck($video_id, $apitoken, $is_embeddable, $reason = null, $privacy_status = null, $content_details = null)
+    public function setCheck($video_id, $is_embeddable, $reason = null, $privacy_status = null, $content_details = null)
     {
         try {
             $db = \Config\Database::connect('default');
-            
+
             // Check if table exists
             if (!$db->tableExists('tbl_video_checks')) {
                 if (function_exists('log_message')) {
@@ -51,13 +50,12 @@ class YouTube_model extends Basemodel
                 }
                 return false;
             }
-            
+
             $builder = $db->table('tbl_video_checks');
             $now = date('Y-m-d H:i:s');
 
             $data = [
                 'video_id' => $video_id,
-                'apitoken' => $apitoken,
                 'is_embeddable' => $is_embeddable ? 1 : 0,
                 'reason' => $reason,
                 'privacy_status' => $privacy_status,
@@ -67,7 +65,7 @@ class YouTube_model extends Basemodel
             ];
 
             // Upsert
-            $exists = $this->getCheck($video_id, $apitoken);
+            $exists = $this->getCheck($video_id);
             if ($exists) {
                 $builder->where('id', $exists->id);
                 $builder->update($data);

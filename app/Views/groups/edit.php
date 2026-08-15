@@ -1,74 +1,54 @@
 <div class="main-container">
-  <div class="pd-ltr-20 xs-pd-20-10">
-    <div class="min-height-200px">
-      <div class="page-header">
-        <div class="row">
-          <div class="col-md-6 col-sm-12">
-            <div class="title">
-              <h4><?php echo $locale['groups']; ?></h4>
-            </div>
-            <nav aria-label="breadcrumb" role="navigation">
-              <ol class="breadcrumb">
-                <li class="breadcrumb-item active" aria-current="page"><?php echo $locale['edit_details']; ?></li>
-              </ol>
-            </nav>
-          </div>
-
-        </div>
+  <div class="xs-pd-20-10 pd-ltr-20">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><?= $locale['groups'] ?></h1>
+        <nav class="lt-bc"><a href="<?= base_url() ?>">Dashboard</a><span>/</span><a href="<?= base_url('groups') ?>"><?= $locale['groups'] ?></a><span>/</span><span><?= $locale['edit_details'] ?></span></nav>
       </div>
-      <!-- Default Basic Forms Start -->
-      <div class="pd-20 card-box mb-30">
-        <div class="pd-20 card-box mb-30">
-          <?= view('_flash') ?>
-
-          <form method="POST" action="<?php echo base_url(); ?>/editGroupData" enctype="multipart/form-data" style="margin-top:30px;">
-
-
-            <input type="hidden" name="id" value="<?php echo $group->id; ?>">
-            <div class="form-group" style="margin-top:20px;">
-              <label><?php echo $locale['group_leader_name']; ?> </label>
-              <div class="form-line">
-                <input type="text" value="<?php echo $group->leader; ?>" class="form-control" name="leader" placeholder="<?php echo $locale['group_leader_name']; ?>" required="" autofocus="">
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-top:20px;">
-              <label> <?php echo $locale['group_title']; ?></label>
-              <div class="form-line">
-                <input type="text" value="<?php echo $group->title; ?>" class="form-control" name="title" placeholder="<?php echo $locale['group_title']; ?>" required="" autofocus="">
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-top:20px;">
-              <label><?php echo $locale['group_desc']; ?> </label>
-              <div class="form-line">
-                <textarea type="text" class="form-control" name="description" placeholder="<?php echo $locale['group_desc']; ?>" required="" autofocus="" rows="5"><?php echo $group->description; ?></textarea>
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-top:20px;">
-              <label><?php echo $locale['group_meeting_loc']; ?> </label>
-              <div class="form-line">
-                <input type="text" value="<?php echo $group->location; ?>" class="form-control" name="location" placeholder="<?php echo $locale['group_meeting_loc']; ?>" required="" autofocus="">
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-top:20px;">
-              <label><?php echo $locale['meeting_days_extra']; ?> </label>
-              <div class="form-line">
-                <input type="text" value="<?php echo $group->time; ?>" class="form-control" name="time" placeholder="<?php echo $locale['meeting_days']; ?>" required="" autofocus="">
-              </div>
-            </div>
-
-            <div class="box-footer text-center">
-              <button class="btn btn-primary waves-effect" type="submit"><?php echo $locale['update']; ?></button>
-            </div>
-
-          </form>
-
-
-        </div>
-      </div>
-
     </div>
+    <?php if(session()->getFlashdata('success')):?><div class="lt-alert lt-success"><i class="dw dw-check-circle-2"></i><?=esc(session()->getFlashdata('success'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
+    <?php if(session()->getFlashdata('error')):?><div class="lt-alert lt-danger"><i class="dw dw-close-circle-1"></i><?=esc(session()->getFlashdata('error'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
+    <form method="POST" action="<?= base_url('editGroupData') ?>" enctype="multipart/form-data">
+      <?= csrf_field() ?>
+      <input type="hidden" name="id" value="<?= $group->id ?>">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="nf-card">
+            <div class="nf-card-head"><h3 class="nf-card-title">Group Details</h3></div>
+            <div class="nf-card-body">
+              <div class="nf-row" style="margin-bottom:16px;">
+                <div class="nf-col-half">
+                  <label class="nf-label"><?= $locale['group_title'] ?></label>
+                  <input type="text" name="title" class="nf-input" value="<?= esc($group->title) ?>" required>
+                </div>
+                <div class="nf-col-half">
+                  <label class="nf-label"><?= $locale['group_leader_name'] ?></label>
+                  <input type="text" name="leader" class="nf-input" value="<?= esc($group->leader) ?>" required>
+                </div>
+              </div>
+              <div style="margin-bottom:16px;">
+                <label class="nf-label"><?= $locale['group_desc'] ?></label>
+                <textarea name="description" rows="4" class="nf-input" style="resize:vertical;" required><?= esc($group->description) ?></textarea>
+              </div>
+              <div class="nf-row">
+                <div class="nf-col-half">
+                  <label class="nf-label"><?= $locale['group_meeting_loc'] ?></label>
+                  <input type="text" name="location" class="nf-input" value="<?= esc($group->location) ?>" required>
+                </div>
+                <div class="nf-col-half">
+                  <label class="nf-label"><?= $locale['meeting_days_extra'] ?></label>
+                  <input type="text" name="time" class="nf-input" value="<?= esc($group->time) ?>" required>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:24px;display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary nf-submit"><?= $locale['update'] ?></button>
+            <a href="<?= base_url('groups') ?>" class="btn btn-light nf-cancel">Cancel</a>
+          </div>
+        </div>
+      </div>
+    </form>
   </div>
+</div>
+<?= view('_nf_styles') ?>

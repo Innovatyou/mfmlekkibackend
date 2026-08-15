@@ -125,3 +125,9 @@ nb-configuration.xml
 /phpunit*.xml
 /.phpunit.*.cache
 
+#-------------------------
+# Local/Runtime Files
+#-------------------------
+.claude/
+uploads/
+

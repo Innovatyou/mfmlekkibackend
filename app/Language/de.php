@@ -2,7 +2,7 @@
 
 // override core en language system validation or define your own en language validation message
 return [
-	'site_title' => "MFM Lekki Church",
+	'site_title' => "Church",
 	'dashboard' => "Armaturenbrett",
 	'welcome_message' => "Willkommen zurück ! Ihr Abonnement ist",
 	'overview' => "Überblick",

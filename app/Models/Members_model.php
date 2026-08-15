@@ -16,12 +16,11 @@ class Members_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  function getLatestMembers($apitoken, $email = "")
+  function getLatestMembers($email = "")
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.id, tbl_members.email, tbl_members.id, tbl_members.firstname, tbl_members.lastname, tbl_members.thumbnail, tbl_members.coverphoto');
-    $builder->where('apitoken', $apitoken);
     $builder->where('email !=', $email);
     $builder->orderBy('id', 'DESC');
     $builder->limit(12);
@@ -30,33 +29,31 @@ class Members_model extends Basemodel
     $result =  $query->getResult();
     foreach ($result as $res) {
       if ($res->thumbnail != "") {
-        $res->thumbnail = base_url() . "/uploads/members/" . $apitoken . "/" . $res->thumbnail;
+        $res->thumbnail = $this->request_base_url() . "/uploads/members/" . $res->thumbnail;
       }
       if ($res->coverphoto != "") {
-        $res->coverphoto = base_url() . "/uploads/members/" . $apitoken . "/" . $res->coverphoto;
+        $res->coverphoto = $this->request_base_url() . "/uploads/members/" . $res->coverphoto;
       }
     }
     return $result;
   }
 
-  public function getTotalItems($apitoken)
+  public function getTotalItems()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  function adminMembersListing($columnName, $columnSortOrder, $searchValue, $start, $length, $apitoken)
+  function adminMembersListing($columnName, $columnSortOrder, $searchValue, $start, $length)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.*');
-    $builder->where('apitoken', $apitoken);
     if ($searchValue != "") {
       $builder->like('email', $searchValue);
       $builder->orlike('firstname', $searchValue);
@@ -71,18 +68,17 @@ class Members_model extends Basemodel
     $result =  $query->getResult();
     foreach ($result as $res) {
       if ($res->thumbnail != "") {
-        $res->thumbnail = base_url() . "/uploads/members/" . $apitoken . "/" . $res->thumbnail;
+        $res->thumbnail = $this->request_base_url() . "/uploads/members/" . $res->thumbnail;
       }
     }
     return $result;
   }
 
-  public function get_total_members($searchValue = "", $apitoken = "")
+  public function get_total_members($searchValue = "")
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     if ($searchValue != "") {
       $builder->like('email', $searchValue);
       $builder->orlike('firstname', $searchValue);
@@ -94,23 +90,21 @@ class Members_model extends Basemodel
     return 0;
   }
 
-  function getMembers($apitoken)
+  function getMembers()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.email, tbl_members.phonenumber');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     return $query->getResult();
   }
 
-  function getMembersByListid($list, $apitoken)
+  function getMembersByListid($list)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.email, tbl_members.phonenumber');
-    $builder->where('apitoken', $apitoken);
-    $subQuery = $db->table('tbl_list_members')->select('email')->where('apitoken', $apitoken)->where('listid', $list)->get();
+    $subQuery = $db->table('tbl_list_members')->select('email')->where('listid', $list)->get();
     $items = $subQuery->getResult();
     $_itms = [];
     foreach ($items as $ress) {
@@ -126,13 +120,12 @@ class Members_model extends Basemodel
     return $result;
   }
 
-  function checkMembersExists($email, $id = 0, $apitoken = "")
+  function checkMembersExists($email, $id = 0)
   {
     //echo $name . " and ". $group;
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select("id");
-    $builder->where('apitoken', $apitoken);
     $builder->where("email", $email);
     if ($id != 0) {
       $builder->where("id !=", $id);
@@ -145,7 +138,7 @@ class Members_model extends Basemodel
   function addNewMember($info)
   {
     $db = \Config\Database::connect("default");
-    if (empty($this->checkMembersExists($info['email'], 0, $info['apitoken']))) {
+    if (empty($this->checkMembersExists($info['email'], 0))) {
       $builder = $db->table('tbl_members');
       $builder->insert($info);
       $this->status = $this->applocal['ok'];
@@ -159,13 +152,12 @@ class Members_model extends Basemodel
   }
 
 
-  function editMember($info, $id, $apitoken)
+  function editMember($info, $id)
   {
-    if (empty($this->checkMembersExists($info['email'], $id, $apitoken))) {
+    if (empty($this->checkMembersExists($info['email'], $id))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_members');
       $builder->where('id', $id);
-      $builder->where('apitoken', $apitoken);
       $builder->update($info);
       $this->status = $this->applocal['ok'];
       $this->message = $this->applocal['member_detail_deleted'];
@@ -176,31 +168,108 @@ class Members_model extends Basemodel
   }
 
 
-  function getMemberInfo($id, $apitoken)
+  function getMemberInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.*');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0 && $row->thumbnail != "") {
       if ($row->thumbnail != "") {
-        $row->thumbnail = base_url() . "/uploads/members/" . $apitoken . "/" . $row->thumbnail;
+        $row->thumbnail = $this->request_base_url() . "/uploads/members/" . $row->thumbnail;
       }
     }
     return $row;
   }
 
-  function deleteMember($id, $apitoken)
+  function deleteMember($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['member_del_success'];
+  }
+
+  /**
+   * Public website "Join Us" form submission.
+   * New signups land as pending until an admin approves them from the dashboard.
+   */
+  function publicSignup($info)
+  {
+    $db = \Config\Database::connect("default");
+    if (empty($this->checkMembersExists($info['email'], 0))) {
+      $info['signup_status'] = 'pending';
+      $info['signup_source'] = 'public_website';
+      $builder = $db->table('tbl_members');
+      $builder->insert($info);
+      $this->status = $this->applocal['ok'];
+      $this->message = "Thank you! Your membership request has been received and is awaiting review.";
+      return $db->insertID();
+    } else {
+      $this->status = $this->applocal['error'];
+      $this->message = "This email is already registered with us: " . $info['email'];
+      return 0;
+    }
+  }
+
+  function getPendingSignupsListing($searchValue, $start, $length)
+  {
+    $db = \Config\Database::connect("default");
+    $builder = $db->table('tbl_members');
+    $builder->select('tbl_members.*');
+    $builder->where('signup_status', 'pending');
+    if ($searchValue != "") {
+      $builder->groupStart();
+      $builder->like('email', $searchValue);
+      $builder->orlike('firstname', $searchValue);
+      $builder->orlike('lastname', $searchValue);
+      $builder->orlike('phonenumber', $searchValue);
+      $builder->groupEnd();
+    }
+    $builder->orderby('date_inserted', 'DESC');
+    $builder->limit($length, $start);
+    return $builder->get()->getResult();
+  }
+
+  function getPendingSignupsTotal($searchValue = "")
+  {
+    $db = \Config\Database::connect("default");
+    $builder = $db->table('tbl_members');
+    $builder->select("COUNT(*) as num");
+    $builder->where('signup_status', 'pending');
+    if ($searchValue != "") {
+      $builder->groupStart();
+      $builder->like('email', $searchValue);
+      $builder->orlike('firstname', $searchValue);
+      $builder->orlike('lastname', $searchValue);
+      $builder->orlike('phonenumber', $searchValue);
+      $builder->groupEnd();
+    }
+    $result = $builder->get()->getRow(0);
+    return isset($result) ? $result->num : 0;
+  }
+
+  function approveSignup($id)
+  {
+    $db = \Config\Database::connect("default");
+    $builder = $db->table('tbl_members');
+    $builder->where('id', $id);
+    $builder->update(['signup_status' => 'approved']);
+    $this->status = $this->applocal['ok'];
+    $this->message = "Signup request approved. The member has been added.";
+  }
+
+  function rejectSignup($id)
+  {
+    $db = \Config\Database::connect("default");
+    $builder = $db->table('tbl_members');
+    $builder->where('id', $id);
+    $builder->update(['signup_status' => 'rejected']);
+    $this->status = $this->applocal['ok'];
+    $this->message = "Signup request rejected.";
   }
 }

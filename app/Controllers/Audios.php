@@ -10,7 +10,6 @@ use App\Models\Audio_model as audiomodel;
 class Audios extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
   /**
    * constructor
    */
@@ -20,7 +19,6 @@ class Audios extends BaseController
     //$this->session = session();
     //$this->mediamodel = new mediamodel();
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
       exit();
@@ -58,8 +56,8 @@ class Audios extends BaseController
     }
 
 
-    $audios = $audiomodel->audioListing($columnName, $columnSortOrder, $searchValue, $start, $length, $this->apitoken);
-    $total_audios = $audiomodel->get_total_audios($searchValue, $this->apitoken);
+    $audios = $audiomodel->audioListing($columnName, $columnSortOrder, $searchValue, $start, $length);
+    $total_audios = $audiomodel->get_total_audios($searchValue);
     //var_dump($users); die;
     $dat = array();
 
@@ -106,7 +104,7 @@ class Audios extends BaseController
   public function editAudio($id = 0)
   {
     $audiomodel = new audiomodel();
-    $this->viewdata['audio'] = $audiomodel->getAudioInfo($id, $this->apitoken);
+    $this->viewdata['audio'] = $audiomodel->getAudioInfo($id);
     if (count((array)$this->viewdata['audio']) == 0) {
       return redirect()->to(base_url() . '/audios');
     }
@@ -149,7 +147,6 @@ class Audios extends BaseController
 
       $_duration = new Duration;
       $info = array(
-        'apitoken' => $this->apitoken,
         'category' => $category,
         'title' => $title,
         'description' => $description,
@@ -221,7 +218,7 @@ class Audios extends BaseController
       'duration' =>  $_duration->toSeconds($duration) * 1000,
     );
 
-    $audiomodel->editAudioData($info, $id, $this->apitoken);
+    $audiomodel->editAudioData($info, $id);
 
     echo json_encode(array("status" => $audiomodel->status, "msg" => $audiomodel->message));
     exit;
@@ -230,12 +227,12 @@ class Audios extends BaseController
   function deleteAudio($id = 0)
   {
     $audiomodel = new audiomodel();
-    $audio = $audiomodel->getAudioInfo($id, $this->apitoken);
+    $audio = $audiomodel->getAudioInfo($id);
     if (count((array)$audio) > 0) {
-      @unlink('./uploads/audios/' . $this->apitoken . "/" . $audio->source);
-      @unlink('./uploads/thumbnails/' . $this->apitoken . "/" . $audio->cover_photo);
+      @unlink('./uploads/audios/' . $audio->source);
+      @unlink('./uploads/thumbnails/' . $audio->cover_photo);
     }
-    $audiomodel->deleteAudio($id, $this->apitoken);
+    $audiomodel->deleteAudio($id);
     if ($audiomodel->status == "ok") {
       $this->session->setFlashdata('success', $audiomodel->message);
     } else {
@@ -246,8 +243,8 @@ class Audios extends BaseController
 
   public function upload_audio()
   {
-    if (!file_exists('./uploads/audios/' . $this->apitoken)) {
-      mkdir('./uploads/audios/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/audios/')) {
+      mkdir('./uploads/audios/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -264,7 +261,7 @@ class Audios extends BaseController
     } else {
 
       $img = $this->request->getFile('audio');
-      $img->move('./uploads/audios/' . $this->apitoken);
+      $img->move('./uploads/audios/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()
@@ -276,8 +273,8 @@ class Audios extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/')) {
+      mkdir('./uploads/thumbnails/', 0777, true);
     }
     helper(['form', 'url']);
     // If no file provided, consider it optional
@@ -297,7 +294,7 @@ class Audios extends BaseController
     }
 
     $img = $this->request->getFile('thumbnail');
-    $img->move('./uploads/thumbnails/' . $this->apitoken);
+    $img->move('./uploads/thumbnails/');
     return ['ok', $img->getName()];
   }
 }

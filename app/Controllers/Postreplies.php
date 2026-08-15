@@ -8,11 +8,9 @@ use App\Models\Socials_model as repliesmodel;
 class Postreplies extends BaseController
 {
 
-  public $apitoken = "";
 
   public function __construct()
   {
-    $this->apitoken = $this->check_headers();
   }
 
   public function replycomment()
@@ -28,7 +26,7 @@ class Postreplies extends BaseController
 
       if ($email != "" || $content != "") {
         $reply = $repliesmodel->replyComment($comment, $email, $content);
-        $total_count = $repliesmodel->get_total_replies($comment, $this->apitoken);
+        $total_count = $repliesmodel->get_total_replies($comment);
       }
     }
     echo json_encode(array(
@@ -49,7 +47,7 @@ class Postreplies extends BaseController
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($content != "" || $id != "") {
-        $comment = $repliesmodel->editReply($id, $content, $this->apitoken);
+        $comment = $repliesmodel->editReply($id, $content);
       }
     }
     echo json_encode(array(
@@ -69,8 +67,8 @@ class Postreplies extends BaseController
       $comment_id = isset($data->comment) ? filter_var($data->comment, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($id != "") {
-        $repliesmodel->deleteReply($id, $this->apitoken);
-        $total_count = $repliesmodel->get_total_replies($comment_id, $this->apitoken);
+        $repliesmodel->deleteReply($id);
+        $total_count = $repliesmodel->get_total_replies($comment_id);
       }
     }
     echo json_encode(array("status" => $repliesmodel->status, "message" => $repliesmodel->message, "total_count" => $total_count));
@@ -93,9 +91,9 @@ class Postreplies extends BaseController
     if (isset($data->comment)) {
       $comment = $data->comment;
     }
-    $results = $repliesmodel->loadreplies($comment, $id, $this->apitoken);
-    $has_more = $repliesmodel->checkIfCommentHaveMoreReplies($comment, $id, $this->apitoken);
-    $total_count = $repliesmodel->get_total_replies($comment, $this->apitoken);
+    $results = $repliesmodel->loadreplies($comment, $id);
+    $has_more = $repliesmodel->checkIfCommentHaveMoreReplies($comment, $id);
+    $total_count = $repliesmodel->get_total_replies($comment);
     echo json_encode(array("status" => "ok", "comments" => $results, "has_more" => $has_more, "total_count" => $total_count));
     exit;
   }

@@ -8,8 +8,9 @@ class FixLivestreamStreamUrlColumn extends Migration
 {
     public function up()
     {
-        // Change tbl_livestreams.link column from INT to VARCHAR(500)
-        // This ensures YouTube video IDs and stream URLs are stored as strings, never as integers
+        if (!$this->db->tableExists('tbl_livestreams')) {
+            return;
+        }
         $this->forge->modifyColumn('tbl_livestreams', [
             'link' => [
                 'type'       => 'VARCHAR',

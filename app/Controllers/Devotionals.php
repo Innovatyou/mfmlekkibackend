@@ -11,7 +11,6 @@ use App\Models\Fcm_model as fcmmodel;
 class Devotionals extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -20,7 +19,6 @@ class Devotionals extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
       exit();
@@ -59,8 +57,8 @@ class Devotionals extends BaseController
     }
 
 
-    $feeds = $devotionalsmodel->adminDevotionalsListing($columnName, $columnSortOrder, $searchValue, $start, $length, $this->apitoken);
-    $total_feeds = $devotionalsmodel->get_total_devotionals($searchValue, $this->apitoken);
+    $feeds = $devotionalsmodel->adminDevotionalsListing($columnName, $columnSortOrder, $searchValue, $start, $length);
+    $total_feeds = $devotionalsmodel->get_total_devotionals($searchValue);
     //var_dump($feeds); die;
     $dat = array();
 
@@ -107,7 +105,7 @@ class Devotionals extends BaseController
   public function editDevotional($id = 0)
   {
     $devotionalsmodel = new devotionalsmodel();
-    $this->viewdata['devotional'] = $devotionalsmodel->getDevotionalInfo($id, $this->apitoken);
+    $this->viewdata['devotional'] = $devotionalsmodel->getDevotionalInfo($id);
     if (count((array)$this->viewdata['devotional']) == 0) {
       return redirect()->to(base_url() . '/devotionalsListing');
     }
@@ -132,7 +130,6 @@ class Devotionals extends BaseController
 
 
     $info = array(
-      'apitoken' => $this->apitoken,
       'year' => $year,
       'month' => $month,
       'day' => $day,
@@ -154,13 +151,13 @@ class Devotionals extends BaseController
 
     $insertid = $devotionalsmodel->addNewDevotional($info);
     if ($insertid != 0) {
-      $itm = $devotionalsmodel->getDevotionalInfo($insertid, $this->apitoken);
+      $itm = $devotionalsmodel->getDevotionalInfo($insertid);
       //var_dump($article); die;
       if (count((array)$itm) > 0) {
         $settingsmodel = new settingsmodel();
-        $server_key = $settingsmodel->getFcmServerKey($this->apitoken);
+        $server_key = $settingsmodel->getFcmServerKey();
         $fcmmodel = new fcmmodel();
-        $fcmmodel->push_item_data($server_key, $itm, "Devotional", $this->apitoken);
+        $fcmmodel->push_item_data($server_key, $itm, "Devotional");
       }
     }
     if ($devotionalsmodel->status == "ok") {
@@ -210,7 +207,7 @@ class Devotionals extends BaseController
       }
     }
 
-    $devotionalsmodel->editDevotional($info, $id, $this->apitoken);
+    $devotionalsmodel->editDevotional($info, $id);
     if ($devotionalsmodel->status == "ok") {
       $this->session->setFlashdata('success', $devotionalsmodel->message);
     } else {
@@ -223,7 +220,7 @@ class Devotionals extends BaseController
   function deleteDevotional($id = 0)
   {
     $devotionalsmodel = new devotionalsmodel();
-    $devotionalsmodel->deleteDevotional($id, $this->apitoken);
+    $devotionalsmodel->deleteDevotional($id);
     if ($devotionalsmodel->status == "ok") {
       $this->session->setFlashdata('success', $devotionalsmodel->message);
     } else {
@@ -234,8 +231,8 @@ class Devotionals extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/')) {
+      mkdir('./uploads/thumbnails/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -250,7 +247,7 @@ class Devotionals extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('thumbnail');
-      $img->move('./uploads/thumbnails/' . $this->apitoken);
+      $img->move('./uploads/thumbnails/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

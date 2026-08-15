@@ -21,12 +21,31 @@ class Livestream_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function fetch_livestreams_app($page = 0, $apitoken = "")
+  /**
+   * The single most-recent stream currently marked Live (status = 0), for
+   * the "Join Us Live" section on the public website. Null when nothing
+   * is live right now.
+   */
+  public function getCurrentLive()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_livestreams');
     $builder->select('tbl_livestreams.*');
-    $builder->where('apitoken', $apitoken);
+    $builder->where('status', 0);
+    $builder->orderBy('id', 'DESC');
+    $builder->limit(1);
+    $row = $builder->get()->getRow(0);
+    if ($row) {
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
+    }
+    return $row;
+  }
+
+  public function fetch_livestreams_app($page = 0)
+  {
+    $db = \Config\Database::connect("default");
+    $builder = $db->table('tbl_livestreams');
+    $builder->select('tbl_livestreams.*');
     $builder->where('status', 0);
     $builder->orderby('id', 'desc');
     if ($page != 0) {
@@ -37,17 +56,16 @@ class Livestream_model extends Basemodel
     $query = $builder->get();
     $result = $query->getResult();
     foreach ($result as $row) {
-      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo, $apitoken);
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
     }
     return $result;
   }
 
-  public function fetch_livestreams($page = 0, $apitoken = "")
+  public function fetch_livestreams($page = 0)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_livestreams');
     $builder->select('tbl_livestreams.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('title', 'ASC');
     $query = $builder->get();
     $result = $query->getResult();
@@ -55,35 +73,33 @@ class Livestream_model extends Basemodel
   }
 
 
-  public function get_total_livestreams($apitoken)
+  public function get_total_livestreams()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_livestreams');
     $builder->where('status', 0);
-    $query = $builder->select("COUNT(*) as num")->where('apitoken', $apitoken)->get();
+    $query = $builder->select("COUNT(*) as num")->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  function livestreamsListing($apitoken)
+  function livestreamsListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_livestreams');
     $builder->select('tbl_livestreams.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('id', 'DESC');
     $query = $builder->get();
     return $query->getResult();
   }
 
-  function checkLivestreamExists($title, $id = 0, $apitoken = "")
+  function checkLivestreamExists($title, $id = 0)
   {
     //echo $name . " and ". $group;
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_livestreams');
     $builder->select("title");
-    $builder->where('apitoken', $apitoken);
     $builder->where("title", $title);
     if ($id != 0) {
       $builder->where("id !=", $id);
@@ -96,7 +112,7 @@ class Livestream_model extends Basemodel
 
   function addNewLivestream($info)
   {
-    if (empty($this->checkLivestreamExists($info['title'], 0, $info['apitoken']))) {
+    if (empty($this->checkLivestreamExists($info['title'], 0))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_livestreams');
       $builder->insert($info);
@@ -109,12 +125,11 @@ class Livestream_model extends Basemodel
   }
 
 
-  function editLivestream($info, $id, $apitoken)
+  function editLivestream($info, $id)
   {
-    if (empty($this->checkLivestreamExists($info['title'], $id, $apitoken))) {
+    if (empty($this->checkLivestreamExists($info['title'], $id))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_livestreams');
-      $builder->where('apitoken', $apitoken);
       $builder->where('id', $id);
       $builder->update($info);
       $this->status = $this->applocal['ok'];
@@ -126,38 +141,48 @@ class Livestream_model extends Basemodel
   }
 
 
-  function getLivestreamInfo($id, $apitoken)
+  function getLivestreamInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_livestreams');
     $builder->select('tbl_livestreams.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
-      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo, $apitoken);
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
     }
     return $row;
   }
 
-  function deleteLivestream($id, $apitoken)
+  function deleteLivestream($id)
   {
+    $id = intval($id);
+    if ($id <= 0) {
+      $this->status = $this->applocal['error'];
+      $this->message = 'Invalid livestream ID.';
+      return;
+    }
+
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_livestreams');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $builder->delete();
-    $this->status = $this->applocal['ok'];
-    $this->message = $this->applocal['new_livestream_delete'];
+    if ($db->affectedRows() > 0) {
+      $this->status = $this->applocal['ok'];
+      $this->message = $this->applocal['new_livestream_delete'];
+    } else {
+      $this->status = $this->applocal['error'];
+      $this->message = 'Livestream not found.';
+    }
   }
 
-  private function get_thumbnail_source($source, $apitoken)
+  private function get_thumbnail_source($source)
   {
     if ($this->isValidURL($source)) {
       return $source;
     }
-    return base_url() . "/uploads/thumbnails/" . $apitoken . "/" . $source;
+    return $this->request_base_url() . "uploads/thumbnails/" . $source;
   }
 
   function isValidURL($url)

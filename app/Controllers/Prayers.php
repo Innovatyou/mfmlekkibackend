@@ -8,7 +8,6 @@ use App\Models\Prayer_model as prayermodel;
 class Prayers extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -17,7 +16,6 @@ class Prayers extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
 
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
@@ -28,7 +26,7 @@ class Prayers extends BaseController
   public function index()
   {
     $prayermodel = new prayermodel();
-    $this->viewdata['prayers'] = $prayermodel->itemsListing($this->apitoken);
+    $this->viewdata['prayers'] = $prayermodel->itemsListing();
     return $this->view("prayers/listing", $this->viewdata);
   }
 
@@ -40,7 +38,7 @@ class Prayers extends BaseController
   public function editPrayer($id = 0)
   {
     $prayermodel = new prayermodel();
-    $this->viewdata['prayer'] = $prayermodel->getItemInfo($id, $this->apitoken);
+    $this->viewdata['prayer'] = $prayermodel->getItemInfo($id);
     if ($this->viewdata['prayer'] == NULL) {
       return redirect()->to(base_url() . '/prayers');
     }
@@ -50,7 +48,7 @@ class Prayers extends BaseController
   public function viewPrayer($id = 0)
   {
     $prayermodel = new prayermodel();
-    $this->viewdata['prayer'] = $prayermodel->getItemInfo($id, $this->apitoken);
+    $this->viewdata['prayer'] = $prayermodel->getItemInfo($id);
     if ($this->viewdata['prayer'] == NULL) {
       return redirect()->to(base_url() . '/prayers');
     }
@@ -66,7 +64,6 @@ class Prayers extends BaseController
     $public = $this->request->getVar('public');
 
     $info = array(
-      'apitoken' => $this->apitoken,
       'title' => $title,
       'content' => $content,
       'requester' => $requester,
@@ -99,7 +96,7 @@ class Prayers extends BaseController
     );
 
 
-    $prayermodel->editItem($info, $id, $this->apitoken);
+    $prayermodel->editItem($info, $id);
     if ($prayermodel->status == "ok") {
       $this->session->setFlashdata('success', $prayermodel->message);
     } else {
@@ -114,7 +111,7 @@ class Prayers extends BaseController
     $info = array(
       'status' => $status,
     );
-    $prayermodel->editItem($info, $id, $this->apitoken);
+    $prayermodel->editItem($info, $id);
     if ($prayermodel->status == "ok") {
       $this->session->setFlashdata('success', $prayermodel->message);
     } else {
@@ -127,7 +124,7 @@ class Prayers extends BaseController
   function deletePrayer($id = 0)
   {
     $prayermodel = new prayermodel();
-    $prayermodel->deleteItem($id, $this->apitoken);
+    $prayermodel->deleteItem($id);
     if ($prayermodel->status == "ok") {
       $this->session->setFlashdata('success', $prayermodel->message);
     } else {

@@ -60,12 +60,23 @@ class AdminUsers extends BaseController
             return redirect()->back()->with('error', 'You do not have permission to create users');
         }
 
+        $valid = $this->validate([
+            'email'    => 'required|valid_email|is_unique[tbl_churches.email]',
+            'fullname' => 'required|min_length[2]|max_length[255]',
+            'password' => 'required|min_length[8]',
+            'role_id'  => 'required|is_natural_no_zero',
+        ]);
+
+        if (!$valid) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
         $data = [
-            'email' => $this->request->getPost('email'),
+            'email'    => $this->request->getPost('email'),
             'password' => $this->request->getPost('password'),
             'fullname' => $this->request->getPost('fullname'),
-            'role_id' => $this->request->getPost('role_id'),
-            'status' => $this->request->getPost('status') ?? 0,
+            'role_id'  => $this->request->getPost('role_id'),
+            'status'   => $this->request->getPost('status') ?? 0,
             'isdelete' => 1,
         ];
 
@@ -114,14 +125,24 @@ class AdminUsers extends BaseController
             return redirect()->back()->with('error', 'User not found');
         }
 
+        $rules = [
+            'fullname' => 'required|min_length[2]|max_length[255]',
+            'role_id'  => 'required|is_natural_no_zero',
+        ];
+        $password = $this->request->getPost('password');
+        if (!empty($password)) {
+            $rules['password'] = 'min_length[8]';
+        }
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
         $data = [
             'fullname' => $this->request->getPost('fullname'),
-            'role_id' => $this->request->getPost('role_id'),
-            'status' => $this->request->getPost('status') ?? 0,
+            'role_id'  => $this->request->getPost('role_id'),
+            'status'   => $this->request->getPost('status') ?? 0,
         ];
 
-        // Only update password if provided
-        $password = $this->request->getPost('password');
         if (!empty($password)) {
             $data['password'] = password_hash($password, PASSWORD_DEFAULT);
         }

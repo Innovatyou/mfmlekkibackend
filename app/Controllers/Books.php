@@ -9,7 +9,6 @@ use App\Models\Books_model as booksmodel;
 class Books extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -18,7 +17,6 @@ class Books extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
       exit();
@@ -28,7 +26,7 @@ class Books extends BaseController
   public function index()
   {
     $booksmodel = new booksmodel();
-    $this->viewdata['books'] = $booksmodel->booksListing($this->apitoken);
+    $this->viewdata['books'] = $booksmodel->booksListing();
     return $this->view("books/listing", $this->viewdata);
   }
 
@@ -40,7 +38,7 @@ class Books extends BaseController
   public function editBook($id = 0)
   {
     $booksmodel = new booksmodel();
-    $this->viewdata['book'] = $booksmodel->getBookInfo($id, $this->apitoken);
+    $this->viewdata['book'] = $booksmodel->getBookInfo($id);
     if (count((array)$this->viewdata['book']) == 0) {
       return redirect()->to(base_url() . '/books');
     }
@@ -59,13 +57,18 @@ class Books extends BaseController
       $description = $this->request->getVar('description');
       $author = $this->request->getVar('author');
       $pages = $this->request->getVar('pages');
+      $is_for_sale = $this->request->getVar('is_for_sale') ? 1 : 0;
+      $price = $is_for_sale ? (float)$this->request->getVar('price') : 0.00;
+      $currency = $is_for_sale ? strtoupper(substr($this->request->getVar('currency'), 0, 3)) : 'USD';
 
       $info = array(
-        'apitoken' => $this->apitoken,
         'title' => $title,
         'description' => $description,
         'author' => $author,
         'pages' => $pages,
+        'is_for_sale' => $is_for_sale,
+        'price' => $price,
+        'currency' => $currency,
       );
       $upload = $this->upload_thumbnail();
       if ($upload[0] == 'ok') {
@@ -101,12 +104,18 @@ class Books extends BaseController
     $description = $this->request->getVar('description');
     $author = $this->request->getVar('author');
     $pages = $this->request->getVar('pages');
+    $is_for_sale = $this->request->getVar('is_for_sale') ? 1 : 0;
+    $price = $is_for_sale ? (float)$this->request->getVar('price') : 0.00;
+    $currency = $is_for_sale ? strtoupper(substr($this->request->getVar('currency'), 0, 3)) : 'USD';
 
     $info = array(
       'title' => $title,
       'description' => $description,
       'author' => $author,
       'pages' => $pages,
+      'is_for_sale' => $is_for_sale,
+      'price' => $price,
+      'currency' => $currency,
     );
 
     if (!empty($_FILES['thumbnail']['name'])) {
@@ -128,7 +137,7 @@ class Books extends BaseController
       }
     }
 
-    $booksmodel->editBook($info, $id, $this->apitoken);
+    $booksmodel->editBook($info, $id);
     if ($booksmodel->status == "ok") {
       $this->session->setFlashdata('success', $booksmodel->message);
     } else {
@@ -141,12 +150,12 @@ class Books extends BaseController
   function deleteBook($id = 0)
   {
     $booksmodel = new booksmodel();
-    $book = $booksmodel->getBookInfo($id, $this->apitoken);
+    $book = $booksmodel->getBookInfo($id);
     if (count((array)$book) > 0) {
-      @unlink('./uploads/thumbnails/' . $this->apitoken . "/" . $book->thumb);
-      @unlink('./uploads/books/' . $this->apitoken . "/" . $book->pdf);
+      @unlink('./uploads/thumbnails/' . $book->thumb);
+      @unlink('./uploads/books/' . $book->pdf);
     }
-    $booksmodel->deleteBook($id, $this->apitoken);
+    $booksmodel->deleteBook($id);
     if ($booksmodel->status == "ok") {
       $this->session->setFlashdata('success', $booksmodel->message);
     } else {
@@ -157,8 +166,8 @@ class Books extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/')) {
+      mkdir('./uploads/thumbnails/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -173,7 +182,7 @@ class Books extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('thumbnail');
-      $img->move('./uploads/thumbnails/' . $this->apitoken);
+      $img->move('./uploads/thumbnails/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()
@@ -184,8 +193,8 @@ class Books extends BaseController
 
   function upload_book()
   {
-    if (!file_exists('./uploads/books/' . $this->apitoken)) {
-      mkdir('./uploads/books/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/books/')) {
+      mkdir('./uploads/books/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -200,7 +209,7 @@ class Books extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('book');
-      $img->move('./uploads/books/' . $this->apitoken);
+      $img->move('./uploads/books/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

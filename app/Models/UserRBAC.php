@@ -12,7 +12,7 @@ class UserRBAC extends Model
     protected $returnType    = 'object';
     protected $useSoftDeletes = false;
     protected $protectFields = true;
-    protected $allowedFields = ['email', 'password', 'fullname', 'role', 'role_id', 'status', 'isdelete', 'apitoken', 'logo', 'never_expire'];
+    protected $allowedFields = ['email', 'password', 'fullname', 'role', 'role_id', 'status', 'isdelete', 'logo', 'never_expire'];
 
     protected $useTimestamps = false;
 
@@ -134,9 +134,6 @@ class UserRBAC extends Model
         }
         if (!isset($data['isdelete'])) {
             $data['isdelete'] = 1;
-        }
-        if (!isset($data['apitoken'])) {
-            $data['apitoken'] = bin2hex(random_bytes(16));
         }
         if (!isset($data['never_expire'])) {
             $data['never_expire'] = 1;

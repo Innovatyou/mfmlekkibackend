@@ -1,69 +1,64 @@
 <div class="main-container">
-  <div class="pd-ltr-20 xs-pd-20-10">
-    <div class="min-height-200px">
-      <div class="page-header">
-        <div class="row">
-          <div class="col-md-6 col-sm-12">
-            <div class="title">
-              <h4><?php echo $locale['groups']; ?></h4>
-            </div>
-
-          </div>
-          <div class="col-md-6 col-sm-12 text-right">
-            <a href="newGroup" class="btn btn-primary btn-sm"> <?php echo $locale['new_group']; ?></a>
-          </div>
-        </div>
+  <div class="xs-pd-20-10 pd-ltr-20">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><?= $locale['groups'] ?></h1>
+        <nav class="lt-bc"><a href="<?= base_url() ?>">Dashboard</a><span>/</span><span><?= $locale['groups'] ?></span></nav>
       </div>
-      <!-- Default Basic Forms Start -->
-      <div class="pd-20 card-box mb-30">
-        <div class="pd-20 card-box mb-30">
-          <?= view('_flash') ?>
-          <div style="overflow-x:auto;">
-            <table id="categories-table" class="table table-bordered table-striped table-hover exportable">
-              <thead>
-                <tr>
-                  <th><?php echo $locale['id']; ?></th>
-                  <th><?php echo $locale['title']; ?></th>
-                  <th><?php echo $locale['members']; ?></th>
-                  <th><?php echo $locale['date']; ?></th>
-                  <th class="text-center"><?php echo $locale['action']; ?></th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php
-                $count = 1;
-                foreach ($groups as $record) {
-                ?>
-                  <tr>
-                    <td><?php echo $count; ?></td>
-                    <td><?php echo $record->title; ?></td>
-                    <td><?php echo $record->count; ?></td>
-                    <td><?php echo $record->date; ?></td>
-                    <td class="text-center">
-                      <div class="dropdown">
-                        <a class="btn btn-link font-24 p-0 line-height-1 no-arrow dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                          <i class="dw dw-more"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right dropdown-menu-icon-list">
-                          <a class="dropdown-item" href="<?php echo base_url() . '/addMemberstoGroup/' . $record->id; ?>"><i class="dw dw-add"></i><?php echo $locale['add_members']; ?></a>
-                          <a class="dropdown-item" href="<?php echo base_url() . '/viewGroupMembers/' . $record->id; ?>"><i class="icon-copy ion-ios-people"></i><?php echo $locale['view_members']; ?></a>
-                          <a class="dropdown-item" href="<?php echo base_url() . '/groupEvents/' . $record->id; ?>"><i class="icon-copy ion-ios-people"></i><?php echo $locale['group_activities']; ?></a>
-                          <a class="dropdown-item" href="<?php echo base_url() . '/editGroup/' . $record->id; ?>"><i class="dw dw-edit-2"></i> <?php echo $locale['edit']; ?></a>
-                          <a data-type="groups" data-id="<?php echo $record->id; ?>" class="dropdown-item" onclick="delete_item(event)">
-                            <i data-type="groups" data-id="<?php echo $record->id; ?>" class="dw dw-delete-3"></i><?php echo $locale['delete']; ?> </a>
-                        </div>
-                      </div>
-
-                    </td>
-                  </tr>
-                <?php $count++;
-                }
-                ?>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <a href="<?= base_url('newGroup') ?>" class="btn btn-primary lt-cta"><i class="dw dw-add"></i><?= $locale['new_group'] ?></a>
+    </div>
+    <?php if(session()->getFlashdata('success')):?><div class="lt-alert lt-success"><i class="dw dw-check-circle-2"></i><?=esc(session()->getFlashdata('success'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
+    <?php if(session()->getFlashdata('error')):?><div class="lt-alert lt-danger"><i class="dw dw-close-circle-1"></i><?=esc(session()->getFlashdata('error'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
+    <div class="card-box" style="padding:0;overflow:hidden;">
+      <div class="lt-head"><h3 class="lt-htitle">Church Groups</h3><p class="lt-hsub">Small groups and fellowship circles</p></div>
+      <div style="padding:16px 22px 22px;overflow-x:auto;">
+        <table id="groups_table" class="table nowrap" style="width:100%;">
+          <thead><tr>
+            <th>#</th><th><?=$locale['title']?></th><th><?=$locale['members']?></th><th><?=$locale['date']?></th><th style="width:160px;"><?=$locale['action']?></th>
+          </tr></thead>
+          <tbody>
+            <?php $c=1; foreach($groups as $r): ?>
+            <tr>
+              <td class="text-muted"><?=$c?></td>
+              <td style="font-weight:600;color:var(--t1);"><?=esc($r->title)?></td>
+              <td><span class="lt-mbadge"><?=esc($r->count)?> members</span></td>
+              <td><span class="lt-date"><?=esc($r->date)?></span></td>
+              <td>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                  <a href="<?=base_url('addMemberstoGroup/'.$r->id)?>" class="lt-ab" style="background:#eef2ff;color:#6366f1;" title="<?=$locale['add_members']?>"><i class="dw dw-add"></i></a>
+                  <a href="<?=base_url('viewGroupMembers/'.$r->id)?>" class="lt-ab" style="background:#f0fdfa;color:#0d9488;" title="<?=$locale['view_members']?>"><i class="icon-copy ion-ios-people"></i></a>
+                  <a href="<?=base_url('groupEvents/'.$r->id)?>" class="lt-ab" style="background:#faf5ff;color:#9333ea;" title="<?=$locale['group_activities']?>"><i class="dw dw-calendar"></i></a>
+                  <a href="<?=base_url('editGroup/'.$r->id)?>" class="lt-ab lt-edit" title="<?=$locale['edit']?>"><i class="dw dw-edit-2"></i></a>
+                  <a href="javascript:void(0)" class="lt-ab lt-del" title="<?=$locale['delete']?>" onclick="ltSDelConfirm('groups',<?=$r->id?>)"><i class="dw dw-trash"></i></a>
+                </div>
+              </td>
+            </tr>
+            <?php $c++; endforeach; ?>
+          </tbody>
+        </table>
+        <?php if(empty($groups)):?><div style="padding:40px;text-align:center;color:var(--t3);">No groups found</div><?php endif;?>
       </div>
-
     </div>
   </div>
+</div>
+<style>
+#groups_table thead th{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);border-bottom:2px solid var(--border)!important;border-top:none!important;padding:10px 14px;background:#f8fafc}
+#groups_table tbody td{padding:10px 14px;border-color:var(--border)!important;font-size:.875rem;vertical-align:middle}
+#groups_table tbody tr:hover td{background:#f8fafc}#groups_table tbody tr:last-child td{border-bottom:none!important}
+.lt-mbadge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:600;background:#f0f9ff;color:#0369a1}
+#groups_table_wrapper .dataTables_filter input{border:1.5px solid var(--border);border-radius:8px;padding:6px 12px;font-size:.875rem;outline:none}
+#groups_table_wrapper .dataTables_filter input:focus{border-color:var(--accent)}
+#groups_table_wrapper .dataTables_length select{border:1.5px solid var(--border);border-radius:8px;padding:5px 10px;font-size:.875rem}
+#groups_table_wrapper .dataTables_info{font-size:.8rem;color:var(--t3)}
+#groups_table_wrapper .paginate_button{border-radius:7px!important;font-size:.82rem;font-weight:600}
+#groups_table_wrapper .paginate_button.current,#groups_table_wrapper .paginate_button.current:hover{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+</style>
+<script>
+$(document).ready(function(){
+  if($.fn.DataTable.isDataTable('#groups_table'))$('#groups_table').DataTable().destroy();
+  $('#groups_table').DataTable({pageLength:15,dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+    language:{search:'',searchPlaceholder:'Search groups…',info:'Showing _START_–_END_ of _TOTAL_',paginate:{previous:'‹',next:'›'}},
+    columnDefs:[{targets:0,width:'50px',orderable:false},{targets:4,orderable:false}]});
+});
+function ltSDelConfirm(type,id){swal({title:'Delete?',text:'This cannot be undone.',type:'warning',showCancelButton:true,confirmButtonColor:'#ef4444',confirmButtonText:'Yes, delete'},function(){var u={inbox:'deleteInbox',message:'deleteMessage',book:'deleteBook',branch:'deleteBranch',events:'deleteEvent',groups:'deleteGroup',prayer:'deletePrayer',testimony:'deleteTestimony'};document.location.href=baseURL+'/'+(u[type]||'delete')+'/'+id;});}
+</script>

@@ -16,12 +16,11 @@ class Audio_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function getTotalItems($apitoken)
+  public function getTotalItems()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $builder->where('type', 'audio');
     $query = $builder->get();
     $result = $query->getRow(0);
@@ -30,12 +29,11 @@ class Audio_model extends Basemodel
   }
 
 
-  function audioListing($columnName, $columnSortOrder, $searchValue, $start, $length, $apitoken)
+  function audioListing($columnName, $columnSortOrder, $searchValue, $start, $length)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select('tbl_media.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('type', 'audio');
 
     if ($searchValue != "") {
@@ -50,18 +48,17 @@ class Audio_model extends Basemodel
     $query = $builder->get();
     $result = $query->getResult();
     foreach ($result as $res) {
-      $res->source = $this->get_media_source($res->source, $apitoken);
+      $res->source = $this->get_media_source($res->source);
     }
     return $result;
   }
 
-  public function get_total_audios($searchValue = "", $apitoken = "")
+  public function get_total_audios($searchValue = "")
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
 
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $builder->where('tbl_media.type', 'audio');
 
     if ($searchValue != "") {
@@ -83,72 +80,62 @@ class Audio_model extends Basemodel
     $this->status = $this->applocal['ok'];
     $this->message = $info['title'] . $this->applocal['upload_success'];
     return $db->insertID();
-    
-    
+
     return 0;
   }
 
-  function getAudioInfo($id, $apitoken)
+  function getAudioInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select('tbl_media.*');
     $builder->where('tbl_media.id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
-      $row->thumbnail = $this->get_thumbnail_source($row->cover_photo, $apitoken);
-      $row->audio = $this->get_media_source($row->source, $apitoken);
+      $row->thumbnail = $this->get_thumbnail_source($row->cover_photo);
+      $row->audio = $this->get_media_source($row->source);
     }
     return $row;
   }
 
-  function editAudioData($info, $id, $apitoken)
+  function editAudioData($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
 
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['audio_edit'];
-    
-    
-    
 
   }
 
-  function deleteAudio($id, $apitoken)
+  function deleteAudio($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['audio_delete'];
-    
-    
-    
 
   }
 
-  private function get_thumbnail_source($source, $apitoken)
+  private function get_thumbnail_source($source)
   {
     if ($this->isValidURL($source)) {
       return $source;
     }
-    return base_url() . "/uploads/thumbnails/" . $apitoken . "/" . $source;
+    return $this->request_base_url() . "/uploads/thumbnails/" . $source;
   }
 
-  private function get_media_source($source, $apitoken)
+  private function get_media_source($source)
   {
     if ($this->isValidURL($source)) {
       return $source;
     }
-    return base_url() . "/uploads/audios/" . $apitoken . "/" . $source;
+    return $this->request_base_url() . "/uploads/audios/" . $source;
   }
 
   function isValidURL($url)

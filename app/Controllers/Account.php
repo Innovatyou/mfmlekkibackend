@@ -21,10 +21,10 @@ class Account extends BaseController
     $row = $verifymodel->checkActivationDetails($code);
     if ($row) {
       //delete activation details
-      $verifymodel->deleteActivationDetails($code, $row->apitoken);
+      $verifymodel->deleteActivationDetails($code);
       //update user to verified
       $accountmodel = new accountmodel();
-      $accountmodel->updateUserVerfication($row->email, $row->apitoken);
+      $accountmodel->updateUserVerfication($row->email);
       //redirect to message page with message for user
       $this->viewdata['title'] = 'Congratulations';
       $this->viewdata['message'] = 'Your account have been successfully verified.';
@@ -82,9 +82,9 @@ class Account extends BaseController
 
     //
     $accountmodel = new accountmodel();
-    $accountmodel->updateUserPassword($email, $password1, $row->apitoken);
+    $accountmodel->updateUserPassword($email, $password1);
     //delete activation details
-    $verifymodel->deleteActivationDetails($code, $row->apitoken);
+    $verifymodel->deleteActivationDetails($code);
     $this->viewdata['title'] = 'Congratulations';
     $this->viewdata['message'] = 'Your password reset was successful. You can now login with your new password.';
     return view('success', $this->viewdata);

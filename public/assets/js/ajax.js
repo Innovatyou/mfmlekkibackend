@@ -2,6 +2,10 @@ function makeAjaxCall(url, methodType, fd){
    var promiseObj = new Promise(function(resolve, reject){
    			var xhr = new XMLHttpRequest();
          xhr.open(methodType, url, true);
+         var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+         if (csrfMeta) {
+           xhr.setRequestHeader('X-CSRF-TOKEN', csrfMeta.getAttribute('content'));
+         }
          xhr.send(fd);
          xhr.onreadystatechange = function(){
            if (xhr.readyState === 4){

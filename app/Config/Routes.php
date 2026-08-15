@@ -30,18 +30,80 @@ $routes->setAutoRoute(false);
  * Route Definitions
  * --------------------------------------------------------------------
  */
- 
- // INIT APP route
-$routes->get('initapp', 'Initapp::index');
+
+// CORS preflight: browsers send OPTIONS before cross-origin POST/PUT/etc.
+// requests. Routing runs before filters in this CI version, so an OPTIONS
+// request with no matching route 404s before App\Filters\Cors ever gets a
+// chance to run — this catch-all answers every OPTIONS request with an
+// empty 204; the actual Access-Control-* headers are added by that filter.
+$routes->options('(:any)', static function () {
+	return service('response')->setStatusCode(204);
+});
+
+
+ // License activation - no auth or license filter
+$routes->get('activate', 'License::activate');
+$routes->post('activate/process', 'License::process');
+
+// INIT APP route
+$routes->get('initapp', 'Api::initapp');
 
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 //admin users
 $routes->get('login', 'Login::index', ["filter" => "noauth"]);
 $routes->post('authenticate', 'Login::authenticate');
-$routes->get('/', 'Home::index', ['filter' => 'auth']);
+$routes->get('forgot-password', 'Login::forgotPassword', ['filter' => 'noauth']);
+$routes->post('forgot-password', 'Login::sendAdminResetEmail');
+$routes->get('admin-reset/(:any)', 'Login::adminResetForm/$1');
+$routes->post('admin-change-password', 'Login::adminChangePassword');
+// Public church website (landing page)
+$routes->get('/', 'Landing::index');
+$routes->post('joinUs', 'Landing::signup');
+
 $routes->get('dashboard', 'Home::index', ['filter' => 'auth']);
 $routes->get('logout', 'Login::logout');
+
+// Website content management (admin)
+$routes->get('landingContent', 'LandingContent::index', ['filter' => 'auth']);
+$routes->post('updateLandingContent', 'LandingContent::update', ['filter' => 'auth']);
+
+$routes->get('serviceTimesListing', 'LandingContent::serviceTimes', ['filter' => 'auth']);
+$routes->get('newServiceTime', 'LandingContent::newServiceTime', ['filter' => 'auth']);
+$routes->post('saveNewServiceTime', 'LandingContent::saveNewServiceTime', ['filter' => 'auth']);
+$routes->get('editServiceTime/(:num)', 'LandingContent::editServiceTime/$1', ['filter' => 'auth']);
+$routes->post('editServiceTimeData', 'LandingContent::editServiceTimeData', ['filter' => 'auth']);
+$routes->get('deleteServiceTime/(:num)', 'LandingContent::deleteServiceTime/$1', ['filter' => 'auth']);
+
+$routes->get('leadershipListing', 'LandingContent::leadership', ['filter' => 'auth']);
+$routes->get('newLeader', 'LandingContent::newLeader', ['filter' => 'auth']);
+$routes->post('saveNewLeader', 'LandingContent::saveNewLeader', ['filter' => 'auth']);
+$routes->get('editLeader/(:num)', 'LandingContent::editLeader/$1', ['filter' => 'auth']);
+$routes->post('editLeaderData', 'LandingContent::editLeaderData', ['filter' => 'auth']);
+$routes->get('deleteLeader/(:num)', 'LandingContent::deleteLeader/$1', ['filter' => 'auth']);
+
+$routes->get('signupRequests', 'LandingContent::signupRequests', ['filter' => 'auth']);
+$routes->post('getSignupRequests', 'LandingContent::getSignupRequests', ['filter' => 'auth']);
+$routes->get('approveSignupRequest/(:num)', 'LandingContent::approveSignupRequest/$1', ['filter' => 'auth']);
+$routes->get('rejectSignupRequest/(:num)', 'LandingContent::rejectSignupRequest/$1', ['filter' => 'auth']);
+
+$routes->get('membershipFormListing', 'LandingContent::membershipForm', ['filter' => 'auth']);
+$routes->get('newMembershipField', 'LandingContent::newMembershipField', ['filter' => 'auth']);
+$routes->post('saveNewMembershipField', 'LandingContent::saveNewMembershipField', ['filter' => 'auth']);
+$routes->get('editMembershipField/(:num)', 'LandingContent::editMembershipField/$1', ['filter' => 'auth']);
+$routes->post('editMembershipFieldData', 'LandingContent::editMembershipFieldData', ['filter' => 'auth']);
+$routes->get('deleteMembershipField/(:num)', 'LandingContent::deleteMembershipField/$1', ['filter' => 'auth']);
+$routes->get('moveMembershipFieldUp/(:num)', 'LandingContent::moveMembershipFieldUp/$1', ['filter' => 'auth']);
+$routes->get('moveMembershipFieldDown/(:num)', 'LandingContent::moveMembershipFieldDown/$1', ['filter' => 'auth']);
+
+// JSON API for the Next.js frontend (public, CORS-enabled)
+$routes->get('api/landingContent', 'LandingApi::landingContent');
+$routes->get('api/membershipForm', 'LandingApi::membershipForm');
+$routes->post('api/joinChurch', 'LandingApi::join');
+$routes->options('api/landingContent', 'LandingApi::preflight');
+$routes->options('api/membershipForm', 'LandingApi::preflight');
+$routes->options('api/joinChurch', 'LandingApi::preflight');
+
 //audios
 $routes->get('audios', 'Audios::index', ['filter' => 'auth']);
 $routes->post('fetchAudios', 'Audios::fetch', ['filter' => 'auth']);
@@ -66,15 +128,15 @@ $routes->get('newVideo', 'Videos::newVideo', ['filter' => 'auth']);
 $routes->post('saveNewVideo', 'Videos::saveNewVideo', ['filter' => 'auth']);
 $routes->get('editVideo/(:any)', 'Videos::editVideo/$1', ['filter' => 'auth']);
 $routes->post('editVideoData', 'Videos::editVideoData', ['filter' => 'auth']);
-$routes->get('deleteVideo/(:any)', 'Videos::deleteVideo/$1', ['filter' => 'auth']);
+$routes->get('deleteVideo/(:num)', 'Videos::deleteVideo/$1', ['filter' => 'auth']);
 
 //livestream
 $routes->get('livestreams', 'Livestream::index', ['filter' => 'auth']);
 $routes->get('newLivestream', 'Livestream::newLivestream', ['filter' => 'auth']);
 $routes->post('savenewlivestream', 'Livestream::savenewlivestream', ['filter' => 'auth']);
-$routes->get('editLivestream/(:any)', 'Livestream::editLivestream/$1', ['filter' => 'auth']);
+$routes->get('editLivestream/(:num)', 'Livestream::editLivestream/$1', ['filter' => 'auth']);
 $routes->post('editLivestreamData', 'Livestream::editLivestreamData', ['filter' => 'auth']);
-$routes->get('deleteLivestream/(:any)', 'Livestream::deleteLivestream/$1', ['filter' => 'auth']);
+$routes->get('deleteLivestream/(:num)', 'Livestream::deleteLivestream/$1', ['filter' => 'auth']);
 
 //livestream
 $routes->get('radio', 'Radio::index', ['filter' => 'auth']);
@@ -146,6 +208,100 @@ $routes->get('editMember/(:any)', 'Members::editMember/$1', ['filter' => 'auth']
 $routes->get('viewMember/(:any)', 'Members::viewMember/$1', ['filter' => 'auth']);
 $routes->post('editMemberData', 'Members::editMemberData', ['filter' => 'auth']);
 $routes->get('deleteMember/(:any)', 'Members::deleteMember/$1', ['filter' => 'auth']);
+
+// marketplace
+$routes->get('marketplaceListing', 'Marketplace::index', ['filter' => 'auth']);
+$routes->post('getMarketplaceItems', 'Marketplace::getItems', ['filter' => 'auth']);
+$routes->get('newMarketplaceListing', 'Marketplace::newListing', ['filter' => 'auth']);
+$routes->post('saveNewMarketplaceListing', 'Marketplace::saveNewListing', ['filter' => 'auth']);
+$routes->get('editMarketplaceItem/(:num)', 'Marketplace::editListing/$1', ['filter' => 'auth']);
+$routes->post('editListingData', 'Marketplace::editListingData', ['filter' => 'auth']);
+$routes->get('viewMarketplaceItem/(:num)', 'Marketplace::viewItem/$1', ['filter' => 'auth']);
+$routes->get('deleteMarketplaceListing/(:num)', 'Marketplace::deleteListing/$1', ['filter' => 'auth']);
+$routes->get('approveMarketplaceItem/(:num)', 'Marketplace::approveItem/$1', ['filter' => 'auth']);
+$routes->get('markItemSold/(:num)', 'Marketplace::markSold/$1', ['filter' => 'auth']);
+$routes->post('submitMarketplaceInquiry', 'Marketplace::submitInquiry', ['filter' => 'auth']);
+$routes->get('deleteMarketplaceInquiry/(:num)', 'Marketplace::deleteInquiry/$1', ['filter' => 'auth']);
+$routes->get('deleteMarketplacePhoto/(:num)', 'Marketplace::deletePhoto/$1', ['filter' => 'auth']);
+$routes->post('getPendingMarketplaceItems', 'Marketplace::getPendingItems', ['filter' => 'auth']);
+$routes->get('rejectMarketplaceItem/(:num)', 'Marketplace::rejectItem/$1', ['filter' => 'auth']);
+
+// marketplace mobile API (public browse: no auth; owner-scoped actions: mobiletoken)
+$routes->post('fetchMarketplaceCategories', 'Api::fetchMarketplaceCategories');
+$routes->post('fetchMarketplaceListings', 'Api::fetchMarketplaceListings');
+$routes->post('fetchMyMarketplaceListings', 'Api::fetchMyMarketplaceListings', ['filter' => 'mobiletoken']);
+$routes->post('fetchMarketplaceItem', 'Api::fetchMarketplaceItem');
+$routes->post('submitMarketplaceListing', 'Api::submitMarketplaceListing', ['filter' => 'mobiletoken']);
+$routes->post('uploadMarketplacePhoto', 'Api::uploadMarketplacePhoto', ['filter' => 'mobiletoken']);
+$routes->post('deleteMyMarketplaceListing', 'Api::deleteMyMarketplaceListing', ['filter' => 'mobiletoken']);
+$routes->post('submitMarketplaceInquiryApp', 'Api::submitMarketplaceInquiryApp');
+$routes->post('updateMarketplaceListing', 'Api::updateMarketplaceListing', ['filter' => 'mobiletoken']);
+$routes->get('marketplaceCategories', 'Marketplace::categories', ['filter' => 'auth']);
+$routes->post('saveNewMarketplaceCategory', 'Marketplace::saveNewCategory', ['filter' => 'auth']);
+$routes->get('deleteMarketplaceCategory/(:num)', 'Marketplace::deleteCategory/$1', ['filter' => 'auth']);
+
+// partnership (admin)
+$routes->get('partnership', 'Partnership::dashboard', ['filter' => 'auth']);
+$routes->get('partnershipListing', 'Partnership::index', ['filter' => 'auth']);
+$routes->post('getPartnershipList', 'Partnership::getList', ['filter' => 'auth']);
+$routes->get('newPartnership', 'Partnership::newPartnership', ['filter' => 'auth']);
+$routes->post('saveNewPartnership', 'Partnership::saveNewPartnership', ['filter' => 'auth']);
+$routes->get('editPartnership/(:num)', 'Partnership::editPartnership/$1', ['filter' => 'auth']);
+$routes->post('editPartnershipData', 'Partnership::editPartnershipData', ['filter' => 'auth']);
+$routes->get('deletePartnership/(:num)', 'Partnership::deletePartnership/$1', ['filter' => 'auth']);
+$routes->get('approvePartnership/(:num)', 'Partnership::approvePartnership/$1', ['filter' => 'auth']);
+$routes->get('partnershipTiers', 'Partnership::tiers', ['filter' => 'auth']);
+$routes->post('saveNewPartnershipTier', 'Partnership::saveNewTier', ['filter' => 'auth']);
+$routes->post('updatePartnershipTierData', 'Partnership::updateTierData', ['filter' => 'auth']);
+$routes->get('deletePartnershipTier/(:num)', 'Partnership::deleteTier/$1', ['filter' => 'auth']);
+$routes->post('adminRecordPayment/(:num)', 'Partnership::adminRecordPayment/$1', ['filter' => 'auth']);
+// partnership payment (public — no auth, identity by partnership ID)
+$routes->get('partnerPayment/(:num)', 'Partnership::paymentPage/$1');
+$routes->post('savePartnershipPayment', 'Partnership::savePartnershipPayment');
+$routes->post('stripe/partnership-charge', 'Partnership::stripePartnershipCharge');
+
+// digital counseling & case tracker (admin)
+$routes->get('counseling', 'Counseling::dashboard', ['filter' => 'auth']);
+$routes->post('getCounselingCaseList', 'Counseling::getCaseList', ['filter' => 'auth']);
+$routes->get('newCounselingCase', 'Counseling::newCase', ['filter' => 'auth']);
+$routes->post('saveNewCounselingCase', 'Counseling::saveNewCase', ['filter' => 'auth']);
+$routes->get('counselingCase/(:num)', 'Counseling::viewCase/$1', ['filter' => 'auth']);
+$routes->post('updateCounselingStatus/(:num)', 'Counseling::updateStatus/$1', ['filter' => 'auth']);
+$routes->post('logCounselingSession', 'Counseling::logSession', ['filter' => 'auth']);
+$routes->get('deleteCounselingSession/(:num)', 'Counseling::deleteSession/$1', ['filter' => 'auth']);
+$routes->post('addCounselingReminder', 'Counseling::addReminder', ['filter' => 'auth']);
+$routes->get('counselingReminderDone/(:num)', 'Counseling::markReminderDone/$1', ['filter' => 'auth']);
+$routes->get('deleteCounselingReminder/(:num)', 'Counseling::deleteReminder/$1', ['filter' => 'auth']);
+$routes->get('deleteCounselingCase/(:num)', 'Counseling::deleteCase/$1', ['filter' => 'auth']);
+$routes->post('scheduleVideoSession', 'Counseling::scheduleVideoSession', ['filter' => 'auth']);
+$routes->post('updateMeetingStatus/(:num)', 'Counseling::updateMeetingStatus/$1', ['filter' => 'auth']);
+$routes->post('assignCounselingCase/(:num)', 'Counseling::assignCase/$1', ['filter' => 'auth']);
+
+// partnership mobile API (fetchPartnershipTiers: public, optional personalization; rest: mobiletoken)
+$routes->post('fetchPartnershipTiers', 'Api::fetchPartnershipTiers');
+$routes->post('fetchMyPartnership', 'Api::fetchMyPartnership', ['filter' => 'mobiletoken']);
+$routes->post('fetchPartnershipPayments', 'Api::fetchPartnershipPayments', ['filter' => 'mobiletoken']);
+$routes->post('submitPartnershipPledge', 'Api::submitPartnershipPledge', ['filter' => 'mobiletoken']);
+$routes->post('updatePartnershipPledge', 'Api::updatePartnershipPledge', ['filter' => 'mobiletoken']);
+
+// counseling mobile API (mobiletoken — private case/session data)
+$routes->post('submitCounselingRequest', 'Counseling::submitRequest', ['filter' => 'mobiletoken']);
+$routes->post('fetchMyCounselingCases', 'Counseling::fetchMyCases', ['filter' => 'mobiletoken']);
+$routes->post('fetchMyVideoSessions', 'Counseling::fetchMyVideoSessions', ['filter' => 'mobiletoken']);
+
+// member care mobile API (mobiletoken — private wellness/pastoral-care data)
+$routes->post('api/myWellnessProfile',    'MemberCareApi::myWellnessProfile', ['filter' => 'mobiletoken']);
+$routes->post('api/requestPastoralCare',  'MemberCareApi::requestPastoralCare', ['filter' => 'mobiletoken']);
+$routes->post('api/groupMemberBirthdays', 'MemberCareApi::groupMemberBirthdays', ['filter' => 'mobiletoken']);
+
+// member care intelligence
+$routes->get('memberCare', 'MemberCare::dashboard', ['filter' => 'auth']);
+$routes->post('getMemberCareList', 'MemberCare::getCareList', ['filter' => 'auth']);
+$routes->get('memberCareProfile/(:num)', 'MemberCare::profile/$1', ['filter' => 'auth']);
+$routes->post('logCareEvent', 'MemberCare::logEvent', ['filter' => 'auth']);
+$routes->post('addCareNote', 'MemberCare::addNote', ['filter' => 'auth']);
+$routes->get('deleteCareNote/(:num)', 'MemberCare::deleteNote/$1', ['filter' => 'auth']);
+$routes->get('deleteCareEvent/(:num)', 'MemberCare::deleteEvent/$1', ['filter' => 'auth']);
 
 //articles
 $routes->post('getArticles', 'Articles::getArticles', ['filter' => 'auth']);
@@ -230,6 +386,7 @@ $routes->get('deleteGroupEvent/(:any)', 'Groups::deleteEvent/$1', ['filter' => '
 //donations
 $routes->get('donations', 'Donations::index', ['filter' => 'auth']);
 $routes->post('donationslisting', 'Donations::donationslisting', ['filter' => 'auth']);
+$routes->get('donate', 'Donations::donate');
 $routes->get('donate/(:any)', 'Donations::donate/$1');
 $routes->post('savedonation', 'Donations::savedonation');
 $routes->post('stripe/create-donation-charge', 'Donations::createCharge');
@@ -346,6 +503,7 @@ $routes->post('blockUnblockUser', 'Chat::blockUnblockUser');
 $routes->post('checkfornewmessages', 'Chat::checkfornewmessages');
 
 
+
 //admin roles and users management
 $routes->get('admin/roles', 'AdminRoles::index', ['filter' => 'auth']);
 $routes->get('admin/roles/create', 'AdminRoles::create', ['filter' => 'auth']);
@@ -372,18 +530,11 @@ $routes->post('admin/users/assignRole/(:num)', 'AdminUsers::assignRole/$1', ['fi
 $routes->get('terms', 'Settings::terms');
 $routes->get('privacy', 'Settings::privacy');
 $routes->get('aboutus', 'Settings::aboutus');
-$routes->get('delete-account', 'Settings::deleteAccount');
 
 //payments
 $routes->get('makepayment', 'Payments::makepayment', ['filter' => 'auth']);
 $routes->post('stripe/create-charge', 'Payments::createCharge', ['filter' => 'auth']);
 $routes->post('savesubscription', 'Payments::savesubscription', ['filter' => 'auth']);
-
-// Zoom Admin routes (add auth filter as needed)
-$routes->get('zoomadmin', 'ZoomAdmin::index', ['filter' => 'auth']);
-$routes->post('zoomadmin/update', 'ZoomAdmin::updateZoom', ['filter' => 'auth']);
-$routes->post('api/zoomadmin/update', 'ZoomAdmin::updateZoomJson', ['filter' => 'auth']);
-$routes->get('api/zoom/status', 'ZoomAdmin::status', ['filter' => 'auth']);
 
 /*
  * --------------------------------------------------------------------
@@ -398,9 +549,6 @@ $routes->get('api/zoom/status', 'ZoomAdmin::status', ['filter' => 'auth']);
  * You will have access to the $routes object within that file without
  * needing to reload it.
  */
-// Zoom Live Service API routes
-$routes->get('api/zoom/live', 'Zoom::live');
-$routes->get('api/zoom/schedule', 'Zoom::schedule');
 
 if (file_exists(APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php')) {
 	require APPPATH . 'Config/' . ENVIRONMENT . '/Routes.php';

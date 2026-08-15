@@ -5,14 +5,12 @@ namespace App\Controllers;
 use CodeIgniter\Controller;
 use App\Models\Donations_model as donationsmodel;
 use App\Models\Settings_model as settingsmodel;
-use App\Models\Clients_model as clientsmodel;
 use Stripe;
 //use App\Models\Home_model as homemodel;
 
 class Donations extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -21,7 +19,6 @@ class Donations extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
   }
 
   public function index()
@@ -56,8 +53,8 @@ class Donations extends BaseController
     }
 
 
-    $users = $donationsmodel->donationsListing($columnName, $columnSortOrder, $searchValue, $start, $length, $this->apitoken);
-    $total = $donationsmodel->get_total_donations($searchValue,  $this->apitoken);
+    $users = $donationsmodel->donationsListing($columnName, $columnSortOrder, $searchValue, $start, $length);
+    $total = $donationsmodel->get_total_donations($searchValue);
     //var_dump($users); die;
     $dat = array();
 
@@ -85,17 +82,13 @@ class Donations extends BaseController
     echo json_encode($output);
   }
 
-  public function donate($apitoken)
+  public function donate($ignored = null)
   {
     $settingsmodel = new settingsmodel();
-    $this->viewdata['settings'] = $settingsmodel->getSettings($apitoken);
+    $this->viewdata['settings'] = $settingsmodel->getSettings();
     if ($this->viewdata['settings'] == NULL) {
       return redirect()->to(base_url() . '/');
-      return;
     }
-    $this->viewdata['apitoken'] = $apitoken;
-    //$data['transid'] = $this->generate_string();
-    //$data['hash'] = hash( "sha512","C0Dr8m|12345|1000|Shopping|Vinay|vinay@test.com|3sf0jURk");
     return view("donations/donate", $this->viewdata);
   }
 
@@ -123,7 +116,6 @@ class Donations extends BaseController
       $name = isset($data->name) ? filter_var($data->name, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       $amount = isset($data->amount) ? filter_var($data->amount, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : 0;
       $reference = isset($data->reference) ? filter_var($data->reference, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
-      $apitoken = isset($data->apitoken) ? filter_var($data->apitoken, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       $pay_ref['email'] = $email;
       $pay_ref['name'] = $name;
@@ -131,13 +123,12 @@ class Donations extends BaseController
       $pay_ref['reference'] = $reference;
       $pay_ref['amount'] = $amount;
       $pay_ref['method'] = $method;
-      $pay_ref['apitoken'] = $apitoken;
       $pay_ref['day'] = date('d');
       $pay_ref['month'] = date('m');
       $pay_ref['year'] = date('Y');
       $donationsmodel = new donationsmodel();
       $donationsmodel->recordDonation($pay_ref);
-      $this->senddonationemail($apitoken, $email, $name, $amount);
+      $this->senddonationemail($email, $name, $amount);
       echo json_encode(array("status" => $donationsmodel->status, "message" => $donationsmodel->message));
       exit;
     } else {
@@ -148,13 +139,10 @@ class Donations extends BaseController
   function thank_you()
   {
     $this->viewdata['message'] = "<p>Thank you for your support and for your belief in doing good.<br>We simply couldnt do what we do without amazing people like you.</p>";
-    if (isset($_GET['_p'])) {
-      $apitoken = $_GET['_p'];
-      $settingsmodel = new settingsmodel();
-      $settings = $settingsmodel->getSettings($apitoken);
-      if ($settings) {
-        $this->viewdata['message'] = $settings->thankyou;
-      }
+    $settingsmodel = new settingsmodel();
+    $settings = $settingsmodel->getSettings();
+    if ($settings && $settings->thankyou != "") {
+      $this->viewdata['message'] = $settings->thankyou;
     }
     return view("donations/thank_you", $this->viewdata);
   }
@@ -164,9 +152,7 @@ class Donations extends BaseController
   {
     $settingsmodel = new settingsmodel();
     $data = $this->get_data();
-    //var_dump($data); die;
-    $apitoken = $data->apitoken;
-    $settings = $settingsmodel->getSettings($apitoken);;
+    $settings = $settingsmodel->getSettings();
     $token = $data->token;
     $email = $data->email;
     $name = $data->name;
@@ -188,13 +174,12 @@ class Donations extends BaseController
       $pay_ref['reference'] = $charge->id;
       $pay_ref['amount'] = $amount;
       $pay_ref['method'] = "Stripe";
-      $pay_ref['apitoken'] = $apitoken;
       $pay_ref['day'] = date('d');
       $pay_ref['month'] = date('m');
       $pay_ref['year'] = date('Y');
       $donationsmodel = new donationsmodel();
       $donationsmodel->recordDonation($pay_ref);
-      $this->senddonationemail($apitoken, $email, $name, $amount);
+      $this->senddonationemail($email, $name, $amount);
       echo json_encode(array("status" => $donationsmodel->status, "message" => $donationsmodel->message));
     } catch (\Stripe\Error\ApiConnection $e) {
       // Network problem, perhaps try again.
@@ -223,12 +208,11 @@ class Donations extends BaseController
     exit;
   }
 
-  private function senddonationemail($apitoken, $donationemail, $fullname, $amount)
+  private function senddonationemail($donationemail, $fullname, $amount)
   {
-    $clientsmodel = new clientsmodel();
-    $church = $clientsmodel->getClientInfoWithApiToken($apitoken);
     $settingsmodel = new settingsmodel();
-    $settings = $settingsmodel->getSettings($apitoken);
+    $church = $settingsmodel->getChurchProfile();
+    $settings = $settingsmodel->getSettings();
     $htmlContent = '<p>New Donation Recieved.<br>
       AMOUNT: ' . $amount . '<br>
       SENT BY:  ' . $fullname . '</p>';

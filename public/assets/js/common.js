@@ -35,10 +35,24 @@ tinymce.init({
 
 //function to load url for deleting respective items from database
 function delete_item(e){
-  var id = e.target.getAttribute('data-id');
-  var type = e.target.getAttribute('data-type');
+  if (e && e.preventDefault) {
+    e.preventDefault();
+  }
+
+  var entry = e.currentTarget || e.target || e.srcElement || this;
+  if (entry && entry.closest) {
+    entry = entry.closest('[data-type][data-id]') || entry;
+  }
+
+  var id = entry ? entry.getAttribute('data-id') : null;
+  var type = entry ? entry.getAttribute('data-type') : null;
   var msg = '';
   var url = '';
+
+  if (!type || !id) {
+    console.warn('delete_item: missing type or id', type, id, entry);
+    return;
+  }
 
   switch(type){
     case 'book':
@@ -129,7 +143,7 @@ function delete_item(e){
     break;
     case 'video':
        var msg = 'You want to delete this Video File';
-       url = baseURL+'/deleteVideo/'+id;
+       url = baseURL.replace(/\/+$/, '') + '/deleteVideo/' + id;
     break;
     case 'reports':
        var msg = 'You want to delete this reported comment';
@@ -1195,6 +1209,118 @@ $('#feeds_table').DataTable({
     dom: 'frtip',
     "columnDefs": [
     { className: "td_width", "targets": [ 3,4 ] }
+  ]
+});
+
+$('#counseling_table').DataTable({
+  processing : true,
+  serverSide : true,
+  pageLength : 15,
+  ajax       : { url: baseURL + '/getCounselingCaseList', type: 'POST' },
+  dom        : "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+  language   : {
+    search: '', searchPlaceholder: 'Search cases…',
+    lengthMenu: 'Show _MENU_',
+    info: 'Showing _START_–_END_ of _TOTAL_ cases',
+    paginate: { previous: '‹', next: '›' },
+    processing: '<div style="padding:20px;color:var(--t3);font-size:.875rem;">Loading…</div>',
+  },
+  columnDefs: [
+    { targets: 0, width: '40px', className: 'text-muted', orderable: false },
+    { targets: [1,2,3,4,5,6,7,8], orderable: false },
+    { targets: 8, className: 'text-center', width: '80px' },
+  ],
+});
+
+$('#mp_table').DataTable({
+  processing : true,
+  serverSide : true,
+  pageLength : 15,
+  ajax       : { url: baseURL + '/getMarketplaceItems', type: 'POST' },
+  dom        : "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+  language   : {
+    search: '', searchPlaceholder: 'Search listings…',
+    lengthMenu: 'Show _MENU_',
+    info: 'Showing _START_–_END_ of _TOTAL_ listings',
+    paginate: { previous: '‹', next: '›' },
+    processing: '<div style="padding:20px;color:var(--t3);font-size:.875rem;">Loading…</div>',
+  },
+  columnDefs: [
+    { targets: 0, width: '50px', className: 'text-muted', orderable: false },
+    { targets: [4,5,6,7], orderable: false },
+    { targets: 9, orderable: false, className: 'text-center' },
+  ]
+});
+
+$('#ps_table').DataTable({
+  processing : true,
+  serverSide : true,
+  pageLength : 20,
+  ajax       : { url: baseURL + '/getPartnershipList', type: 'POST' },
+  dom        : "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+  language   : { search: '', searchPlaceholder: 'Search partners…', info: 'Showing _START_–_END_ of _TOTAL_', paginate: { previous: '‹', next: '›' } },
+  columnDefs : [
+    { targets: 0, width: '50px', orderable: false },
+    { targets: 8, orderable: false, width: '100px' }
+  ]
+});
+
+$('#care_table').DataTable({
+  processing : true,
+  serverSide : true,
+  pageLength : 15,
+  ajax       : { url: baseURL + '/getMemberCareList', type: 'POST' },
+  dom        : "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+  language   : {
+    search: '', searchPlaceholder: 'Search members…',
+    lengthMenu: 'Show _MENU_',
+    info: 'Showing _START_–_END_ of _TOTAL_ members',
+    paginate: { previous: '‹', next: '›' },
+    processing: '<div style="padding:20px;color:var(--t3);font-size:.875rem;">Loading…</div>',
+  },
+  columnDefs: [
+    { targets: 0, width: '50px', className: 'text-muted', orderable: false },
+    { targets: 1, visible: false },
+    {
+      targets: 2,
+      render: function(fn, type, row){
+        if(type !== 'display') return fn;
+        var ln=row[3], email=row[1], full=fn+' '+ln;
+        var init=((fn||'?').charAt(0)+(ln||'').charAt(0)).toUpperCase();
+        var grade=typeof _grad === 'function' ? _grad(fn) : '#6366f1,#8b5cf6';
+        return '<div style="display:flex;align-items:center;gap:10px;">' +
+          '<div style="width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,'+grade+');'+
+            'display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.78rem;flex-shrink:0;">' + init + '</div>' +
+          '<div><div style="font-weight:600;color:var(--t1);">' + $('<div>').text(full).html() + '</div>' +
+          '<div style="font-size:.75rem;color:var(--t3);">' + $('<div>').text(email).html() + '</div></div></div>';
+      }
+    },
+    { targets: 3, visible: false },
+    {
+      targets: 4,
+      className: 'text-center',
+      render: function(score, type){
+        if(type !== 'display') return score;
+        var pct = Math.min(parseInt(score)||0, 100);
+        var col = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : pct >= 10 ? '#f97316' : '#ef4444';
+        return '<div class="mc-score-bar">' +
+          '<div class="mc-score-track"><div class="mc-score-fill" style="width:'+pct+'%;background:'+col+';"></div></div>' +
+          '<span style="font-size:.78rem;font-weight:700;color:'+col+';min-width:28px;">'+pct+'</span></div>';
+      }
+    },
+    {
+      targets: 5,
+      className: 'text-center',
+      render: function(grade, type){
+        if(type !== 'display') return grade;
+        var _gl = typeof _gradeLabel !== 'undefined' ? _gradeLabel : {};
+        var label = _gl[grade] || grade;
+        return '<span class="mc-badge mc-badge-'+grade+'">'+label+'</span>';
+      }
+    },
+    { targets: 6, className: 'text-center' },
+    { targets: 7 },
+    { targets: 8, orderable: false, className: 'text-center' }
   ]
 });
 

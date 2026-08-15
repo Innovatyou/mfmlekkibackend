@@ -52,7 +52,7 @@ A production-ready RBAC system with:
 
 ### 1. Run Migration
 ```bash
-cd c:\Users\user\Documents\MFM LEKKI\mfmadmin
+cd c:\Users\user\Documents\Church\mfmadmin
 php spark migrate
 ```
 

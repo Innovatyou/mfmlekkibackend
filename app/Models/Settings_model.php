@@ -16,12 +16,11 @@ class Settings_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  function getFcmServerKey($apitoken)
+  function getFcmServerKey()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('settings');
     $builder->select('settings.fcm_server_key');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     return $query->getRow(0)->fcm_server_key;
   }
@@ -33,24 +32,23 @@ class Settings_model extends Basemodel
     $builder->insert($info);
   }
 
-  function getSettings($apitoken)
+  function getSettings()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('settings');
     $builder->select('settings.*');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if ($row && $row->features == "") {
       $row->features = "bible,audiomessages, videomessages, donations, livestreams, events, articles, hymns, radio, photos, groups, prayer, testimony, devotionals, notes, books, gosocial";
     }
     if ($row && $row->donationslogo != "") {
-      $row->donationslogo = base_url() . "/uploads/churches/" . $row->donationslogo;
+      $row->donationslogo = $this->request_base_url() . "/uploads/churches/" . $row->donationslogo;
     }
     return $row;
   }
 
-  function getAppSettings($apitoken)
+  function getAppSettings()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('settings');
@@ -65,26 +63,23 @@ class Settings_model extends Basemodel
       settings.instagram,
       settings.youtube,
       settings.website,
-      settings.donations_link,
-      settings.post_prayer,
-      settings.post_prayer,
-      settings.post_prayer,
-      ');
-    $builder->where('apitoken', $apitoken);
+      settings.donations_link');
     $query = $builder->get();
     $row = $query->getRow(0);
-    if ($row == NULL || $row->features == "") {
-      $row->features = "bible,audiomessages, videomessages, donations, livestreams, events, articles, hymns, radio, photos, groups, prayer, testimony, devotionals, notes, books, gosocial";
+    if ($row === null) {
+      return null;
+    }
+    if ($row->features == "" || $row->features === null) {
+      $row->features = "bible,audiomessages,videomessages,donations,livestreams,events,articles,hymns,radio,photos,groups,prayer,testimony,devotionals,notes,books,gosocial";
     }
     return $row;
   }
 
 
-  function updateSettings($info, $apitoken)
+  function updateSettings($info)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('settings');
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
     
     
@@ -93,8 +88,6 @@ class Settings_model extends Basemodel
 
   public function getEmailConfig()
   {
-     $apitoken = getenv('PURCHASE_CODE');
-
     $db = \Config\Database::connect("default");
     $builder = $db->table('settings');
     $builder->select('settings.mail_username,
@@ -102,13 +95,12 @@ class Settings_model extends Basemodel
      settings.mail_smtp_host,
      settings.mail_protocol,
      settings.mail_port');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     return $row;
   }
 
-  public function getSMSConfig($set2, $smsgateway, $apitoken = "")
+  public function getSMSConfig($set2, $smsgateway)
   {
     $config = new \stdClass;
     if ($smsgateway == "twilio") {
@@ -123,29 +115,27 @@ class Settings_model extends Basemodel
   }
 
   //
-  function getRecentTransactions($apitoken)
+  function getRecentTransactions()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_transactions');
     $builder->select('tbl_transactions.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderby('date', 'DESC');
     $query = $builder->get();
     $result = $query->getResult();
     return $result;
   }
 
-  function getChurchProfile($apitoken)
+  function getChurchProfile()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_churches');
     $builder->select('tbl_churches.*');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
       if ($row->logo != "") {
-        $row->logo = base_url() . "/uploads/churches/" . $row->logo;
+        $row->logo = $this->request_base_url() . "/uploads/churches/" . $row->logo;
       }
       $row->substartdate = $this->calculatesubstartdate($row);
       $row->subexpirydate = date('Y-m-d H:i:s', strtotime($row->substartdate . ' +1 month'));
@@ -154,26 +144,16 @@ class Settings_model extends Basemodel
     return $row;
   }
 
-  function getChurchDefaultLanguage($apitoken)
+  function getChurchDefaultLanguage()
   {
-    $db = \Config\Database::connect("default");
-    $builder = $db->table('tbl_churches');
-    $builder->select('tbl_churches.language');
-    $builder->where('apitoken', $apitoken);
-    $query = $builder->get();
-    $row = $query->getRow(0);
-    if ($row) {
-      return $row->language;
-    }
     return 'en';
   }
 
-  function getChurchStatus($apitoken)
+  function getChurchStatus()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_churches');
     $builder->select('tbl_churches.status');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if ($row) {
@@ -182,11 +162,10 @@ class Settings_model extends Basemodel
     return 1;
   }
 
-  function editchurchprofile($info, $apitoken)
+  function editchurchprofile($info)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_churches');
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
   }
 
@@ -203,12 +182,11 @@ class Settings_model extends Basemodel
     }
   }
 
-  function getChurchSubscriptionMessage($apitoken, $grace_period)
+  function getChurchSubscriptionMessage($grace_period)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_churches');
     $builder->select('tbl_churches.*');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {

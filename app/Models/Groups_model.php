@@ -16,13 +16,12 @@ class Groups_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function fetchmygroups($email, $page = 0, $apitoken = "")
+  public function fetchmygroups($email, $page = 0)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_groups');
     $builder->select('tbl_groups.*');
     $builder->join('tbl_group_members', 'tbl_group_members.groupid=tbl_groups.id');
-    $builder->where('tbl_groups.apitoken', $apitoken);
     $builder->where('tbl_group_members.email', $email);
     $builder->where('tbl_group_members.status', 0);
     $builder->orderby('id', 'desc');
@@ -34,18 +33,17 @@ class Groups_model extends Basemodel
     $query = $builder->get();
     $result = $query->getResult();
     foreach ($result as $row) {
-      $row->members = $this->getGroupMembersCount($row->id, $apitoken);
+      $row->members = $this->getGroupMembersCount($row->id);
       $row->ismember = 0;
     }
     return $result;
   }
 
-  public function get_my_total_groups($email, $apitoken)
+  public function get_my_total_groups($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_members');
     $builder->select("COUNT(*) as num");
-    $builder->where('tbl_group_members.apitoken', $apitoken);
     $builder->where('tbl_group_members.email', $email);
     $query = $builder->get();
     $result = $query->getRow(0);
@@ -53,13 +51,12 @@ class Groups_model extends Basemodel
     return 0;
   }
 
-  public function fetch_items($email, $page = 0, $apitoken = "")
+  public function fetch_items($email, $page = 0)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_groups');
     $builder->select('tbl_groups.*');
     $builder->orderby('id', 'desc');
-    $builder->where('apitoken', $apitoken);
     if ($page != 0) {
       $builder->limit(20, $page * 20);
     } else {
@@ -68,30 +65,28 @@ class Groups_model extends Basemodel
     $query = $builder->get();
     $result = $query->getResult();
     foreach ($result as $row) {
-      $row->members = $this->getGroupMembersCount($row->id, $apitoken);
-      $row->ismember = empty($this->checkMemberGroupExists($email, $row->id, $apitoken)) ? 1 : 0;
+      $row->members = $this->getGroupMembersCount($row->id);
+      $row->ismember = empty($this->checkMemberGroupExists($email, $row->id)) ? 1 : 0;
     }
     return $result;
   }
 
-  public function get_total_items($apitoken)
+  public function get_total_items()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_groups');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  public function getTotalItems($apitoken)
+  public function getTotalItems()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_groups');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
@@ -99,28 +94,26 @@ class Groups_model extends Basemodel
   }
 
 
-  function groupsListing($apitoken)
+  function groupsListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_groups');
     $builder->select('tbl_groups.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('date', 'DESC');
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->count = $this->getGroupMembersCount($res->id, $apitoken);
+      $res->count = $this->getGroupMembersCount($res->id);
     }
     return $result;
   }
 
-  public function getGroupMembersCount($groupid, $apitoken)
+  public function getGroupMembersCount($groupid)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_members');
     $builder->select("COUNT(*) as num");
     $builder->where('groupid', $groupid);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
@@ -138,66 +131,60 @@ class Groups_model extends Basemodel
   }
 
 
-  function editGroup($info, $id, $apitoken)
+  function editGroup($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_groups');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['group_edit'];
   }
 
 
-  function getGroupInfo($id, $apitoken)
+  function getGroupInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_groups');
     $builder->select('tbl_groups.*');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     return $row;
   }
 
-  function deleteGroup($id, $apitoken)
+  function deleteGroup($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_groups');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['group_delete'];
   }
 
-  function deleteGroupMembers($listid, $apitoken)
+  function deleteGroupMembers($listid)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_members');
     $builder->where('groupid', $listid);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
   }
 
-  function removeFromGroup($id, $apitoken)
+  function removeFromGroup($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_members');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['remove_member'];
   }
 
-  function editMemberStatus($info, $id, $apitoken)
+  function editMemberStatus($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_members');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $builder->update($info);
     $this->status = $this->applocal['ok'];
@@ -206,60 +193,55 @@ class Groups_model extends Basemodel
 
   function addNewGroupMember($info)
   {
-    if (empty($this->checkMemberGroupExists($info['email'], $info['groupid'], $info['apitoken']))) {
+    if (empty($this->checkMemberGroupExists($info['email'], $info['groupid']))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_group_members');
       $builder->insert($info);
     }
   }
 
-  function getGroupMemberInfo($id, $apitoken)
+  function getGroupMemberInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_members');
     $builder->select('tbl_group_members.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $query = $builder->get();
     $row = $query->getRow(0);
     return $row;
   }
 
-  function checkMemberGroupExists($email, $groupid, $apitoken)
+  function checkMemberGroupExists($email, $groupid)
   {
-    //echo $name . " and ". $group;
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_members');
     $builder->select("id");
-    $builder->where('apitoken', $apitoken);
     $builder->where("email", $email);
     $builder->where("groupid", $groupid);
     $query = $builder->get();
     return $query->getResult();
   }
 
-  function groupsMembersListing($groupid, $apitoken)
+  function groupsMembersListing($groupid)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_members');
     $builder->select('tbl_group_members.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where("groupid", $groupid);
     $builder->orderBy('date', 'DESC');
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->name = $this->getMemberName($res->email, $apitoken);
+      $res->name = $this->getMemberName($res->email);
     }
     return $result;
   }
 
-  function getMemberName($email, $apitoken)
+  function getMemberName($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.firstname, tbl_members.lastname');
-    $builder->where('apitoken', $apitoken);
     $builder->where('email', $email);
     $query = $builder->get();
     $row = $query->getRow(0);
@@ -270,19 +252,17 @@ class Groups_model extends Basemodel
     }
   }
 
-  function fetchMembersNotinGroup($group, $apitoken)
+  function fetchMembersNotinGroup($group)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.*');
-    $builder->where('apitoken', $apitoken);
-    $subQuery = $db->table('tbl_group_members')->select('email')->where('apitoken', $apitoken)->where('groupid', $group->id)->get();
+    $subQuery = $db->table('tbl_group_members')->select('email')->where('groupid', $group->id)->get();
     $items = $subQuery->getResult();
     $_itms = [];
     foreach ($items as $ress) {
       array_push($_itms, $ress->email);
     }
-    //var_dump($_itms); die;
     if (count($items) > 0) {
       $builder->whereNotIn('email', $_itms);
     }
@@ -290,39 +270,37 @@ class Groups_model extends Basemodel
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->name = $this->getMemberName($res->email, $apitoken);
+      $res->name = $this->getMemberName($res->email);
     }
     return $result;
   }
 
-  function getBranchMembers($apitoken)
+  function getBranchMembers()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.*');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->name = $this->getMemberName($res->email, $apitoken);
+      $res->name = $this->getMemberName($res->email);
     }
     return $result;
   }
 
 
   //group events
-  function groupEventsListing($groupid, $apitoken)
+  function groupEventsListing($groupid)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_events');
     $builder->select('tbl_group_events.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('groupid', $groupid);
     $builder->orderBy('date', 'DESC');
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->thumbnail = base_url() . "/uploads/thumbnails/events/" . $apitoken . "/" . $res->thumbnail;
+      $res->thumbnail = $this->request_base_url() . "/uploads/thumbnails/events/" . $res->thumbnail;
     }
     return $result;
   }
@@ -336,61 +314,50 @@ class Groups_model extends Basemodel
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['group_event_add'];
     return $this->db->insertID();
-    
-    
+
     return 0;
   }
 
 
-  function editEvent($info, $id, $apitoken)
+  function editEvent($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_events');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $builder->update($info);
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['group_event_edit'];
-    
-    
-
   }
 
 
-  function getEventInfo($id, $apitoken)
+  function getEventInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_events');
     $builder->select('tbl_group_events.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
-      $row->thumbnail = base_url() . "/uploads/thumbnails/events/" . $apitoken . "/" . $row->thumbnail;
+      $row->thumbnail = $this->request_base_url() . "/uploads/thumbnails/events/" . $row->thumbnail;
     }
     return $row;
   }
 
-  function deleteEvent($id, $apitoken)
+  function deleteEvent($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_events');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['group_event_delete'];
-    
-    
-
   }
 
-  function fetchMonthsEvents($groupid, $month, $year, $apitoken)
+  function fetchMonthsEvents($groupid, $month, $year)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_group_events');
-    $builder->where('apitoken', $apitoken);
     $builder->where('groupid', $groupid);
     $builder->where('month', $month);
     $builder->where('year', $year);
@@ -398,7 +365,7 @@ class Groups_model extends Basemodel
     $query = $builder->get();
     $result =  $query->getResult();
     foreach ($result as $res) {
-      $res->thumbnail = base_url() . "/uploads/thumbnails/events/" . $apitoken . "/" . $res->thumbnail;
+      $res->thumbnail = $this->request_base_url() . "/uploads/thumbnails/events/" . $res->thumbnail;
     }
     return $result;
   }

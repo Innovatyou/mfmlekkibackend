@@ -8,7 +8,6 @@ use App\Models\Testimony_model as testimonymodel;
 class Testimony extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -17,7 +16,6 @@ class Testimony extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
       exit();
@@ -27,7 +25,7 @@ class Testimony extends BaseController
   public function index()
   {
     $testimonymodel = new testimonymodel();
-    $this->viewdata['testimonies'] = $testimonymodel->itemsListing($this->apitoken);
+    $this->viewdata['testimonies'] = $testimonymodel->itemsListing();
     return $this->view("testimony/listing", $this->viewdata);
   }
 
@@ -39,7 +37,7 @@ class Testimony extends BaseController
   public function editTestimony($id = 0)
   {
     $testimonymodel = new testimonymodel();
-    $this->viewdata['testimony'] = $testimonymodel->getItemInfo($id, $this->apitoken);
+    $this->viewdata['testimony'] = $testimonymodel->getItemInfo($id);
     if ($this->viewdata['testimony'] == NULL) {
       return redirect()->to(base_url() . '/testimonyListing');
     }
@@ -55,7 +53,6 @@ class Testimony extends BaseController
 
     $info = array(
       'title' => $title,
-      'apitoken' => $this->apitoken,
       'content' => $content,
       'testifier' => $testifier,
       'status' => 0,
@@ -84,7 +81,7 @@ class Testimony extends BaseController
     );
 
 
-    $testimonymodel->editItem($info, $id, $this->apitoken);
+    $testimonymodel->editItem($info, $id);
     if ($testimonymodel->status == "ok") {
       $this->session->setFlashdata('success', $testimonymodel->message);
     } else {
@@ -99,7 +96,7 @@ class Testimony extends BaseController
     $info = array(
       'status' => $status,
     );
-    $testimonymodel->editItem($info, $id, $this->apitoken);
+    $testimonymodel->editItem($info, $id);
     if ($testimonymodel->status == "ok") {
       $this->session->setFlashdata('success', $testimonymodel->message);
     } else {
@@ -112,7 +109,7 @@ class Testimony extends BaseController
   function deleteTestimony($id = 0)
   {
     $testimonymodel = new testimonymodel();
-    $testimonymodel->deleteItem($id, $this->apitoken);
+    $testimonymodel->deleteItem($id);
     if ($testimonymodel->status == "ok") {
       $this->session->setFlashdata('success', $testimonymodel->message);
     } else {

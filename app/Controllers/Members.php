@@ -4,11 +4,11 @@ namespace App\Controllers;
 
 use CodeIgniter\Controller;
 use App\Models\Members_model as membersmodel;
+use App\Models\MembershipForm_model as membershipformmodel;
 
 class Members extends BaseController
 {
   protected $session;
-  protected $apitoken;
 
   /**
    * constructor
@@ -17,7 +17,6 @@ class Members extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
 
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
@@ -57,8 +56,8 @@ class Members extends BaseController
     }
 
 
-    $feeds = $membersmodel->adminMembersListing($columnName, $columnSortOrder, $searchValue, $start, $length, $this->apitoken);
-    $total_feeds = $membersmodel->get_total_members($searchValue, $this->apitoken);
+    $feeds = $membersmodel->adminMembersListing($columnName, $columnSortOrder, $searchValue, $start, $length);
+    $total_feeds = $membersmodel->get_total_members($searchValue);
     //var_dump($feeds); die;
     $dat = array();
 
@@ -108,7 +107,7 @@ class Members extends BaseController
   public function editMember($id = 0)
   {
     $membersmodel = new membersmodel();
-    $this->viewdata['member'] = $membersmodel->getMemberInfo($id, $this->apitoken);
+    $this->viewdata['member'] = $membersmodel->getMemberInfo($id);
     if (count((array)$this->viewdata['member']) == 0) {
       return redirect()->to(base_url() . '/membersListing');
     }
@@ -118,10 +117,11 @@ class Members extends BaseController
   public function viewMember($id = 0)
   {
     $membersmodel = new membersmodel();
-    $this->viewdata['member'] = $membersmodel->getMemberInfo($id, $this->apitoken);
+    $this->viewdata['member'] = $membersmodel->getMemberInfo($id);
     if (count((array)$this->viewdata['member']) == 0) {
       return redirect()->to(base_url() . '/membersListing');
     }
+    $this->viewdata['answers'] = (new membershipformmodel())->getAnswersForMember($id);
     return $this->view("members/view", $this->viewdata);
   }
 
@@ -147,7 +147,6 @@ class Members extends BaseController
 
 
     $info = array(
-      'apitoken' => $this->apitoken,
       'age' => $this->getAge($dob),
       'year' => $year,
       'month' => $month,
@@ -163,6 +162,7 @@ class Members extends BaseController
       'facebook' => $facebook,
       'twitter' => $twitter,
       'linkedln' => $linkedln,
+      'date_inserted' => date('Y-m-d H:i:s'),
     );
 
     if (!empty($_FILES['thumbnail']['name'])) {
@@ -229,7 +229,7 @@ class Members extends BaseController
       }
     }
 
-    $membersmodel->editMember($info, $id, $this->apitoken);
+    $membersmodel->editMember($info, $id);
     if ($membersmodel->status == "ok") {
       $this->session->setFlashdata('success', $membersmodel->message);
     } else {
@@ -242,7 +242,7 @@ class Members extends BaseController
   function deleteMember($id = 0)
   {
     $membersmodel = new membersmodel();
-    $membersmodel->deleteMember($id, $this->apitoken);
+    $membersmodel->deleteMember($id);
     if ($membersmodel->status == "ok") {
       $this->session->setFlashdata('success', $membersmodel->message);
     } else {
@@ -260,8 +260,8 @@ class Members extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/events/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/events/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/events/')) {
+      mkdir('./uploads/thumbnails/events/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -276,7 +276,7 @@ class Members extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('thumbnail');
-      $img->move('./uploads/members/' . $this->apitoken);
+      $img->move('./uploads/members/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

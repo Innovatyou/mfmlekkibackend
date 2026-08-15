@@ -20,32 +20,30 @@ use ManeOlawale\Termii\Client as Termii;
 class Messaging extends BaseController
 {
 	protected $role = 0;
-	protected $apitoken = "";
 
 	public function __construct()
 	{
 		$session = session();
-		$this->apitoken = $session->get('apitoken');
 		$this->role = $session->get('role');
 	}
 
 	public function index()
 	{
 		$messagingmodel = new messagingmodel();
-		$this->viewdata['messages'] = $messagingmodel->messageListing($this->apitoken);
+		$this->viewdata['messages'] = $messagingmodel->messageListing();
 		return $this->view("messaging/listing", $this->viewdata);
 	}
 
 	public function newMessage()
 	{
 		$listsmodel = new listsmodel();
-		$this->viewdata['lists'] = $listsmodel->listsListing($this->apitoken);
+		$this->viewdata['lists'] = $listsmodel->listsListing();
 		$istwilioenabled = 1;
 		$istermiienabled = 1;
 		$isemailenabled = 1;
 
 		$settingsmodel = new settingsmodel();
-		$settings = $settingsmodel->getSettings($this->apitoken);
+		$settings = $settingsmodel->getSettings();
 		//if any of the settings are available
 		if (
 			$settings->twilio_account_sid != ""
@@ -82,18 +80,18 @@ class Messaging extends BaseController
 	public function resendMessage($id = 0)
 	{
 		$messagingmodel = new messagingmodel();
-		$this->viewdata['message'] = $messagingmodel->getMessageInfo($id, $this->apitoken);
+		$this->viewdata['message'] = $messagingmodel->getMessageInfo($id);
 		if (count((array)$this->viewdata['message']) == 0) {
 			return redirect()->to(base_url() . '/messaging');
 		}
 		$listsmodel = new listsmodel();
-		$this->viewdata['lists'] = $listsmodel->listsListing($this->apitoken);
+		$this->viewdata['lists'] = $listsmodel->listsListing();
 		$istwilioenabled = 1;
 		$istermiienabled = 1;
 		$isemailenabled = 1;
 
 		$settingsmodel = new settingsmodel();
-		$settings = $settingsmodel->getSettings($this->apitoken);
+		$settings = $settingsmodel->getSettings();
 		//if any of the settings are available
 		if (
 			$settings->twilio_account_sid != ""
@@ -153,7 +151,6 @@ class Messaging extends BaseController
 		//$members = $this->request->getVar('members');
 		//var_dump($_POST); die;
 		$info = array(
-			'apitoken' => $this->apitoken,
 			'title' => $title,
 			'listid' => $list,
 			'message' => $message,
@@ -169,26 +166,27 @@ class Messaging extends BaseController
 			$membersmodel = new membersmodel();
 			$members = [];
 			if ($list == 0) {
-				$members = $membersmodel->getMembers($this->apitoken);
+				$members = $membersmodel->getMembers();
 			} else {
-				$members = $membersmodel->getMembersByListid($list, $this->apitoken);
+				$members = $membersmodel->getMembersByListid($list);
 			}
 
 			$settingsmodel = new settingsmodel();
-			$adminsettings = $settingsmodel->getSettings($this->apitoken);
+			$adminsettings = $settingsmodel->getSettings();
 			//send email
 			if ($email == "YES") {
 				$emailconfig = $settingsmodel->getEmailConfig();
 				$branchname = $adminsettings->churchname;
+				$htmlMessage = $this->buildEmailTemplate($branchname, $title, $message);
 				foreach ($members as $res) {
 					if ($res->email != "") {
-						$this->sendEmail($branchname, $emailconfig, $res->email, $title, $message);
+						$this->sendEmail($branchname, $emailconfig, $res->email, $title, $htmlMessage);
 					}
 				}
 			}
 			//send sms
 			if ($sms == "YES") {
-				$smsconfig = $settingsmodel->getSMSConfig($adminsettings, $smsgateway, $this->apitoken);
+				$smsconfig = $settingsmodel->getSMSConfig($adminsettings, $smsgateway);
 				foreach ($members as $res) {
 					if ($res->phonenumber != "") {
 						$this->sendSMS($smsgateway, $smsconfig, $res->phonenumber, $message);
@@ -213,7 +211,7 @@ class Messaging extends BaseController
 			'message' => $message,
 		);
 		$messagingmodel = new messagingmodel();
-		$messagingmodel->editMessage($info, $id, $this->apitoken);
+		$messagingmodel->editMessage($info, $id);
 		$session = session();
 		$session->setFlashdata('success', "Message updated successfully.");
 		return redirect()->to(base_url() . '/editMessage/' . $id);
@@ -222,7 +220,7 @@ class Messaging extends BaseController
 	function deleteMessage($id = 0)
 	{
 		$messagingmodel = new messagingmodel();
-		$messagingmodel->deleteMessage($id, $this->apitoken);
+		$messagingmodel->deleteMessage($id);
 		$session = session();
 		if ($messagingmodel->status == "ok") {
 			$session->setFlashdata('success', $messagingmodel->message);
@@ -230,6 +228,80 @@ class Messaging extends BaseController
 			$session->setFlashdata('error', $messagingmodel->message);
 		}
 		return redirect()->to(base_url() . '/messaging');
+	}
+
+	private function buildEmailTemplate(string $churchName, string $subject, string $body): string
+	{
+		$year = date('Y');
+		$safeName    = htmlspecialchars($churchName, ENT_QUOTES, 'UTF-8');
+		$safeSubject = htmlspecialchars($subject, ENT_QUOTES, 'UTF-8');
+		return <<<HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>{$safeSubject}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">
+
+        <!-- Header -->
+        <tr>
+          <td align="center" style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);border-radius:12px 12px 0 0;padding:32px 40px;">
+            <div style="display:inline-block;width:48px;height:48px;background:rgba(255,255,255,.18);border-radius:12px;vertical-align:middle;margin-bottom:14px;line-height:48px;text-align:center;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                <polyline points="9,22 9,12 15,12 15,22"/>
+              </svg>
+            </div>
+            <div style="color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-.02em;">{$safeName}</div>
+          </td>
+        </tr>
+
+        <!-- Subject bar -->
+        <tr>
+          <td style="background:#ffffff;padding:28px 40px 0;">
+            <h2 style="margin:0 0 16px;font-size:20px;font-weight:700;color:#0f172a;border-bottom:1px solid #e2e8f0;padding-bottom:16px;">{$safeSubject}</h2>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="background:#ffffff;padding:20px 40px 36px;">
+            <div style="font-size:15px;color:#374151;line-height:1.75;">
+              {$body}
+            </div>
+          </td>
+        </tr>
+
+        <!-- Divider -->
+        <tr>
+          <td style="background:#ffffff;padding:0 40px;">
+            <hr style="border:none;border-top:1px solid #e2e8f0;margin:0;">
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#f8fafc;border-radius:0 0 12px 12px;padding:22px 40px;text-align:center;">
+            <p style="margin:0 0 6px;font-size:13px;color:#94a3b8;">
+              &copy; {$year} {$safeName}. This message was sent to you as a member of our community.
+            </p>
+            <p style="margin:0;font-size:12px;color:#cbd5e1;">
+              If you have questions, please contact your church office directly.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+HTML;
 	}
 
 	private function sendSMS($smsgateway, $smsconfig, $phonenumber, $content)

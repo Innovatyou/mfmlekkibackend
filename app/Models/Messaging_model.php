@@ -16,12 +16,11 @@ class Messaging_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function fetch_app_messages($page = 0, $apitoken = "")
+  public function fetch_app_messages($page = 0)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_messaging');
     $builder->select('tbl_messaging.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('date', 'DESC');
     $query = $builder->get();
     $result = $query->getResult();
@@ -29,22 +28,21 @@ class Messaging_model extends Basemodel
   }
 
 
-  public function get_total_messages($apitoken)
+  public function get_total_messages()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_messaging');
-    $query = $builder->select("COUNT(*) as num")->where('apitoken', $apitoken)->get();
+    $query = $builder->select("COUNT(*) as num")->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  function messageListing($apitoken)
+  function messageListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_messaging');
     $builder->select('tbl_messaging.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('date_created', 'DESC');
     $query = $builder->get();
     $result = $query->getResult();
@@ -52,18 +50,17 @@ class Messaging_model extends Basemodel
       if ($res->listid == 0) {
         $res->listname = "All Members";
       } else {
-        $res->listname = $this->getListName($res->listid, $apitoken);
+        $res->listname = $this->getListName($res->listid);
       }
     }
     return $result;
   }
 
-  function getListName($id, $apitoken)
+  function getListName($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_lists');
     $builder->select('tbl_lists.title');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
     $query = $builder->get();
     $row = $query->getRow(0);
@@ -83,35 +80,32 @@ class Messaging_model extends Basemodel
   }
 
 
-  function editMessage($info, $id, $apitoken)
+  function editMessage($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_messaging');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
     $this->status = $this->applocal['ok'];
   }
 
 
-  function getMessageInfo($id, $apitoken)
+  function getMessageInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_messaging');
     $builder->select('tbl_messaging.*');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     return $row;
   }
 
-  function deleteMessage($id, $apitoken)
+  function deleteMessage($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_messaging');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['msg_delete'];

@@ -9,7 +9,6 @@ use App\Models\Branches_model as branchesmodel;
 class Branches extends BaseController
 {
   protected $session;
-  protected $apitoken;
 
 
   /**
@@ -19,7 +18,6 @@ class Branches extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
   }
 
   //fetch audios/videos
@@ -34,8 +32,8 @@ class Branches extends BaseController
     }
 
     $branchesmodel = new branchesmodel();
-    $results = $branchesmodel->fetch_branches($page, $this->apitoken);
-    $total_items = $branchesmodel->get_total_branches($this->apitoken);
+    $results = $branchesmodel->fetch_branches($page);
+    $total_items = $branchesmodel->get_total_branches();
     $isLastPage = (($page + 1) * 20) >= $total_items;
 
     echo json_encode(array("status" => "ok", "branches" => $results, "isLastPage" => $isLastPage));
@@ -44,14 +42,14 @@ class Branches extends BaseController
   public function index()
   {
     $branchesmodel = new branchesmodel();
-    $this->viewdata['branches'] = $branchesmodel->branchesListing($this->apitoken);
+    $this->viewdata['branches'] = $branchesmodel->branchesListing();
     return $this->view("branches/listing", $this->viewdata);
   }
 
   public function loadbranches()
   {
     $branchesmodel = new branchesmodel();
-    $branches = $branchesmodel->branchesListing($this->apitoken);
+    $branches = $branchesmodel->branchesListing();
     echo json_encode(array("status" => "ok", "branches" => $branches));
   }
 
@@ -63,7 +61,7 @@ class Branches extends BaseController
   public function editBranch($id = 0)
   {
     $branchesmodel = new branchesmodel();
-    $this->viewdata['branch'] = $branchesmodel->getBranchInfo($id, $this->apitoken);
+    $this->viewdata['branch'] = $branchesmodel->getBranchInfo($id);
     if (count((array)$this->viewdata['branch']) == 0) {
       return redirect()->to(base_url() . '/branchesListing');
     }
@@ -80,7 +78,6 @@ class Branches extends BaseController
     $latitude = $this->request->getVar('latitude');
     $longitude = $this->request->getVar('longitude');
     $info = array(
-      'apitoken' => $this->apitoken,
       'name' => $name,
       'phone' => $phone,
       'email' => $email,
@@ -122,7 +119,7 @@ class Branches extends BaseController
       'longitude' => $longitude
     );
 
-    $branchesmodel->editBranch($info, $id, $this->apitoken);
+    $branchesmodel->editBranch($info, $id);
     if ($branchesmodel->status == "ok") {
       $this->session->setFlashdata('success', $branchesmodel->message);
     } else {
@@ -136,7 +133,7 @@ class Branches extends BaseController
   function deleteBranch($id = 0)
   {
     $branchesmodel = new branchesmodel();
-    $branchesmodel->deleteBranch($id, $this->apitoken);
+    $branchesmodel->deleteBranch($id);
     if ($branchesmodel->status == "ok") {
       $this->session->setFlashdata('success', $branchesmodel->message);
     } else {

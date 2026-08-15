@@ -8,7 +8,6 @@ use App\Models\Photos_model as photosmodel;
 class Photos extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -17,7 +16,6 @@ class Photos extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
 
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
@@ -28,7 +26,7 @@ class Photos extends BaseController
   public function index()
   {
     $photosmodel = new photosmodel();
-    $this->viewdata['photos'] = $photosmodel->photosListing($this->apitoken);
+    $this->viewdata['photos'] = $photosmodel->photosListing();
     return $this->view("photos/listing", $this->viewdata);
   }
 
@@ -40,7 +38,7 @@ class Photos extends BaseController
   public function editPhoto($id = 0)
   {
     $photosmodel = new photosmodel();
-    $this->viewdata['photo'] = $photosmodel->getPhotoInfo($id, $this->apitoken);
+    $this->viewdata['photo'] = $photosmodel->getPhotoInfo($id);
     if (count((array)$this->viewdata['photo']) == 0) {
       return redirect()->to(base_url() . '/photos');
     }
@@ -51,12 +49,12 @@ class Photos extends BaseController
   {
     $photosmodel = new photosmodel();
     $upload_files = [];
-    if (!file_exists('./uploads/photos/' . $this->apitoken)) {
-      mkdir('./uploads/photos/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/photos/')) {
+      mkdir('./uploads/photos/', 0777, true);
     }
     if ($this->request->getFileMultiple('file')) {
       foreach ($this->request->getFileMultiple('file') as $file) {
-        $file->move('./uploads/photos/' . $this->apitoken);
+        $file->move('./uploads/photos/');
         $data = [
           'name' =>  $file->getClientName(),
           'type'  => $file->getClientMimeType()
@@ -68,7 +66,6 @@ class Photos extends BaseController
     $title = $this->request->getVar('title');
     $description = $this->request->getVar('description');
     $info = array(
-      'apitoken' => $this->apitoken,
       'description' => $description,
       'title' => $title,
       'thumbnail' => json_encode($upload_files)
@@ -88,7 +85,7 @@ class Photos extends BaseController
       'description' => $description,
       'title' => $title,
     );
-    $photosmodel->editPhoto($info, $id, $this->apitoken);
+    $photosmodel->editPhoto($info, $id);
     if ($photosmodel->status == "ok") {
       $this->session->setFlashdata('success', $photosmodel->message);
     } else {
@@ -100,7 +97,7 @@ class Photos extends BaseController
   function deletePhoto($id = 0)
   {
     $photosmodel = new photosmodel();
-    $photosmodel->deletePhoto($id, $this->apitoken);
+    $photosmodel->deletePhoto($id);
     if ($photosmodel->status == "ok") {
       $this->session->setFlashdata('success', $photosmodel->message);
     } else {

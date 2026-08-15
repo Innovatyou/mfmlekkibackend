@@ -16,24 +16,22 @@ class Branches_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function getTotalItems($apitoken)
+  public function getTotalItems()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  public function fetch_items($page = 0, $apitoken = "")
+  public function fetch_items($page = 0)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->select('tbl_branches.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id !=', 1);
     $builder->orderby('name', 'asc');
     if($page!=0){
@@ -46,12 +44,11 @@ class Branches_model extends Basemodel
     return $result;
   }
 
-  public function get_total_items($apitoken)
+  public function get_total_items()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $builder->where('id !=', 1);
     $query = $builder->get();
     $result = $query->getRow(0);
@@ -59,12 +56,11 @@ class Branches_model extends Basemodel
     return 0;
   }
 
-  public function fetch_branches($apitoken)
+  public function fetch_branches()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->select('tbl_branches.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('name', 'ASC');
     $query = $builder->get();
     $result = $query->getResult();
@@ -72,47 +68,43 @@ class Branches_model extends Basemodel
   }
 
 
-  public function get_total_branches($apitoken)
+  public function get_total_branches()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
-    $query = $builder->select("COUNT(*) as num")->where('apitoken', $apitoken)->get();
+    $query = $builder->select("COUNT(*) as num")->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  function branchesListing($apitoken)
+  function branchesListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->select('tbl_branches.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('name', 'ASC');
     $query = $builder->get();
     return $query->getResult();
   }
 
-  function checkNameExists($name, $id = 0, $apitoken = "")
+  function checkNameExists($name, $id = 0)
   {
-    //echo $name . " and ". $group;
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->select("name");
-    $builder->where('apitoken', $apitoken);
     $builder->where("name", $name);
     if ($id != 0) {
       $builder->where("id !=", $id);
     }
     $query = $builder->get();
-    //var_dump($query->result()); die;
     return $query->getResult();
   }
 
 
   function addNewBranch($info)
   {
-    if (empty($this->checkNameExists($info['name'], 0, $info['apitoken']))) {
+    if (empty($this->checkNameExists($info['name']))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_branches');
       $builder->insert($info);
@@ -125,13 +117,12 @@ class Branches_model extends Basemodel
   }
 
 
-  function editBranch($info, $id, $apitoken)
+  function editBranch($info, $id)
   {
-    if (empty($this->checkNameExists($info['name'], $id, $apitoken))) {
+    if (empty($this->checkNameExists($info['name'], $id))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_branches');
       $builder->where('id', $id);
-      $builder->where('apitoken', $apitoken);
       $builder->update($info);
       $this->status = $this->applocal['ok'];
       $this->message = $this->applocal['branch_edited'];
@@ -142,23 +133,21 @@ class Branches_model extends Basemodel
   }
 
 
-  function getBranchInfo($id, $apitoken)
+  function getBranchInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->select('tbl_branches.*');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     return $query->getRow(0);
   }
 
-  function deleteBranch($id, $apitoken)
+  function deleteBranch($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     'ok';
@@ -211,13 +200,12 @@ class Branches_model extends Basemodel
     return $row;
   }
 
-  function getBranchName($id, $apitoken = "")
+  function getBranchName($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_branches');
     $builder->select('tbl_branches.name');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if ($row) {
