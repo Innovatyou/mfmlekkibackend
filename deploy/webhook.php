@@ -1,0 +1,84 @@
+<?php
+/**
+ * GitHub webhook receiver — deploys mfmadmin to production on push to main.
+ *
+ * No SSH needed: this runs as a normal PHP request under the hosting
+ * account, using exec() to run git/rsync/composer/spark the same way a
+ * human would over SSH.
+ *
+ * One-time setup: see AUTO_DEPLOY_SETUP.md. In short —
+ *  1. Copy deploy/deploy-config.example.php to a location OUTSIDE this
+ *     repo (e.g. /home/mfmlbbcm/deploy-config.php) and fill in real values.
+ *     Never commit that file — it holds your webhook secret.
+ *  2. Point a GitHub webhook (Settings > Webhooks) at this file's public
+ *     URL, content type application/json, secret matching the config,
+ *     "Just the push event".
+ */
+
+$configPath = getenv('MFMADMIN_DEPLOY_CONFIG') ?: '/home/mfmlbbcm/deploy-config.php';
+if (!is_file($configPath)) {
+    http_response_code(500);
+    exit('Deploy config not found. See AUTO_DEPLOY_SETUP.md.');
+}
+require $configPath;
+// Expects $secret, $repoDir, $deployDir, $branch (all strings) to be
+// defined by the config file above.
+
+function respond(int $code, string $msg): never
+{
+    http_response_code($code);
+    echo $msg;
+    exit;
+}
+
+$payload = file_get_contents('php://input');
+$signatureHeader = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? '';
+
+if (!$signatureHeader || !hash_equals(
+    'sha256=' . hash_hmac('sha256', $payload, $secret),
+    $signatureHeader
+)) {
+    respond(401, 'Invalid signature');
+}
+
+$data = json_decode($payload, true);
+if (!isset($data['ref']) || $data['ref'] !== "refs/heads/$branch") {
+    respond(200, "Ignored (not a push to $branch)");
+}
+
+$logFile = __DIR__ . '/deploy.log';
+$log = fopen($logFile, 'a');
+fwrite($log, "\n==== Deploy triggered " . date('c') . " ====\n");
+
+// Pull into a separate clone first, then rsync into the live document
+// root — never git-reset the live directory directly. This server has
+// only ever been deployed manually/via FTP before, so its current
+// Database.php / App.php / firebase.json / .env are the real working
+// production values, not necessarily what's committed in this repo.
+$commands = [
+    'cd ' . escapeshellarg($repoDir) . ' && git fetch origin ' . escapeshellarg($branch)
+        . ' && git reset --hard origin/' . escapeshellarg($branch),
+    'rsync -a --delete '
+        . "--exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' "
+        . "--exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' "
+        . escapeshellarg(rtrim($repoDir, '/') . '/') . ' ' . escapeshellarg(rtrim($deployDir, '/') . '/'),
+    'cd ' . escapeshellarg($deployDir) . ' && composer install --no-dev --optimize-autoloader --no-interaction',
+    'cd ' . escapeshellarg($deployDir) . ' && php spark migrate --no-interaction',
+    'rm -rf ' . escapeshellarg(rtrim($deployDir, '/') . '/writable/cache') . '/*',
+];
+
+foreach ($commands as $cmd) {
+    fwrite($log, "\$ $cmd\n");
+    exec($cmd . ' 2>&1', $output, $exitCode);
+    fwrite($log, implode("\n", $output) . "\n");
+    if ($exitCode !== 0) {
+        fwrite($log, "FAILED (exit $exitCode), stopping.\n");
+        fclose($log);
+        respond(500, "Deploy failed at: $cmd");
+    }
+    $output = [];
+}
+
+fwrite($log, "Deploy succeeded.\n");
+fclose($log);
+respond(200, 'Deployed successfully');

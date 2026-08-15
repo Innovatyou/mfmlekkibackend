@@ -1,95 +1,134 @@
 # Auto-deploy setup — app.mfmlekkiphaseone.org
 
-This wires up `.github/workflows/deploy-production.yml` to deploy automatically
-on every push to `main`. All of the steps below happen on **your** side (GitHub
-web UI + your server) — nothing here can be done remotely without your
-credentials.
+SSH turned out not to be network-reachable on this hosting account (timed
+out against both the domain and the shared IP `199.188.200.152`, on ports
+22 and 2222). So this uses a webhook instead: GitHub calls a small PHP
+script (`deploy/webhook.php`) over plain HTTPS on every push, and that
+script does the `git pull` + deploy using PHP's `exec()` — no SSH needed.
 
-**Read the whole thing before running anything for real.** The last step
-(the first live sync) is the one that can silently delete files if skipped.
+cPanel account: username `mfmlbbcm`, home directory `/home/mfmlbbcm`.
+
+**Read the whole thing before running anything for real.** The first sync
+(step 6) is the one that can silently delete files if skipped.
 
 ---
 
-## 1. Generate a deploy key (on your own machine, not the server)
+## 1. Find the live document root
 
-```bash
-ssh-keygen -t ed25519 -C "github-deploy-mfmadmin" -f ./mfmadmin_deploy_key -N ""
+cPanel → **Domains**. Find `app.mfmlekkiphaseone.org` in the list and copy
+its **Document Root** column exactly — you'll need it in step 3 and 4.
+
+## 2. Set up the git clone via cPanel (no SSH needed)
+
+cPanel → **Git™ Version Control → Create**.
+
+- Clone URL: `https://github.com/Innovatyou/mfmlekkibackend.git`
+- Repository Path: `/home/mfmlbbcm/repositories/mfmadmin`
+- Branch: `main`
+
+If the repo is private, GitHub will ask for credentials — use a
+[fine-grained Personal Access Token](https://github.com/settings/tokens)
+scoped to read-only on this one repo, not your real password.
+
+## 3. Create the deploy config (holds the secret — never goes in git)
+
+In cPanel's **File Manager**, create `/home/mfmlbbcm/deploy-config.php`
+with this content (copy `deploy/deploy-config.example.php` from the repo
+after step 2 and edit it in place, or just paste this directly):
+
+```php
+<?php
+$secret    = 'PASTE_A_LONG_RANDOM_STRING_HERE';
+$repoDir   = '/home/mfmlbbcm/repositories/mfmadmin';
+$deployDir = '/home/mfmlbbcm/PASTE_THE_DOCUMENT_ROOT_FROM_STEP_1';
+$branch    = 'main';
 ```
 
-This creates two files: `mfmadmin_deploy_key` (private) and
-`mfmadmin_deploy_key.pub` (public). Don't reuse your personal SSH key.
+Generate the random secret with cPanel's **Terminal** if available, or ask
+me and I'll generate one for you to paste in (it doesn't need to be typed
+by hand — any long random string works, it just has to match what you put
+in GitHub in step 5).
 
-## 2. Authorize the public key on the server
+## 4. Point the webhook script at that config, and make it web-reachable
 
-In cPanel: **Security → SSH Access → Manage SSH Keys → Import Key**, paste the
-contents of `mfmadmin_deploy_key.pub`, then **Authorize**.
+The webhook script (`deploy/webhook.php` in the repo) already looks for
+the config at `/home/mfmlbbcm/deploy-config.php` by default, matching step
+3 — no edit needed there.
 
-(If cPanel's SSH Access page isn't visible, the host may need to enable it on
-the account first — ask your host if step 2 doesn't show the option.)
+It needs to be reachable at a URL. Since it lives inside the git clone at
+`/home/mfmlbbcm/repositories/mfmadmin/deploy/webhook.php`, which is
+**outside** the document root, it isn't web-accessible yet. Simplest fix:
+in cPanel's File Manager, create a **symlink** from inside your document
+root to it — e.g. if the document root is `/home/mfmlbbcm/public_html/app`:
 
-## 3. Add the GitHub Secrets
-
-Repo → **Settings → Secrets and variables → Actions → New repository secret**.
-Add all of these:
-
-| Secret | Value |
-|---|---|
-| `PROD_SSH_HOST` | The server's SSH hostname (often the same as the domain, but check cPanel's SSH Access page — it sometimes differs) |
-| `PROD_SSH_PORT` | Usually `22`, but cPanel sometimes uses a non-standard port — check the SSH Access page |
-| `PROD_SSH_USERNAME` | Your cPanel username |
-| `PROD_SSH_PRIVATE_KEY` | The full contents of `mfmadmin_deploy_key` (the *private* key file, not the `.pub` one) |
-| `PROD_REPO_DIR` | Where the git clone will live on the server — e.g. `/home/USERNAME/repositories/mfmadmin` (**not** inside `public_html`) |
-| `PROD_DEPLOY_DIR` | The live document root for app.mfmlekkiphaseone.org — e.g. `/home/USERNAME/public_html/app.mfmlekkiphaseone.org` (confirm the exact path in cPanel's File Manager) |
-
-Delete `mfmadmin_deploy_key` and `mfmadmin_deploy_key.pub` from your machine
-once they're in GitHub Secrets and cPanel — you don't need local copies.
-
-## 4. One-time clone, on the server (SSH in yourself first)
-
-```bash
-ssh USERNAME@HOST -p PORT
-mkdir -p ~/repositories
-git clone https://github.com/Innovatyou/mfmlekkibackend.git ~/repositories/mfmadmin
-cd ~/repositories/mfmadmin
-git checkout main
+```
+/home/mfmlbbcm/public_html/app/deploy-hook.php  →  /home/mfmlbbcm/repositories/mfmadmin/deploy/webhook.php
 ```
 
-## 5. Dry-run the sync before trusting it — do this before the first real deploy
+(cPanel File Manager doesn't always expose "create symlink" directly — if
+not, cPanel's Terminal can do `ln -s /home/mfmlbbcm/repositories/mfmadmin/deploy/webhook.php /home/mfmlbbcm/public_html/app/deploy-hook.php`,
+or just copy the file there manually and re-copy it after any future
+change to `deploy/webhook.php` itself.)
 
-Still on the server:
+Its public URL will then be something like:
+`https://app.mfmlekkiphaseone.org/deploy-hook.php`
+
+## 5. Add the GitHub webhook
+
+Repo → **Settings → Webhooks → Add webhook**.
+
+- Payload URL: the URL from step 4
+- Content type: `application/json`
+- Secret: the same random string from step 3
+- Which events: **Just the push event**
+- Active: checked
+
+## 6. Dry-run the sync before trusting it
+
+Before the webhook ever fires for real, check what it *would* do. If
+cPanel's Terminal is available, run this from `/home/mfmlbbcm`:
 
 ```bash
 rsync -a --delete --dry-run \
   --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' \
   --exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' \
-  ~/repositories/mfmadmin/ /path/to/PROD_DEPLOY_DIR/
+  repositories/mfmadmin/ PASTE_THE_DOCUMENT_ROOT_FROM_STEP_1/
 ```
 
-`--dry-run` prints what *would* happen without touching anything. Read the
-output carefully — anything listed under a `deleting` line is a file that
-exists in the live directory but not in this repo, and `--delete` would
-remove it for real. If you see files there you don't recognize or don't want
-gone, add another `--exclude` for them before doing this for real.
+`--dry-run` prints what would happen without touching anything. Anything
+listed under a `deleting` line exists live but not in this repo — since
+this server has only ever been deployed manually before, review that list
+carefully before letting the real sync (which the webhook runs
+automatically) delete anything you don't recognize.
 
-## 6. First real deploy — do it manually once, not via the pipeline
+If Terminal isn't available either, the very first automatic deploy *is*
+your first real run — reasonable to accept given this is a
+straightforward CodeIgniter app, but check `deploy/deploy.log` (created
+next to `webhook.php` after the first run) right after the first push to
+main, to confirm it did what you expected.
 
-Once the dry run looks right, run the same command without `--dry-run`, then
-`cd` into `PROD_DEPLOY_DIR` and run `composer install` and
-`php spark migrate` by hand, watching the output. This is your one chance to
-catch a bad migration before it's automatic — the docs already in this repo
-(`STEP_BY_STEP_DEPLOYMENT.md`) show what a migration failure looks like and
-how to roll one back with `php spark migrate --version <previous>`.
+## 7. Test it
 
-## 7. From here on, it's automatic
+Push a trivial commit to `main` (or use GitHub's webhook page → **Recent
+Deliveries → Redeliver** to replay the last push). Check:
+- GitHub's webhook delivery log shows a `200` response
+- `deploy/deploy.log` on the server shows the commands and their output
+- The site still loads correctly
 
-Every push to `main` now triggers `.github/workflows/deploy-production.yml`,
-which does exactly what you just did by hand in steps 5–6. Watch the first
-few automatic runs under the repo's **Actions** tab to build confidence
-before trusting it silently.
+---
 
 ## Rolling back
 
-The workflow doesn't roll back on failure automatically. If a deploy breaks
-production: SSH in, `cd ~/repositories/mfmadmin`, `git reset --hard <last-good-commit>`,
-re-run the rsync from step 5 (without `--dry-run`), then `php spark migrate`
-against that older code if needed.
+The webhook doesn't roll back on failure automatically. If a deploy
+breaks production, via cPanel Terminal (or ask me to walk you through
+File Manager equivalents if Terminal isn't available):
+
+```bash
+cd /home/mfmlbbcm/repositories/mfmadmin
+git reset --hard <last-good-commit>
+rsync -a --delete \
+  --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' \
+  --exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' \
+  ./ /path/to/document/root/
+php spark migrate --version <corresponding-earlier-migration>  # if needed, in the document root
+```
