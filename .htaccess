@@ -14,6 +14,6 @@ RewriteRule ^(.*)$ index.php/$1 [L,QSA]
 # having one explicitly assigned. Update the ea-phpXX version here if the
 # account's PHP version changes.
 <IfModule mime_module>
-  AddHandler application/x-httpd-ea-php81 .php .php8 .phtml
+  AddHandler application/x-httpd-ea-php83 .php .php8 .phtml
 </IfModule>
 
