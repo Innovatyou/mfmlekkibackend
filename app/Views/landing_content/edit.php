@@ -14,7 +14,7 @@
           <i class="dw dw-mail-1" style="margin-right:6px;"></i>Contact Messages
           <?php if($unreadMessages > 0): ?><span class="lc-nav-badge"><?= $unreadMessages ?></span><?php endif; ?>
         </a>
-        <a href="http://localhost:3001" target="_blank" class="btn btn-outline-secondary">
+        <a href="<?= esc(env('FRONTEND_URL') ?: base_url()) ?>" target="_blank" class="btn btn-outline-secondary">
           <i class="dw dw-browser" style="margin-right:6px;"></i>View Live Site
         </a>
       </div>
