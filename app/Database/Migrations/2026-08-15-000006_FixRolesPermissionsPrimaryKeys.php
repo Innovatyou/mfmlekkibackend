@@ -44,8 +44,14 @@ class FixRolesPermissionsPrimaryKeys extends Migration
             // mapping to preserve; SetupController::setupPermissions() truncates
             // and rebuilds both tables from a known-good list, so clear them here
             // rather than leave inconsistent duplicate-id rows behind.
+            //
+            // tbl_role_permissions has a live FK to tbl_permissions, and InnoDB
+            // refuses TRUNCATE on either side of an active FK constraint
+            // regardless of order — disable checks for just this block.
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 0');
             $this->db->table('tbl_role_permissions')->truncate();
             $this->db->table('tbl_permissions')->truncate();
+            $this->db->query('SET FOREIGN_KEY_CHECKS = 1');
             $this->db->query('ALTER TABLE tbl_permissions MODIFY id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY');
         }
 
