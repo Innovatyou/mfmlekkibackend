@@ -157,7 +157,9 @@ class Session implements SessionInterface
 	 *
 	 * @var LoggerInterface
 	 */
-	protected $logger;
+	// Declared by LoggerAwareTrait as `protected ?LoggerInterface $logger = null;` —
+	// psr/log 3.0's typed property, don't redeclare it here or PHP treats the two
+	// declarations as incompatible and fatals ("definition differs").
 
 	/**
 	 * Constructor.
