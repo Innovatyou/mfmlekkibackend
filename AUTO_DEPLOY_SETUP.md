@@ -8,32 +8,39 @@ your server over plain HTTPS on every push, and that script does the
 
 cPanel account: username `mfmlbbcm`, home directory `/home/mfmlbbcm`.
 
-Two independent deploy targets, sharing the same core logic
-(`deploy/webhook-core.php`):
+Two independent deploy targets. Each entry script is fully
+self-contained (no shared file required from the repo clone) so a
+fresh clone that isn't yet on the right branch can't break the script
+that's supposed to fix that:
 
 | | Staging | Production |
 |---|---|---|
-| Domain | `church.mfmlekkiphaseone.org` (new) | `app.mfmlekkiphaseone.org` (live) |
+| Domain | `tmpm.mfmlekkiphaseone.org` | `app.mfmlekkiphaseone.org` (live) |
 | Branch | `upgrade/churchbackend-merge` | `main` |
 | Entry script | `deploy/webhook-staging.php` | `deploy/webhook-production.php` |
 | Config file | `/home/mfmlbbcm/church-deploy-config.php` | `/home/mfmlbbcm/deploy-config.php` |
 | Database | fresh, to be created | existing production DB |
+
+(`church.mfmlekkiphaseone.org` was an earlier staging attempt abandoned
+after a persistent, unresolved vhost-level inconsistency — its own
+directory listing showed files that direct requests 404'd on, even from
+independent networks. `tmpm` replaced it.)
 
 **Do staging first.** It's where the whole pipeline (including automatic
 migrations) gets proven safe before it ever touches the real site.
 
 ---
 
-## Staging — church.mfmlekkiphaseone.org
+## Staging — tmpm.mfmlekkiphaseone.org
 
 ### 1. Create the subdomain
-cPanel → **Domains → Create A New Domain**. Domain: `church.mfmlekkiphaseone.org`.
+cPanel → **Domains → Create A New Domain**. Domain: `tmpm.mfmlekkiphaseone.org`.
 Note the **document root** cPanel assigns (it'll suggest one — you can
 accept the default).
 
 ### 2. Create a fresh database
 cPanel → **MySQL® Databases**.
-- Create a new database (e.g. `mfmlbbcm_churchstaging`)
+- Create a new database
 - Create a new database user with its own password
 - Add that user to the new database with **All Privileges**
 
@@ -42,11 +49,15 @@ Keep the database name, username, and password — you'll need them in step 6.
 ### 3. Clone the repo
 cPanel → **Git™ Version Control → Create**.
 - Clone URL: `https://github.com/Innovatyou/mfmlekkibackend.git`
-- Repository Path: `/home/mfmlbbcm/repositories/church-staging`
+- Repository Path: `/home/mfmlbbcm/repositories/tmpm`
 - Branch: `upgrade/churchbackend-merge`
 
 (Private repo → use a [fine-grained Personal Access Token](https://github.com/settings/tokens),
-read-only, scoped to just this repo — not your GitHub password.)
+read-only, scoped to just this repo — not your GitHub password.) Don't
+worry if cPanel's "Checked-Out Branch" display doesn't reliably stick to
+this branch — the deploy script does its own `git fetch` + `reset --hard`
+to whatever branch its config specifies on every run, regardless of what
+cPanel's UI shows.
 
 ### 4. Create the staging config
 cPanel File Manager → create `/home/mfmlbbcm/church-deploy-config.php`:
@@ -54,27 +65,28 @@ cPanel File Manager → create `/home/mfmlbbcm/church-deploy-config.php`:
 ```php
 <?php
 $secret        = 'PASTE_A_DIFFERENT_LONG_RANDOM_SECRET_THAN_PRODUCTION';
-$repoDir       = '/home/mfmlbbcm/repositories/church-staging';
+$repoDir       = '/home/mfmlbbcm/repositories/tmpm';
 $deployDir     = '/home/mfmlbbcm/PASTE_STAGING_DOCUMENT_ROOT_FROM_STEP_1';
 $branch        = 'upgrade/churchbackend-merge';
 $runMigrations = true;
 ```
 
-Ask me for a random secret if you'd rather not generate one by hand.
+Ask me for a random secret if you'd rather not generate one by hand —
+and never reuse production's secret here.
 
 ### 5. Make the webhook reachable
-Copy `/home/mfmlbbcm/repositories/church-staging/deploy/webhook-staging.php`
-→ into the staging document root as `deploy-hook.php`. This is a one-time
-copy — it now `require`s the core logic by its absolute path inside the
-repo clone, not relative to itself, so it never needs to be re-copied
-after future pushes; a plain `git push` is enough to update the deploy
-behavior.
+Copy `/home/mfmlbbcm/repositories/tmpm/deploy/webhook-staging.php`
+→ into the staging document root as `deploy-hook.php`, unchanged. It's
+fully self-contained (no require of another repo file), so this one
+paste is genuinely a one-time step — a future change to the deploy
+*config* (secret, paths, branch) is a config-file edit, but a future
+change to the deploy *logic itself* would need this file re-pasted too.
 
-Public URL: `https://church.mfmlekkiphaseone.org/deploy-hook.php`
+Public URL: `https://tmpm.mfmlekkiphaseone.org/deploy-hook.php`
 
 ### 6. Add the GitHub webhook
 Repo → **Settings → Webhooks → Add webhook**
-- Payload URL: `https://church.mfmlekkiphaseone.org/deploy-hook.php`
+- Payload URL: `https://tmpm.mfmlekkiphaseone.org/deploy-hook.php`
 - Content type: `application/json`
 - Secret: the one from step 4
 - Events: **Just the push event**
@@ -84,7 +96,7 @@ Push any commit to `upgrade/churchbackend-merge` (or use GitHub's webhook
 page → **Recent Deliveries → Redeliver**). The code will sync
 successfully, but `php spark migrate` will fail — there's no
 `app/Config/Database.php` yet, since that file is deliberately excluded
-from every sync. Check `deploy/deploy.log` in the staging document root
+from every sync. Check `deploy.log` in the staging document root
 to confirm that's what happened (not something else).
 
 ### 8. Staging: first-time config (only once)
@@ -94,7 +106,7 @@ root, create/edit:
 - **`app/Config/Database.php`** — set `'database'` to the DB name from
   step 2, `'username'`/`'password'` to that DB user's credentials,
   `'hostname' => 'localhost'`.
-- **`app/Config/App.php`** — set `$baseURL = 'https://church.mfmlekkiphaseone.org/';`
+- **`app/Config/App.php`** — set `$baseURL = 'https://tmpm.mfmlekkiphaseone.org/';`
 - **`.env`** — at minimum, add the license-activation block so the
   `License` filter doesn't lock you out:
   ```
@@ -106,12 +118,12 @@ root, create/edit:
 
 Then push another trivial commit (or redeliver the webhook again) — this
 time `php spark migrate` should succeed and build out the full schema
-fresh, since the database is empty. Check `deploy/deploy.log` again to
+fresh, since the database is empty. Check `deploy.log` again to
 confirm.
 
 ### 9. Validate
-- Visit `https://church.mfmlekkiphaseone.org/login` — should load
-- Check `deploy/deploy.log` shows a clean run top to bottom
+- Visit `https://tmpm.mfmlekkiphaseone.org/login` — should load
+- Check `deploy.log` shows a clean run top to bottom
 - Try a couple of admin pages, and the new modules (Marketplace,
   Counseling, etc.) if you want to exercise them
 
@@ -156,8 +168,9 @@ generate a fresh one; either is fine as long as it matches step 5.)
 
 ### 4. Make the webhook reachable
 Copy `/home/mfmlbbcm/repositories/mfmadmin/deploy/webhook-production.php`
-→ into `/home/mfmlbbcm/app/deploy-hook.php`. One-time copy — see the
-staging section's note on why it never needs to be re-copied after this.
+→ into `/home/mfmlbbcm/app/deploy-hook.php`, unchanged. It's
+self-contained (no require of another repo file) — see the staging
+section's note on what that does and doesn't future-proof.
 
 Public URL: `https://app.mfmlekkiphaseone.org/deploy-hook.php`
 
