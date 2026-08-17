@@ -209,12 +209,12 @@ class CLIRequest extends Request
 				continue;
 			}
 
-			$arg   = filter_var(ltrim($arg, '-'), FILTER_SANITIZE_STRING);
+			$arg   = strip_tags(ltrim($arg, '-'));
 			$value = null;
 
 			if (isset($args[$i + 1]) && mb_strpos($args[$i + 1], '-') !== 0)
 			{
-				$value       = filter_var($args[$i + 1], FILTER_SANITIZE_STRING);
+				$value       = strip_tags($args[$i + 1]);
 				$optionValue = true;
 			}
 
