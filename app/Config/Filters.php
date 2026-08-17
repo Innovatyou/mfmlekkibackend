@@ -37,7 +37,12 @@ class Filters extends BaseConfig
     public $globals = [
         'before' => [
             // CSRF disabled globally - this is a mobile API backend; no browser forms
-            'license' => ['except' => ['activate', 'activate/process', 'login', 'authenticate', 'logout']],
+            // Only the activation flow itself bypasses the license gate — login,
+            // dashboard, the mobile API, everything else requires an activated
+            // license first. (login/authenticate/logout used to be excepted too,
+            // which let an unactivated install still serve a working login page —
+            // not real license control.)
+            'license' => ['except' => ['activate', 'activate/process']],
         ],
         'after' => [
             'cors',
