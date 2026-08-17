@@ -108,13 +108,36 @@ root, create/edit:
   `'hostname' => 'localhost'`.
 - **`app/Config/App.php`** — set `$baseURL = 'https://tmpm.mfmlekkiphaseone.org/';`
 - **`.env`** — at minimum, add the license-activation block so the
-  `License` filter doesn't lock you out:
+  `License` filter doesn't lock you out. Two options:
+
+  **Bypass licensing entirely** (fastest way to just get staging up and
+  testing app code, not the license flow itself):
   ```
   ACTIVATION_CODE = "DEV-OWNER-INSTALL"
   ACTIVATION_STATUS = "activated"
   ACTIVATION_LAST_VERIFIED = "9999999999"
-  LICENSE_SERVER_URL = "https://your-license-server.com"
+  LICENSE_SERVER_URL = "https://license.innovative.ng"
   ```
+
+  **Or test real activation** (if you actually want to exercise the
+  purchase-code flow on staging, e.g. to verify a generated code works
+  before it reaches a customer): leave the activation fields blank and
+  go through `/activate` with a real code once the site loads —
+  `License::process()` fills them in for you on success.
+  ```
+  ACTIVATION_CODE = ""
+  ACTIVATION_STATUS = ""
+  ACTIVATION_LAST_VERIFIED = "0"
+  LICENSE_SERVER_URL = "https://license.innovative.ng"
+  ```
+
+  **Either way, `LICENSE_SERVER_URL` must be the real
+  `https://license.innovative.ng`** — copying the literal placeholder
+  domain shown in older revisions of this doc silently breaks real
+  activation (the app gets a non-JSON/unreachable response from a
+  domain that isn't actually a license server and shows a misleading
+  "Invalid purchase code", even for a perfectly valid code). This bit
+  the very first staging setup, which is why this note exists.
 
 Then push another trivial commit (or redeliver the webhook again) — this
 time `php spark migrate` should succeed and build out the full schema

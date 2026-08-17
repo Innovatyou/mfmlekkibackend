@@ -76,6 +76,10 @@ class License implements FilterInterface
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 10,
             CURLOPT_SSL_VERIFYPEER => true,
+            // See the matching comment in Controllers/License.php — without an
+            // explicit User-Agent, the license server's host returns a 406 HTML
+            // page instead of JSON, which reads here as "server unreachable".
+            CURLOPT_USERAGENT      => 'ChurchBackend-License-Client/1.0',
         ]);
         $raw = curl_exec($ch);
         $err = curl_error($ch);

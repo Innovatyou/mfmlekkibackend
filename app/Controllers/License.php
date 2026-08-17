@@ -40,6 +40,12 @@ class License extends BaseController
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 15,
             CURLOPT_SSL_VERIFYPEER => true,
+            // Some hosts (this license server included — LiteSpeed behind
+            // Cloudflare) return a 406 HTML page for requests with no
+            // User-Agent, which PHP's cURL sends by default. That HTML isn't
+            // valid JSON, so every activation silently failed with a
+            // misleading "invalid code" message regardless of the code.
+            CURLOPT_USERAGENT      => 'ChurchBackend-License-Client/1.0',
         ]);
         $raw = curl_exec($ch);
         $err = curl_error($ch);
@@ -51,7 +57,19 @@ class License extends BaseController
 
         $data = json_decode($raw, true);
 
-        if (!$data || empty($data['success'])) {
+        if ($data === null) {
+            // The server responded, but not with valid JSON — e.g. a host-level
+            // block page (this is what a missing User-Agent used to trigger here)
+            // or a stray PHP warning printed ahead of the JSON. Either way it's
+            // not an actual "your code is wrong" verdict, so surfacing it as
+            // "Invalid purchase code" would be misleading. Log the raw body so
+            // it can be diagnosed from this app's logs without needing access
+            // to the license server itself.
+            log_message('error', 'License verify: non-JSON response from license server. Raw body: ' . substr($raw, 0, 2000));
+            return redirect()->to(base_url('activate'))->with('error', 'The license server returned an unexpected response. Please try again shortly or contact support.');
+        }
+
+        if (empty($data['success'])) {
             $msg = $data['message'] ?? 'Invalid purchase code.';
             return redirect()->to(base_url('activate'))->with('error', $msg);
         }

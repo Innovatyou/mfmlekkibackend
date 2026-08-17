@@ -109,7 +109,7 @@
             </form>
         </div>
         <div class="card-footer bg-transparent text-center text-muted small py-3 border-top">
-            Having trouble? Contact support with your order details.
+            Having trouble? <a href="mailto:info@innovative.ng">Contact support</a> with your order details.
         </div>
     </div>
 
