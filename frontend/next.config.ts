@@ -8,6 +8,13 @@ const nextConfig: NextConfig = {
   // Passenger proxy forwards requests with the /site prefix intact —
   // Next.js needs basePath set to match, or routing/assets break.
   basePath: "/site",
+  // The build server is a memory-capped shared-hosting account (LVE) that
+  // reports its full host CPU count regardless of that cap — Next.js's
+  // default worker-per-CPU page-generation pool (8 workers here) gets
+  // OOM-killed. Force a single worker; slower build, but it completes.
+  experimental: {
+    cpus: 1,
+  },
 };
 
 export default nextConfig;
