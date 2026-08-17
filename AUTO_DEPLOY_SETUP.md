@@ -103,6 +103,14 @@ to confirm that's what happened (not something else).
 Now that the code is there, cPanel File Manager → in the staging document
 root, create/edit:
 
+- **`vendor/`** — `composer` isn't reachable via `exec()` on this host under
+  any of the usual paths, so the deploy script never runs `composer
+  install`; `vendor/` is excluded from every sync and left alone once
+  present. Build it locally (`composer install --no-dev
+  --optimize-autoloader`), zip the `vendor/` folder, and upload +
+  extract it into the staging document root via File Manager. Only
+  needs redoing when `composer.lock` actually changes — most deploys
+  are code-only.
 - **`app/Config/Database.php`** — set `'database'` to the DB name from
   step 2, `'username'`/`'password'` to that DB user's credentials,
   `'hostname' => 'localhost'`.
@@ -208,7 +216,7 @@ is available:
 
 ```bash
 rsync -a --delete --dry-run \
-  --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' \
+  --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' --exclude='vendor' \
   --exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' \
   repositories/mfmadmin/ app/
 ```
@@ -234,7 +242,7 @@ isn't available):
 cd /home/mfmlbbcm/repositories/<mfmadmin-or-church-staging>
 git reset --hard <last-good-commit>
 rsync -a --delete \
-  --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' \
+  --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' --exclude='vendor' \
   --exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' \
   ./ /path/to/that/document/root/
 php spark migrate --version <corresponding-earlier-migration>  # if needed

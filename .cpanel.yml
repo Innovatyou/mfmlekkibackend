@@ -1,0 +1,8 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/mfmlbbcm/tmpm/
+    - /usr/bin/rsync -a --delete --exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' --exclude='vendor' --exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' --exclude='deploy-hook.php' --exclude='deploy.log' --exclude='error_log' --exclude='.cpanel.yml' ./ $DEPLOYPATH
+    - /bin/chmod 644 $DEPLOYPATH.htaccess
+    - /usr/local/bin/php $DEPLOYPATH/spark migrate --no-interaction
+    - /bin/rm -rf $DEPLOYPATH/writable/cache/*

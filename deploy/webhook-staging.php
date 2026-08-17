@@ -58,8 +58,16 @@ fwrite($log, "\n==== Deploy triggered " . date('c') . " (target: $deployDir) ===
 $commands = [
     'cd ' . escapeshellarg($repoDir) . ' && git fetch origin ' . escapeshellarg($branch)
         . ' && git reset --hard origin/' . escapeshellarg($branch),
+    // vendor/ is deliberately excluded and never touched by this sync:
+    // composer isn't reachable via exec() on this host under any of the
+    // usual paths (confirmed directly — plain `composer`, composer.phar
+    // at /usr/local/bin, /opt/cpanel/composer/bin, and $HOME all 127/not
+    // found), so there's no way to rebuild it automatically here. It's
+    // uploaded once by hand (built locally, zipped, extracted via File
+    // Manager) and only needs re-uploading when composer.lock actually
+    // changes — most deploys are code-only and don't touch it.
     'rsync -a --delete '
-        . "--exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' "
+        . "--exclude='.git' --exclude='.env' --exclude='writable' --exclude='uploads' --exclude='vendor' "
         . "--exclude='app/Config/Database.php' --exclude='app/Config/App.php' --exclude='firebase.json' "
         . "--exclude='deploy-hook.php' --exclude='deploy.log' --exclude='test.php' --exclude='error_log' "
         . escapeshellarg(rtrim($repoDir, '/') . '/') . ' ' . escapeshellarg(rtrim($deployDir, '/') . '/'),
@@ -69,10 +77,6 @@ $commands = [
     // 500 on every request, including plain static files). Force it back to
     // a known-good, world-readable mode on every deploy so this can't regress.
     'chmod 644 ' . escapeshellarg(rtrim($deployDir, '/') . '/.htaccess'),
-    'cd ' . escapeshellarg($deployDir) . ' && (composer install --no-dev --optimize-autoloader --no-interaction'
-        . ' || /usr/local/bin/composer.phar install --no-dev --optimize-autoloader --no-interaction'
-        . ' || /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction'
-        . ' || php $HOME/composer.phar install --no-dev --optimize-autoloader --no-interaction)',
 ];
 if ($runMigrations) {
     $commands[] = 'cd ' . escapeshellarg($deployDir) . ' && php spark migrate --no-interaction';
