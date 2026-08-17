@@ -75,7 +75,8 @@ class Settings extends BaseController
       'stripe_public' => $this->request->getVar('stripe_public'),
       'stripe_secret' => $this->request->getVar('stripe_secret'),
       'thankyou' => $this->request->getVar('thankyou'),
-      'paystack_api_key' => $this->request->getVar('paystack_api_key'), 'currency_code' => $this->request->getVar('currency_code'), 'donations_link' => $this->request->getVar('donations_link'), 'book_payment_gateway' => $this->request->getVar('book_payment_gateway') ?: 'paystack', 'marketplace_currency' => $this->request->getVar('marketplace_currency') ?: 'USD', 'features' => $features, 'churchname' => $this->request->getVar('churchname'), 'terms' => $this->request->getVar('terms'), 'privacy' => $this->request->getVar('privacy'), 'aboutus' => $this->request->getVar('aboutus')
+      'paystack_api_key' => $this->request->getVar('paystack_api_key'), 'currency_code' => $this->request->getVar('currency_code'), 'donations_link' => $this->request->getVar('donations_link'), 'book_payment_gateway' => $this->request->getVar('book_payment_gateway') ?: 'paystack', 'marketplace_currency' => $this->request->getVar('marketplace_currency') ?: 'USD', 'features' => $features, 'churchname' => $this->request->getVar('churchname'), 'terms' => $this->request->getVar('terms'), 'privacy' => $this->request->getVar('privacy'), 'aboutus' => $this->request->getVar('aboutus'),
+      'brand_color' => preg_match('/^#[0-9A-Fa-f]{6}$/', (string) $this->request->getVar('brand_color')) ? $this->request->getVar('brand_color') : '#6366f1',
     );
 
     if (!empty($_FILES['thumbnail']['name'])) {

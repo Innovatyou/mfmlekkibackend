@@ -555,6 +555,18 @@
             </div>
 
             <div class="nf-card" style="margin-bottom:16px;">
+              <div class="nf-card-head"><h3 class="nf-card-title">Brand Color</h3></div>
+              <div class="nf-card-body">
+                <label class="nf-label">Accent Color</label>
+                <p style="font-size:.75rem;color:var(--t3);margin:0 0 6px;">Used for buttons, links, and highlights across the admin dashboard and login page.</p>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <input type="color" name="brand_color" id="brand_color_picker" value="<?= esc($settings->brand_color ?: '#6366f1') ?>" style="width:48px;height:38px;padding:2px;border:1px solid var(--b1);border-radius:8px;cursor:pointer;" oninput="document.getElementById('brand_color_hex').value=this.value;">
+                  <input type="text" class="nf-input" id="brand_color_hex" value="<?= esc($settings->brand_color ?: '#6366f1') ?>" style="max-width:140px;" pattern="^#[0-9A-Fa-f]{6}$" oninput="if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){document.getElementById('brand_color_picker').value=this.value;}">
+                </div>
+              </div>
+            </div>
+
+            <div class="nf-card" style="margin-bottom:16px;">
               <div class="nf-card-head"><h3 class="nf-card-title"><?= $locale['terms'] ?></h3></div>
               <div class="nf-card-body" style="padding:12px;">
                 <textarea class="editor" name="terms"><?= $settings->terms ?></textarea>
