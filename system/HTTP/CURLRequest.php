@@ -120,7 +120,7 @@ class CURLRequest extends Request
 
 		$url = $this->prepareURL($url);
 
-		$method = filter_var($method, FILTER_SANITIZE_STRING);
+		$method = strip_tags($method);
 
 		$this->send($method, $url);
 

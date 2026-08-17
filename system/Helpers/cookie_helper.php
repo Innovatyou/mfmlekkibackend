@@ -69,9 +69,9 @@ if (! function_exists('get_cookie'))
 	{
 		$prefix  = isset($_COOKIE[$index]) ? '' : config(App::class)->cookiePrefix;
 		$request = Services::request();
-		$filter  = $xssClean ? FILTER_SANITIZE_STRING : FILTER_DEFAULT;
+		$value   = $request->getCookie($prefix . $index, FILTER_DEFAULT);
 
-		return $request->getCookie($prefix . $index, $filter);
+		return $xssClean && is_string($value) ? strip_tags($value) : $value;
 	}
 }
 
