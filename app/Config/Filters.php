@@ -4,67 +4,55 @@ namespace Config;
 
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Filters\CSRF;
+use App\Filters\CsrfFilter;
 use CodeIgniter\Filters\DebugToolbar;
 use CodeIgniter\Filters\Honeypot;
 use App\Filters\Auth;
 use App\Filters\NoAuth;
 use App\Filters\AuthAdmin;
 use App\Filters\AuthClient;
+use App\Filters\AuthorizePermission;
+use App\Filters\AuthorizeRole;
+use App\Filters\License;
+use App\Filters\Cors;
+use App\Filters\MobileTokenAuth;
 
 class Filters extends BaseConfig
 {
-	/**
-	 * Configures aliases for Filter classes to
-	 * make reading things nicer and simpler.
-	 *
-	 * @var array
-	 */
-	public $aliases = [
-		'csrf'     => CSRF::class,
-		'toolbar'  => DebugToolbar::class,
-		'honeypot' => Honeypot::class,
-		"auth" => Auth::class,
-		"authadmin" => AuthAdmin::class,
-		"authclient" => AuthClient::class,
-    "noauth" => NoAuth::class,
-	];
+    public $aliases = [
+        'csrf'        => CsrfFilter::class,
+        'toolbar'     => DebugToolbar::class,
+        'honeypot'    => Honeypot::class,
+        'auth'        => Auth::class,
+        'authadmin'   => AuthAdmin::class,
+        'authclient'  => AuthClient::class,
+        'noauth'      => NoAuth::class,
+        'permission'  => AuthorizePermission::class,
+        'role'        => AuthorizeRole::class,
+        'license'     => License::class,
+        'cors'        => Cors::class,
+        'mobiletoken' => MobileTokenAuth::class,
+    ];
 
-	/**
-	 * List of filter aliases that are always
-	 * applied before and after every request.
-	 *
-	 * @var array
-	 */
-	public $globals = [
-		'before' => [
-			// 'honeypot',
-			// 'csrf',
-		],
-		'after'  => [
-			'toolbar',
-			// 'honeypot',
-		],
-	];
+    public $globals = [
+        'before' => [
+            // CSRF disabled globally - this is a mobile API backend; no browser forms
+            'license' => ['except' => ['activate', 'activate/process', 'login', 'authenticate', 'logout']],
+        ],
+        'after' => [
+            'cors',
+        ],
+    ];
 
-	/**
-	 * List of filter aliases that works on a
-	 * particular HTTP method (GET, POST, etc.).
-	 *
-	 * Example:
-	 * 'post' => ['csrf', 'throttle']
-	 *
-	 * @var array
-	 */
-	public $methods = [];
+    public function __construct()
+    {
+        if (ENVIRONMENT === 'development') {
+            $this->globals['after'][] = 'toolbar';
+        }
+        parent::__construct();
+    }
 
-	/**
-	 * List of filter aliases that should run on any
-	 * before or after URI patterns.
-	 *
-	 * Example:
-	 * 'isLoggedIn' => ['before' => ['account/*', 'profiles/*']]
-	 *
-	 * @var array
-	 */
-	public $filters = [];
+    public $methods = [];
+
+    public $filters = [];
 }

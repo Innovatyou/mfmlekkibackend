@@ -16,24 +16,22 @@ class Donations_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function getTotalItems($apitoken)
+  public function getTotalItems()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_donations');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  function getThisWeekDonationsAmount($date1, $date2, $apitoken)
+  function getThisWeekDonationsAmount($date1, $date2)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_donations');
     $builder->selectSum("amount");
-    $builder->where('apitoken', $apitoken);
     $builder->where("(DATE(date) BETWEEN '" . $date1 . "' AND '" . $date2 . "')");
     $query = $builder->get();
     $result = $query->getRow(0);
@@ -44,12 +42,11 @@ class Donations_model extends Basemodel
     return 0;
   }
 
-  function getDonationsAmount($month, $year, $apitoken)
+  function getDonationsAmount($month, $year)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_donations');
     $builder->selectSum("amount");
-    $builder->where('apitoken', $apitoken);
     if ($month != 0) {
       $builder->where('month', $month);
     }
@@ -65,12 +62,11 @@ class Donations_model extends Basemodel
     return 0;
   }
 
-  function getRecentDonations($apitoken)
+  function getRecentDonations()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_donations');
     $builder->select('tbl_donations.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderby('date', 'DESC');
     $builder->limit(10);
     $query = $builder->get();
@@ -78,13 +74,12 @@ class Donations_model extends Basemodel
     return $result;
   }
 
-  function donationsListing($columnName, $columnSortOrder, $searchValue, $start, $length, $apitoken)
+  function donationsListing($columnName, $columnSortOrder, $searchValue, $start, $length)
   {
 
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_donations');
     $builder->select('tbl_donations.*');
-    $builder->where('apitoken', $apitoken);
     if ($searchValue != "") {
       $builder->like('name', $searchValue);
       $builder->orlike('email', $searchValue);
@@ -100,12 +95,11 @@ class Donations_model extends Basemodel
     return $result;
   }
 
-  public function get_total_donations($searchValue = "", $apitoken = "")
+  public function get_total_donations($searchValue = "")
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_donations');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     if ($searchValue != "") {
       $builder->like('name', $searchValue);
       $builder->orlike('email', $searchValue);
@@ -121,7 +115,7 @@ class Donations_model extends Basemodel
 
   public function recordDonation($ref)
   {
-    if ($this->verifyPaymentRefExists($ref['email'], $ref['reference'], $ref['apitoken']) == FALSE) {
+    if ($this->verifyPaymentRefExists($ref['email'], $ref['reference']) == FALSE) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_donations');
       $builder->insert($ref);
@@ -134,14 +128,13 @@ class Donations_model extends Basemodel
   }
 
 
-  function verifyPaymentRefExists($email, $ref, $apitoken)
+  function verifyPaymentRefExists($email, $ref)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_donations');
     $builder->select('tbl_donations.id');
     $builder->where('email', $email);
     $builder->where('reference', $ref);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     if (count((array)$query->getResult()) > 0) {
       return TRUE;

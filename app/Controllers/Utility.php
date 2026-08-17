@@ -32,7 +32,7 @@ class Utility extends BaseController
             //user is pass due, disconnet and send a mail
             $settingsmodel = new settingsmodel();
             $sub['status'] = 1;
-            $settingsmodel->editchurchprofile($sub, $row->apitoken);
+            $settingsmodel->editchurchprofile($sub);
             $subject = "Account Deactivation";
             $message = "Your payment is past due and you may not be able to access all the services again, you need to make a payment to be reactivated.";
             $this->sendchurchemail($row->email, $row->fullname, $subject, $message);
@@ -64,11 +64,11 @@ class Utility extends BaseController
     foreach ($churches as $row) {
       //delete database records
       foreach ($db_tables as $tbl) {
-        $managemodel->deleteChurchData($tbl, $row->apitoken);
+        $managemodel->deleteChurchData($tbl);
       }
       //delete files
       foreach ($upload_folders as $uploads) {
-        $this->deleteFolderFIles($uploads, $row->apitoken);
+        $this->deleteFolderFIles($uploads);
       }
       //update church status to deleted
       $info = array(
@@ -87,10 +87,10 @@ class Utility extends BaseController
     $this->sendEmail("Admin", $emailconfig, $email, $subject, $this->getChurchEmailTemplate($churchname, $htmlContent));
   }
 
-  private function deleteFolderFIles($folder, $apitoken)
+  private function deleteFolderFIles($folder)
   {
-    // Folder path to be flushed 
-    $_dir = "./uploads/" . $folder . "/" . $apitoken . "/";
+    // Folder path to be flushed
+    $_dir = "./uploads/" . $folder . "/";
     if (file_exists($_dir)) {
       // Assigning files inside the directory 
       $dir = new \RecursiveDirectoryIterator(

@@ -46,19 +46,11 @@
         <div class="card mb-3 mt-3">
           <div class="card-body text-start">
             <h5 class="card-title">PAY YOUR TITHES &amp; OFFERING</h5>
-            <p class="mb-1"><strong>Bank Name:</strong> PRODIGY MFB</p>
-            <p class="mb-1"><strong>Account Number:</strong> 1100001758</p>
-            <p class="mb-0"><strong>Account Name:</strong> MFM TMPM REGION 1 LEKKI</p>
+            <p class="mb-1"><strong>Bank Name:</strong> BANK NAME</p>
+            <p class="mb-1"><strong>Account Number:</strong> 10000000000</p>
+            <p class="mb-0"><strong>Account Name:</strong> Church Account Name</p>
             <hr />
-            <h5 class="card-title">PAY INTO CHURCH BUILDING ACCOUNT</h5>
-            <p class="mb-1"><strong>Bank Name:</strong> PRODIGY MFB</p>
-            <p class="mb-1"><strong>Account Number:</strong> 1100002456</p>
-            <p class="mb-0"><strong>Account Name:</strong> MFM TMPM REGION 1 BUILDING</p>
-            <hr />
-            <h5 class="card-title">MFM TMPM REGION 1 WE CARE ACCOUNT</h5>
-            <p class="mb-1"><strong>Bank Name:</strong> PRODIGY MFB</p>
-            <p class="mb-1"><strong>Account Number:</strong> 1100002456</p>
-            <p class="mb-0"><strong>Account Name:</strong> MFM TMPM REGION 1 WE CARE MINISTRY</p>
+
           </div>
         </div>
         <?php if (strpos($settings->prefered_gateway, "flutterwaves") == true && $settings->flutterwaves_api_key == "") { ?>
@@ -195,8 +187,6 @@
     var amountpayable = 100;
     var selected = "usd";
     var reason = "hello world";
-    var apitoken = '<?php echo $apitoken; ?>';
-
     function validatedetails() {
       reason = document.getElementById("reason").value;
       amountpayable = document.getElementById("amount").value;
@@ -310,7 +300,6 @@
             email: email,
             name: name,
             reason: reason,
-            apitoken: apitoken,
             amount: amountpayable,
           });
           //console.log(form_obj); return;
@@ -320,7 +309,7 @@
             $.LoadingOverlay("hide");
             document.getElementById("pay-btn").disabled = false;
             console.log(response);
-            window.location.href = baseURL + "/thank_you?_p=" + apitoken;
+            window.location.href = baseURL + "/thank_you";
 
           }, function(status) {
             $.LoadingOverlay("hide");
@@ -472,7 +461,6 @@
         reason: reason,
         reference: reference,
         amount: amountpayable,
-        apitoken: apitoken,
         type: type,
       });
       //console.log(form_obj); return;
@@ -480,7 +468,7 @@
       fd.append("data", form_obj);
       makeAjaxCall(baseURL + "/savedonation", "POST", fd).then(function(response) {
         $.LoadingOverlay("hide");
-        window.location.href = baseURL + "/thank_you?_p=" + apitoken;
+        window.location.href = baseURL + "/thank_you";
         /*swal({
           title: 'Success!',
           text: response.message,

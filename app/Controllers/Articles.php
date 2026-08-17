@@ -11,7 +11,6 @@ use App\Models\Fcm_model as fcmmodel;
 class Articles extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -20,7 +19,6 @@ class Articles extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
     //$this->articlesmodel = new articlesmodel();
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
@@ -59,8 +57,8 @@ class Articles extends BaseController
     }
 
 
-    $feeds = $articlesmodel->adminarticlesListing($columnName, $columnSortOrder, $searchValue, $start, $length, $this->apitoken);
-    $total_feeds = $articlesmodel->get_total_articles($searchValue, $this->apitoken);
+    $feeds = $articlesmodel->adminarticlesListing($columnName, $columnSortOrder, $searchValue, $start, $length);
+    $total_feeds = $articlesmodel->get_total_articles($searchValue);
     //var_dump($feeds); die;
     $dat = array();
 
@@ -107,7 +105,7 @@ class Articles extends BaseController
   public function editArticle($id = 0)
   {
     $articlesmodel = new articlesmodel();
-    $this->viewdata['article'] = $articlesmodel->getArticleInfo($id, $this->apitoken);
+    $this->viewdata['article'] = $articlesmodel->getArticleInfo($id);
     if (count((array)$this->viewdata['article']) == 0) {
       return redirect()->to(base_url() . '/articlesListing');
     }
@@ -124,7 +122,6 @@ class Articles extends BaseController
 
 
     $info = array(
-      'apitoken' => $this->apitoken,
       'date' => $date,
       'title' => $title,
       'author' => $author,
@@ -140,13 +137,13 @@ class Articles extends BaseController
 
     $insertid = $articlesmodel->addNewArticle($info);
     if ($insertid != 0) {
-      $itm = $articlesmodel->getArticleInfo($insertid, $this->apitoken);
+      $itm = $articlesmodel->getArticleInfo($insertid);
       //var_dump($article); die;
       if (count((array)$itm) > 0) {
         $settingsmodel = new settingsmodel();
-        $server_key = $settingsmodel->getFcmServerKey($this->apitoken);
+        $server_key = $settingsmodel->getFcmServerKey();
         $fcmmodel = new fcmmodel();
-        $fcmmodel->push_item_data($server_key, $itm, "Article", $this->apitoken);
+        $fcmmodel->push_item_data($server_key, $itm, "Article");
       }
     }
     if ($articlesmodel->status == "ok") {
@@ -183,7 +180,7 @@ class Articles extends BaseController
       }
     }
 
-    $articlesmodel->editArticle($info, $id, $this->apitoken);
+    $articlesmodel->editArticle($info, $id);
     if ($articlesmodel->status == "ok") {
       $this->session->setFlashdata('success', $articlesmodel->message);
     } else {
@@ -196,7 +193,7 @@ class Articles extends BaseController
   function deleteArticle($id = 0)
   {
     $articlesmodel = new articlesmodel();
-    $articlesmodel->deleteArticle($id, $this->apitoken);
+    $articlesmodel->deleteArticle($id);
     if ($articlesmodel->status == "ok") {
       $this->session->setFlashdata('success', $articlesmodel->message);
     } else {
@@ -207,8 +204,8 @@ class Articles extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/')) {
+      mkdir('./uploads/thumbnails/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -223,7 +220,7 @@ class Articles extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('thumbnail');
-      $img->move('./uploads/thumbnails/' . $this->apitoken);
+      $img->move('./uploads/thumbnails/');
       $this->viewdata = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

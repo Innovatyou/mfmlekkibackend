@@ -8,11 +8,9 @@ use App\Models\Socials_model as commentsmodel;
 class Postcomments extends BaseController
 {
 
-  public $apitoken = "";
 
   public function __construct()
   {
-    $this->apitoken = $this->check_headers();
   }
 
   public function makecomment()
@@ -28,9 +26,9 @@ class Postcomments extends BaseController
       $post = isset($data->post) ? filter_var($data->post, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($email != "" && $post != "" && $content != "") {
-        $comment = $commentsmodel->makeComment($post, $email, $content, $this->apitoken);
-        $total_count = $commentsmodel->get_total_comments($post, $this->apitoken);
-        $this->check_notify_user($post, "comment", $user, $email, $this->apitoken);
+        $comment = $commentsmodel->makeComment($post, $email, $content);
+        $total_count = $commentsmodel->get_total_comments($post);
+        $this->check_notify_user($post, "comment", $user, $email);
       }
     }
     echo json_encode(array(
@@ -50,7 +48,7 @@ class Postcomments extends BaseController
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($content != "" && $id != "") {
-        $comment = $commentsmodel->editComment($id, $content, $this->apitoken);
+        $comment = $commentsmodel->editComment($id, $content);
       }
     }
     echo json_encode(array(
@@ -71,8 +69,8 @@ class Postcomments extends BaseController
       $post = isset($data->post) ? filter_var($data->post, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($id != "") {
-        $commentsmodel->deleteComment($id, $this->apitoken);
-        $total_count = $commentsmodel->get_total_comments($post, $this->apitoken);
+        $commentsmodel->deleteComment($id);
+        $total_count = $commentsmodel->get_total_comments($post);
       }
     }
     echo json_encode(array("status" => $commentsmodel->status, "message" => $commentsmodel->message, "total_count" => $total_count));
@@ -96,9 +94,9 @@ class Postcomments extends BaseController
       $post = $data->post;
     }
 
-    $results = $commentsmodel->loadcomments($post, $id, $this->apitoken);
-    $has_more = $commentsmodel->checkIfpostHasMoreComments($post, $id, $this->apitoken);
-    $total_count = $commentsmodel->get_total_comments($post, $this->apitoken);
+    $results = $commentsmodel->loadcomments($post, $id);
+    $has_more = $commentsmodel->checkIfpostHasMoreComments($post, $id);
+    $total_count = $commentsmodel->get_total_comments($post);
     if (count((array)$results) > 0) {
       http_response_code(200);
     }
@@ -116,7 +114,7 @@ class Postcomments extends BaseController
       $reason = isset($data->reason) ? filter_var($data->reason, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       if ($email != "" && $type != "" && $id != "") {
-        $commentsmodel->reportComment($id, $email, $type, $reason, $this->apitoken);
+        $commentsmodel->reportComment($id, $email, $type, $reason);
       }
     }
     echo json_encode(array("status" => $commentsmodel->status, "message" => $commentsmodel->message));

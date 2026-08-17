@@ -56,34 +56,68 @@ class PermissionSeeder extends Seeder
             // Admin Roles
             ['name' => 'admin.roles.view', 'display_name' => 'View Roles', 'module' => 'admin', 'description' => 'View user roles'],
             ['name' => 'admin.roles.edit', 'display_name' => 'Manage Roles', 'module' => 'admin', 'description' => 'Create and manage roles'],
+
+            // Counseling Module
+            ['name' => 'counseling.view', 'display_name' => 'View Counseling', 'module' => 'counseling', 'description' => 'View counseling cases and sessions'],
+            ['name' => 'counseling.edit', 'display_name' => 'Manage Counseling', 'module' => 'counseling', 'description' => 'Create and manage counseling cases'],
+
+            // Member Care Module
+            ['name' => 'membercare.view', 'display_name' => 'View Member Care', 'module' => 'membercare', 'description' => 'View member care profiles and activity'],
+            ['name' => 'membercare.edit', 'display_name' => 'Manage Member Care', 'module' => 'membercare', 'description' => 'Log care events and manage member profiles'],
+
+            // Marketplace Module
+            ['name' => 'marketplace.view', 'display_name' => 'View Marketplace', 'module' => 'marketplace', 'description' => 'View marketplace listings and inquiries'],
+            ['name' => 'marketplace.edit', 'display_name' => 'Manage Marketplace', 'module' => 'marketplace', 'description' => 'Manage and approve marketplace listings'],
         ];
 
         $this->db->table('tbl_permissions')->insertBatch($data);
 
-        // Assign permissions to roles
+        // Get permissions to map names to IDs (avoids hardcoded IDs)
+        $allPerms = $this->db->table('tbl_permissions')->get()->getResult();
+        $permMap = [];
+        foreach ($allPerms as $p) {
+            $permMap[$p->name] = $p->id;
+        }
+
         $rolePermissions = [
             // Super Admin - All permissions
-            1 => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+            1 => ['members.view', 'members.edit', 'donations.view', 'donations.edit', 'media.view', 'media.edit',
+                  'publications.view', 'publications.edit', 'connect.view', 'connect.edit', 'events.view', 'events.edit',
+                  'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'locations.view', 'locations.edit',
+                  'settings.view', 'settings.edit', 'admin.users.view', 'admin.users.edit', 'admin.roles.view', 'admin.roles.edit',
+                  'counseling.view', 'counseling.edit', 'membercare.view', 'membercare.edit', 'marketplace.view', 'marketplace.edit'],
             // Admin - All except admin management
-            2 => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+            2 => ['members.view', 'members.edit', 'donations.view', 'donations.edit', 'media.view', 'media.edit',
+                  'publications.view', 'publications.edit', 'connect.view', 'connect.edit', 'events.view', 'events.edit',
+                  'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'locations.view', 'locations.edit',
+                  'settings.view', 'settings.edit',
+                  'counseling.view', 'counseling.edit', 'membercare.view', 'membercare.edit', 'marketplace.view', 'marketplace.edit'],
             // Editor - Can view and edit content
-            3 => [1, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 17],
+            3 => ['members.view', 'donations.view', 'media.view', 'media.edit', 'publications.view', 'publications.edit',
+                  'connect.view', 'connect.edit', 'events.view', 'events.edit', 'hymns.view', 'hymns.edit',
+                  'messaging.view', 'locations.view', 'counseling.view', 'membercare.view', 'marketplace.view', 'marketplace.edit'],
             // Viewer - Can only view
-            4 => [1, 3, 5, 7, 9, 11, 13, 15, 17],
+            4 => ['members.view', 'donations.view', 'media.view', 'publications.view', 'connect.view', 'events.view',
+                  'hymns.view', 'messaging.view', 'locations.view', 'counseling.view', 'membercare.view', 'marketplace.view'],
             // Contributor - Can view and create content
-            5 => [1, 5, 6, 7, 8, 9, 10, 11, 12],
+            5 => ['media.view', 'media.edit', 'publications.view', 'publications.edit', 'connect.view', 'connect.edit',
+                  'events.view', 'hymns.view', 'marketplace.view', 'marketplace.edit'],
         ];
 
-        foreach ($rolePermissions as $roleId => $permissionIds) {
+        foreach ($rolePermissions as $roleId => $permNames) {
             $data = [];
-            foreach ($permissionIds as $permissionId) {
-                $data[] = [
-                    'role_id' => $roleId,
-                    'permission_id' => $permissionId,
-                    'created_at' => date('Y-m-d H:i:s'),
-                ];
+            foreach ($permNames as $permName) {
+                if (isset($permMap[$permName])) {
+                    $data[] = [
+                        'role_id'       => $roleId,
+                        'permission_id' => $permMap[$permName],
+                        'created_at'    => date('Y-m-d H:i:s'),
+                    ];
+                }
             }
-            $this->db->table('tbl_role_permissions')->insertBatch($data);
+            if (!empty($data)) {
+                $this->db->table('tbl_role_permissions')->insertBatch($data);
+            }
         }
     }
 }

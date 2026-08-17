@@ -1,4 +1,3 @@
-use App\Models\Notification_model;
 <?php
 
 namespace App\Models;
@@ -7,6 +6,7 @@ use CodeIgniter\Model;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
+use App\Models\Notification_model;
 
 class Fcm_model extends Model
 {
@@ -21,15 +21,14 @@ class Fcm_model extends Model
     parent::__construct();
     $session = session();
     $this->role = $session->get('role');
-    $apitoken = $session->get('apitoken');
     $factory = (new Factory)
       ->withServiceAccount('./uploads/firebase.json');
     $this->cloudMessaging = $factory->createMessaging();
   }
 
-  function testnotifications($apitoken)
+  function testnotifications()
   {
-    $tokens = array_chunk($this->androidUsersTokenListing($apitoken), 1000);
+    $tokens = array_chunk($this->androidUsersTokenListing(), 1000);
     // var_dump(sizeof($tokens)); //die;
     for ($i = 0; $i < sizeof($tokens); $i++) {
       $this->createNotificationMessage($tokens);
@@ -44,7 +43,10 @@ class Fcm_model extends Model
     $message = CloudMessage::new();
     $message = $message->withData($data);
     $sendReport = $this->cloudMessaging->sendMulticast($message, $tokens);
-    var_dump($sendReport);
+    log_message('info', 'FCM multicast: {success} sent, {failures} failed', [
+      'success'  => $sendReport->successes()->count(),
+      'failures' => $sendReport->failures()->count(),
+    ]);
   }
 
   function storeUserFcmToken($token)
@@ -69,12 +71,11 @@ class Fcm_model extends Model
     $this->message = 'token updated successfully';
   }
 
-  function androidUsersTokenListing($apitoken)
+  function androidUsersTokenListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_fcm_token');
     $builder->select('tbl_fcm_token.token');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     //var_dump($query); die;
     $result =  $query->getResult();
@@ -87,7 +88,7 @@ class Fcm_model extends Model
     return $token;
   }
 
-  function AllUsersSocialTokenListing($email = "null", $apitoken = "")
+  function AllUsersSocialTokenListing($email = "null")
   {
     //$builder->select('tbl_social_fcm_tokens.token');
     //$builder->from('tbl_social_fcm_tokens');
@@ -95,7 +96,6 @@ class Fcm_model extends Model
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_social_fcm_tokens');
     $builder->select('tbl_social_fcm_tokens.token');
-    $builder->where('apitoken', $apitoken);
     $builder->where('email !=', $email);
     $query = $builder->get();
     //var_dump($query); die;
@@ -109,12 +109,11 @@ class Fcm_model extends Model
     return $token;
   }
 
-  function usersSocialTokenListing($email, $apitoken)
+  function usersSocialTokenListing($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_social_fcm_tokens');
     $builder->select('tbl_social_fcm_tokens.token');
-    $builder->where('apitoken', $apitoken);
     $builder->where('email', $email);
     $query = $builder->get();
     //var_dump($query); die;
@@ -128,10 +127,10 @@ class Fcm_model extends Model
     return $token;
   }
 
-  public function sendPushNotificationToFCMSever($API_SERVER_KEY, $title, $message, $apitoken)
+  public function sendPushNotificationToFCMSever($API_SERVER_KEY, $title, $message)
   {
 
-    $tokens = $this->androidUsersTokenListing($apitoken);
+    $tokens = $this->androidUsersTokenListing();
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       // Persist notification for each user (assuming token maps to user_id, adjust as needed)
@@ -159,9 +158,9 @@ class Fcm_model extends Model
     }
   }
 
-  public function sendUserRelatedPushNotification($API_SERVER_KEY, $email, $action, $apitoken)
+  public function sendUserRelatedPushNotification($API_SERVER_KEY, $email, $action)
   {
-    $tokens = $this->androidUsersTokenListing($apitoken);
+    $tokens = $this->androidUsersTokenListing();
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       $payload = ['email' => $email, 'action' => $action];
@@ -186,10 +185,10 @@ class Fcm_model extends Model
   }
 
 
-  public function newMediaNotification($API_SERVER_KEY, $title, $media, $apitoken)
+  public function newMediaNotification($API_SERVER_KEY, $title, $media)
   {
 
-    $tokens = $this->androidUsersTokenListing($apitoken);
+    $tokens = $this->androidUsersTokenListing();
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       $payload = ['title' => $title, 'action' => 'newMedia', 'media' => $media];
@@ -213,9 +212,9 @@ class Fcm_model extends Model
     }
   }
 
-  public function push_event_data($API_SERVER_KEY, $event, $apitoken)
+  public function push_event_data($API_SERVER_KEY, $event)
   {
-    $tokens = $this->androidUsersTokenListing($apitoken);
+    $tokens = $this->androidUsersTokenListing();
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       $payload = ['title' => $event->title, 'action' => 'Event', 'id' => $event->id];
@@ -239,9 +238,9 @@ class Fcm_model extends Model
     }
   }
 
-  public function push_item_data($API_SERVER_KEY, $item, $type, $apitoken)
+  public function push_item_data($API_SERVER_KEY, $item, $type)
   {
-    $tokens = $this->androidUsersTokenListing($apitoken);
+    $tokens = $this->androidUsersTokenListing();
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       $payload = ['title' => $item->title, 'action' => $type, 'id' => $item->id];
@@ -265,9 +264,9 @@ class Fcm_model extends Model
     }
   }
 
-  public function push_inbox_data($API_SERVER_KEY, $inbox, $apitoken)
+  public function push_inbox_data($API_SERVER_KEY, $inbox)
   {
-    $tokens = $this->androidUsersTokenListing($apitoken);
+    $tokens = $this->androidUsersTokenListing();
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       $payload = ['title' => $inbox->title, 'action' => 'inbox', 'inbox' => $inbox->id];
@@ -291,9 +290,9 @@ class Fcm_model extends Model
     }
   }
 
-  public function liveStreamsNotification($API_SERVER_KEY, $livestream, $apitoken)
+  public function liveStreamsNotification($API_SERVER_KEY, $livestream)
   {
-    $tokens = $this->androidUsersTokenListing($apitoken);
+    $tokens = $this->androidUsersTokenListing();
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       $payload = ['title' => $livestream->title, 'action' => 'livestream', 'livestream' => $livestream->id];
@@ -317,9 +316,9 @@ class Fcm_model extends Model
     }
   }
 
-  public function userActionsNotification($API_SERVER_KEY, $email, $avatar, $msg, $apitoken)
+  public function userActionsNotification($API_SERVER_KEY, $email, $avatar, $msg)
   {
-    $tokens = $this->usersSocialTokenListing($email, $apitoken);
+    $tokens = $this->usersSocialTokenListing($email);
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       $payload = ['title' => 'New Notification', 'action' => 'social_notify', 'email' => $email, 'avatar' => $avatar, 'message' => $msg];
@@ -343,9 +342,9 @@ class Fcm_model extends Model
     }
   }
 
-  public function userConversationNotification($API_SERVER_KEY, $email, $user, $unseen, $chat, $apitoken)
+  public function userConversationNotification($API_SERVER_KEY, $email, $user, $unseen, $chat)
   {
-    $tokens = $this->usersSocialTokenListing($email, $apitoken);
+    $tokens = $this->usersSocialTokenListing($email);
     $notificationModel = new Notification_model();
     foreach ($tokens as $token) {
       $payload = ['title' => $email, 'action' => 'chat', 'chat' => $chat->id, 'user' => $user->id];
@@ -369,10 +368,10 @@ class Fcm_model extends Model
     }
   }
 
-  public function userSeenConversationNotification($API_SERVER_KEY, $email, $recipient, $chatid, $apitoken)
+  public function userSeenConversationNotification($API_SERVER_KEY, $email, $recipient, $chatid)
   {
     // var_dump($livestream); die;
-    $tokens = array_chunk($this->usersSocialTokenListing($email, $apitoken), 1000);
+    $tokens = array_chunk($this->usersSocialTokenListing($email), 1000);
     //var_dump($tokens); die;
     //var_dump(sizeof($tokens)); //die;
     for ($i = 0; $i < sizeof($tokens); $i++) {
@@ -383,10 +382,10 @@ class Fcm_model extends Model
     }
   }
 
-  public function userTypingNotification($API_SERVER_KEY, $email, $recipient, $apitoken)
+  public function userTypingNotification($API_SERVER_KEY, $email, $recipient)
   {
     // var_dump($livestream); die;
-    $tokens = array_chunk($this->usersSocialTokenListing($email, $apitoken), 1000);
+    $tokens = array_chunk($this->usersSocialTokenListing($email), 1000);
     //var_dump($tokens); die;
     //var_dump(sizeof($tokens)); //die;
     for ($i = 0; $i < sizeof($tokens); $i++) {
@@ -397,10 +396,10 @@ class Fcm_model extends Model
     }
   }
 
-  public function notifyUserOnlinePresence($API_SERVER_KEY, $email, $status, $apitoken)
+  public function notifyUserOnlinePresence($API_SERVER_KEY, $email, $status)
   {
     // var_dump($livestream); die;
-    $tokens = array_chunk($this->AllUsersSocialTokenListing($email, $apitoken), 1000);
+    $tokens = array_chunk($this->AllUsersSocialTokenListing($email), 1000);
     //var_dump($tokens); die;
     //var_dump(sizeof($tokens)); //die;
     for ($i = 0; $i < sizeof($tokens); $i++) {

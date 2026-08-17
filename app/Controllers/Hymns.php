@@ -9,7 +9,6 @@ use App\Models\Hymns_model as hymnsmodel;
 class Hymns extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -18,7 +17,6 @@ class Hymns extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
       exit();
@@ -57,8 +55,8 @@ class Hymns extends BaseController
     }
 
 
-    $feeds = $hymnsmodel->adminHymnsListing($columnName, $columnSortOrder, $searchValue, $start, $length, $this->apitoken);
-    $total_feeds = $hymnsmodel->get_total_hymns($searchValue, $this->apitoken);
+    $feeds = $hymnsmodel->adminHymnsListing($columnName, $columnSortOrder, $searchValue, $start, $length);
+    $total_feeds = $hymnsmodel->get_total_hymns($searchValue);
     //var_dump($feeds); die;
     $dat = array();
 
@@ -104,7 +102,7 @@ class Hymns extends BaseController
   public function editHymn($id = 0)
   {
     $hymnsmodel = new hymnsmodel();
-    $this->viewdata['hymn'] = $hymnsmodel->getHymnInfo($id, $this->apitoken);
+    $this->viewdata['hymn'] = $hymnsmodel->getHymnInfo($id);
     if (count((array)$this->viewdata['hymn']) == 0) {
       return redirect()->to(base_url() . '/hymnsListing');
     }
@@ -117,7 +115,6 @@ class Hymns extends BaseController
     $title = $this->request->getVar('title');
     $content = $this->request->getVar('content');
     $info = array(
-      'apitoken' => $this->apitoken,
       'title' => $title,
       'content' => $content,
     );
@@ -159,7 +156,7 @@ class Hymns extends BaseController
       }
     }
 
-    $hymnsmodel->editHymn($info, $id, $this->apitoken);
+    $hymnsmodel->editHymn($info, $id);
     if ($hymnsmodel->status == "ok") {
       $this->session->setFlashdata('success', $hymnsmodel->message);
     } else {
@@ -172,7 +169,7 @@ class Hymns extends BaseController
   function deleteHymn($id = 0)
   {
     $hymnsmodel = new hymnsmodel();
-    $hymnsmodel->deleteHymn($id, $this->apitoken);
+    $hymnsmodel->deleteHymn($id);
     if ($hymnsmodel->status == "ok") {
       $this->session->setFlashdata('success', $hymnsmodel->message);
     } else {
@@ -183,8 +180,8 @@ class Hymns extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/')) {
+      mkdir('./uploads/thumbnails/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -199,7 +196,7 @@ class Hymns extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('thumbnail');
-      $img->move('./uploads/thumbnails/' . $this->apitoken);
+      $img->move('./uploads/thumbnails/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

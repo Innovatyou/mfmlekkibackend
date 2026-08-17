@@ -1,60 +1,44 @@
 <div class="main-container">
-  <div class="pd-ltr-20 xs-pd-20-10">
-    <div class="min-height-200px">
-      <div class="page-header">
-        <div class="row">
-          <div class="col-md-6 col-sm-12">
-            <div class="title">
-              <h4><?php echo $locale['testimonies']; ?></h4>
-            </div>
-            <nav aria-label="breadcrumb" role="navigation">
-              <ol class="breadcrumb">
-                <li class="breadcrumb-item active" aria-current="page"><?php echo $locale['edit_testimony']; ?></li>
-              </ol>
-            </nav>
-          </div>
-
-        </div>
+  <div class="xs-pd-20-10 pd-ltr-20">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title"><?= $locale['testimonies'] ?></h1>
+        <nav class="lt-bc"><a href="<?= base_url() ?>">Dashboard</a><span>/</span><a href="<?= base_url('testimonyListing') ?>"><?= $locale['testimonies'] ?></a><span>/</span><span><?= $locale['edit_testimony'] ?></span></nav>
       </div>
-      <!-- Default Basic Forms Start -->
-      <div class="pd-20 card-box mb-30">
-        <div class="pd-20 card-box mb-30">
-          <?= view('_flash') ?>
-
-          <form method="POST" action="<?php echo base_url(); ?>/edittestimonydata" enctype="multipart/form-data" style="margin-top:30px;">
-            <input type="hidden" class="form-control" name="id" required="" autofocus="" value="<?php echo $testimony->id; ?>">
-
-            <div class="form-group" style="margin-top:20px;">
-              <label><?php echo $locale['name_testifier']; ?></label>
-              <div class="form-line">
-                <input type="text" class="form-control" name="testifier" value="<?php echo $testimony->testifier; ?>" placeholder="<?php echo $locale['name_testifier']; ?>">
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-top:20px;">
-              <label><?php echo $locale['testimony_title']; ?></label>
-              <div class="form-line">
-                <input type="text" class="form-control" name="title" value="<?php echo $testimony->title; ?>" placeholder="<?php echo $locale['testimony_title']; ?>" required="" autofocus="">
-              </div>
-            </div>
-
-            <div class="form-group" style="margin-top:20px;">
-              <label><?php echo $locale['testimony_content']; ?></label>
-              <div class="form-line">
-                <textarea class="editor1" name="content"><?php echo $testimony->content; ?></textarea>
-              </div>
-            </div>
-
-
-            <div class="box-footer text-center">
-              <button class="btn btn-primary waves-effect" type="submit"><?php echo $locale['update_testimony']; ?></button>
-            </div>
-
-          </form>
-
-
-        </div>
-      </div>
-
     </div>
+    <?php if(session()->getFlashdata('success')):?><div class="lt-alert lt-success"><i class="dw dw-check-circle-2"></i><?=esc(session()->getFlashdata('success'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
+    <?php if(session()->getFlashdata('error')):?><div class="lt-alert lt-danger"><i class="dw dw-close-circle-1"></i><?=esc(session()->getFlashdata('error'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
+    <form method="POST" action="<?= base_url('edittestimonydata') ?>" enctype="multipart/form-data">
+      <?= csrf_field() ?>
+      <input type="hidden" name="id" value="<?= $testimony->id ?>">
+      <div class="row">
+        <div class="col-lg-8">
+          <div class="nf-card">
+            <div class="nf-card-head"><h3 class="nf-card-title">Edit Testimony</h3></div>
+            <div class="nf-card-body">
+              <div class="nf-row" style="margin-bottom:16px;">
+                <div class="nf-col-half">
+                  <label class="nf-label"><?= $locale['name_testifier'] ?></label>
+                  <input type="text" name="testifier" class="nf-input" value="<?= esc($testimony->testifier) ?>">
+                </div>
+                <div class="nf-col-half">
+                  <label class="nf-label"><?= $locale['testimony_title'] ?></label>
+                  <input type="text" name="title" class="nf-input" value="<?= esc($testimony->title) ?>" required>
+                </div>
+              </div>
+              <div>
+                <label class="nf-label"><?= $locale['testimony_content'] ?></label>
+                <textarea class="editor1" name="content"><?= $testimony->content ?></textarea>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:24px;display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary nf-submit"><?= $locale['update_testimony'] ?></button>
+            <a href="<?= base_url('testimonyListing') ?>" class="btn btn-light nf-cancel">Cancel</a>
+          </div>
+        </div>
+      </div>
+    </form>
   </div>
+</div>
+<?= view('_nf_styles') ?>

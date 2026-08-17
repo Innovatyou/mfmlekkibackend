@@ -57,61 +57,70 @@ class BaseController extends Controller
 	{
 		// Do Not Edit This Line
 		parent::initController($request, $response, $logger);
+
+		// CORS: browser clients (Flutter web build, admin/landing frontends) need
+		// these headers on every response. Set via raw header() — not the CI4
+		// Response object — because most API actions below finish with a direct
+		// echo+exit that bypasses the framework's response/filter pipeline.
+		$origin = $request->getHeaderLine('Origin') ?: '*';
+		header('Access-Control-Allow-Origin: ' . $origin);
+		header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+		header('Access-Control-Allow-Headers: Content-Type, Authorization');
+		header('Access-Control-Max-Age: 86400');
+		header('Vary: Origin');
+
 		//echo $date = date('m/d/Y h:i:s a', time()); die;
 		//--------------------------------------------------------------------
 		// Preload any models, libraries, etc, here.
 		//--------------------------------------------------------------------
 		// E.g.: $this->session = \Config\Services::session();
-		$session = session();
-		$apitoken = $session->get('apitoken');
-		//$settingsmodel = new settingsmodel();
-		//$locale = $settingsmodel->getChurchDefaultLanguage($apitoken); //service('request')->getLocale();
 		$path = "Language/en.php";
 		$this->viewdata['locale'] = require APPPATH . $path;
 	}
 
-	public function check_headers()
-{
-    // Always return your static API token
-    return "4f1a23de-8899-4b22-b111-98db6cc77b11";
-}
 
 
-	public function check_notify_user($itm_id, $type, $user, $email, $apitoken)
+	protected function jsonOut(array $data): void
+	{
+		header('Content-Type: application/json');
+		echo json_encode($data);
+		exit;
+	}
+
+	public function check_notify_user($itm_id, $type, $user, $email)
 	{
 		if ($user == $email) return;
 		$socialsmodel = new socialsmodel();
-		$settings = $socialsmodel->fetch_user_settings($user, $apitoken);
-		//var_dump($settings); die;
-		$user_data = $socialsmodel->getUpdatedUserProfile($email, $apitoken);
+		$settings = $socialsmodel->fetch_user_settings($user);
+		$user_data = $socialsmodel->getUpdatedUserProfile($email);
 		$msg = "New Notification";
 		if ($type == "follow") {
 			$msg = $user_data->name . " started following you";
-			$socialsmodel->saveNotificationData($itm_id, $type, $email, $user, $apitoken);
+			$socialsmodel->saveNotificationData($itm_id, $type, $email, $user);
 			if ($settings->notify_follows == 0) {
-				$this->notify_user($user, $user_data->photo,  $msg, $apitoken);
+				$this->notify_user($user, $user_data->photo, $msg);
 			}
 		} else if ($type == "comment") {
 			$msg = $user_data->name . " commented on your post";
-			$socialsmodel->saveNotificationData($itm_id, $type, $email, $user, $apitoken);
+			$socialsmodel->saveNotificationData($itm_id, $type, $email, $user);
 			if ($settings->notify_comments == 0) {
-				$this->notify_user($user, $user_data->photo,  $msg, $apitoken);
+				$this->notify_user($user, $user_data->photo, $msg);
 			}
 		} else if ($type == "like") {
 			$msg = $user_data->name . " liked your post";
-			$socialsmodel->saveNotificationData($itm_id, $type, $email, $user, $apitoken);
+			$socialsmodel->saveNotificationData($itm_id, $type, $email, $user);
 			if ($settings->notify_likes == 0) {
-				$this->notify_user($user, $user_data->photo,  $msg, $apitoken);
+				$this->notify_user($user, $user_data->photo, $msg);
 			}
 		}
 	}
 
-	public function notify_user($email, $avatar, $msg, $apitoken)
+	public function notify_user($email, $avatar, $msg)
 	{
 		$settingsmodel = new settingsmodel();
-		$API_SERVER_KEY = $settingsmodel->getFcmServerKey($apitoken);
+		$API_SERVER_KEY = $settingsmodel->getFcmServerKey();
 		$fcmmodel = new fcmmodel();
-		$fcmmodel->userActionsNotification($API_SERVER_KEY, $email, $avatar, $msg, $apitoken);
+		$fcmmodel->userActionsNotification($API_SERVER_KEY, $email, $avatar, $msg);
 	}
 
 	public function get_data()
@@ -120,9 +129,14 @@ class BaseController extends Controller
 		if (isset($_POST['data'])) {
 			$data = json_decode($_POST['data']);
 		} else {
-			//var_dump(file_get_contents('php://input')); die;
-			if (null != file_get_contents('php://input') || file_get_contents('php://input') != "") {
-				$data = (object) json_decode(file_get_contents('php://input'), TRUE)['data'];
+			$rawBody = file_get_contents('php://input');
+			if (!empty($rawBody)) {
+				$decoded = json_decode($rawBody, TRUE);
+				if (is_array($decoded) && isset($decoded['data'])) {
+					$data = (object) $decoded['data'];
+				} elseif (is_array($decoded)) {
+					$data = (object) $decoded;
+				}
 			}
 		}
 		return $data;
@@ -132,31 +146,24 @@ class BaseController extends Controller
 	{
 		$data = $this->security->xss_clean($data);
 		$data = trim($data);
-		$data = stripslashes($data);
-		$data = htmlspecialchars($data);
+		$data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
 		return $data;
 	}
 
 	//function to process link for both email activation and password reset
-	public function getVerificationLink($email, $apitoken = "")
+	public function getVerificationLink($email)
 	{
 		$verifymodel = new verifymodel();
-		$encoded_email = urlencode($email);
-		$data = array('email' => $email, 'apitoken' => $apitoken, 'activation_id' => $this->generate_string(), 'agent' => $_SERVER['HTTP_USER_AGENT'], 'client_ip' => $_SERVER['REMOTE_ADDR']);
-		//save details to database
+		$data = array('email' => $email, 'activation_id' => $this->generate_string(), 'agent' => $_SERVER['HTTP_USER_AGENT'], 'client_ip' => $_SERVER['REMOTE_ADDR']);
 		$verifymodel->insertData($data);
-		//return url to be sent to user email
 		return $this->getBaseUrl() . "verifyEmailLink/" . $data['activation_id'];
 	}
 
-	public function getPasswordResetLink($email, $apitoken = "")
+	public function getPasswordResetLink($email)
 	{
 		$verifymodel = new verifymodel();
-		$encoded_email = urlencode($email);
-		$data = array('email' => $email, 'apitoken' => $apitoken, 'activation_id' => $this->generate_string(), 'agent' => $_SERVER['HTTP_USER_AGENT'], 'client_ip' => $_SERVER['REMOTE_ADDR']);
-		//save details to database
+		$data = array('email' => $email, 'activation_id' => $this->generate_string(), 'agent' => $_SERVER['HTTP_USER_AGENT'], 'client_ip' => $_SERVER['REMOTE_ADDR']);
 		$verifymodel->insertData($data);
-		//return url to be sent to user email
 		return $this->getBaseUrl() . "resetLink/" . $data['activation_id'];
 	}
 
@@ -196,7 +203,8 @@ class BaseController extends Controller
 		$mail->isHTML(true); // Set email format to HTML
 		$mail->Subject = $subject;
 		$mail->Body = $content;
-		$mail->AltBody = $subject; // Plain text for non-HTML mail clients
+		$mail->AltBody = strip_tags($content); // Plain text fallback for non-HTML mail clients
+		$mail->Timeout = 5; // seconds — an unreachable/slow SMTP host must fail fast, not hang the request
 
 		// Attempt 1: use configured host/port/protocol
 		try {

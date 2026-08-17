@@ -10,29 +10,19 @@ class Basemodel extends Model
   public $applocal;
   public function __construct()
   {
-    $session = session();
-    if ($session->get('role') == 2) {
-      $apitoken = $session->get('apitoken');
-      $locale = $this->getChurchDefaultLanguage($apitoken);
-      $path = "Language/{$locale}.php";
-      $this->applocal = require APPPATH . $path;
-    } else {
-      $path = "Language/en.php";
-      $this->applocal = require APPPATH . $path;
-    }
+    $path = "Language/en.php";
+    $this->applocal = require APPPATH . $path;
   }
 
-  function getChurchDefaultLanguage($apitoken)
+  /**
+   * Build base URL from the actual incoming request host so that
+   * mobile apps, browsers, and production servers all get a reachable URL.
+   */
+  protected function request_base_url(): string
   {
-    $db = \Config\Database::connect("default");
-    $builder = $db->table('tbl_churches');
-    $builder->select('tbl_churches.language');
-    $builder->where('apitoken', $apitoken);
-    $query = $builder->get();
-    $row = $query->getRow(0);
-    if ($row) {
-      return $row->language;
-    }
-    return 'en';
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $script = dirname($_SERVER['SCRIPT_NAME'] ?? '/index.php');
+    return rtrim($scheme . '://' . $host . $script, '/') . '/';
   }
 }

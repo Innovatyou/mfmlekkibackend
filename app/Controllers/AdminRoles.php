@@ -32,7 +32,7 @@ class AdminRoles extends BaseController
             return $this->response->setStatusCode(403)->setBody('Access Denied');
         }
 
-        $roles = $this->roleModel->findAll();
+        $roles = $this->roleModel->getRolesWithCounts();
 
         return $this->view('admin/roles/index', [
             'roles' => $roles

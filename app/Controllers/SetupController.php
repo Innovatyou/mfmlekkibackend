@@ -83,6 +83,18 @@ class SetupController extends BaseController
             // Admin Roles
             ['name' => 'admin.roles.view', 'display_name' => 'View Roles', 'module' => 'admin', 'description' => 'View user roles'],
             ['name' => 'admin.roles.edit', 'display_name' => 'Manage Roles', 'module' => 'admin', 'description' => 'Create and manage roles'],
+
+            // Counseling Module
+            ['name' => 'counseling.view', 'display_name' => 'View Counseling', 'module' => 'counseling', 'description' => 'View counseling cases and sessions'],
+            ['name' => 'counseling.edit', 'display_name' => 'Manage Counseling', 'module' => 'counseling', 'description' => 'Create and manage counseling cases'],
+
+            // Member Care Module
+            ['name' => 'membercare.view', 'display_name' => 'View Member Care', 'module' => 'membercare', 'description' => 'View member care profiles and activity'],
+            ['name' => 'membercare.edit', 'display_name' => 'Manage Member Care', 'module' => 'membercare', 'description' => 'Log care events and manage member profiles'],
+
+            // Marketplace Module
+            ['name' => 'marketplace.view', 'display_name' => 'View Marketplace', 'module' => 'marketplace', 'description' => 'View marketplace listings and inquiries'],
+            ['name' => 'marketplace.edit', 'display_name' => 'Manage Marketplace', 'module' => 'marketplace', 'description' => 'Manage and approve marketplace listings'],
         ];
 
         $db->table('tbl_permissions')->insertBatch($permissions);
@@ -97,29 +109,35 @@ class SetupController extends BaseController
         // Assign permissions to roles
         $rolePermissions = [
             // Super Admin - All permissions (ID: 1)
-            1 => ['members.view', 'members.edit', 'donations.view', 'donations.edit', 'media.view', 'media.edit', 
+            1 => ['members.view', 'members.edit', 'donations.view', 'donations.edit', 'media.view', 'media.edit',
                   'publications.view', 'publications.edit', 'connect.view', 'connect.edit', 'events.view', 'events.edit',
                   'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'locations.view', 'locations.edit',
-                  'settings.view', 'settings.edit', 'admin.users.view', 'admin.users.edit', 'admin.roles.view', 'admin.roles.edit'],
-            
+                  'settings.view', 'settings.edit', 'admin.users.view', 'admin.users.edit', 'admin.roles.view', 'admin.roles.edit',
+                  'counseling.view', 'counseling.edit', 'membercare.view', 'membercare.edit',
+                  'marketplace.view', 'marketplace.edit'],
+
             // Admin - All except admin management (ID: 2)
             2 => ['members.view', 'members.edit', 'donations.view', 'donations.edit', 'media.view', 'media.edit',
                   'publications.view', 'publications.edit', 'connect.view', 'connect.edit', 'events.view', 'events.edit',
                   'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'locations.view', 'locations.edit',
-                  'settings.view', 'settings.edit'],
-            
+                  'settings.view', 'settings.edit',
+                  'counseling.view', 'counseling.edit', 'membercare.view', 'membercare.edit',
+                  'marketplace.view', 'marketplace.edit'],
+
             // Editor - Can view and edit content (ID: 3)
             3 => ['members.view', 'donations.view', 'media.view', 'media.edit', 'publications.view', 'publications.edit',
                   'connect.view', 'connect.edit', 'events.view', 'events.edit', 'hymns.view', 'hymns.edit',
-                  'messaging.view', 'locations.view'],
-            
+                  'messaging.view', 'locations.view',
+                  'counseling.view', 'membercare.view', 'marketplace.view', 'marketplace.edit'],
+
             // Viewer - Can only view (ID: 4)
             4 => ['members.view', 'donations.view', 'media.view', 'publications.view', 'connect.view', 'events.view',
-                  'hymns.view', 'messaging.view', 'locations.view'],
-            
+                  'hymns.view', 'messaging.view', 'locations.view',
+                  'counseling.view', 'membercare.view', 'marketplace.view'],
+
             // Contributor - Can view and create content (ID: 5)
             5 => ['media.view', 'media.edit', 'publications.view', 'publications.edit', 'connect.view', 'connect.edit',
-                  'events.view', 'hymns.view'],
+                  'events.view', 'hymns.view', 'marketplace.view', 'marketplace.edit'],
         ];
 
         $data = [];

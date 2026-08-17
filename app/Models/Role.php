@@ -106,4 +106,22 @@ class Role extends Model
             ->get()
             ->getResult();
     }
+
+    /**
+     * All roles, with permission_count and user_count computed per role —
+     * used by the roles index page's stat cards.
+     */
+    public function getRolesWithCounts()
+    {
+        $roles = $this->findAll();
+        foreach ($roles as $role) {
+            $role->permission_count = $this->db->table('tbl_role_permissions')
+                ->where('role_id', $role->id)
+                ->countAllResults();
+            $role->user_count = $this->db->table('tbl_churches')
+                ->where('role_id', $role->id)
+                ->countAllResults();
+        }
+        return $roles;
+    }
 }

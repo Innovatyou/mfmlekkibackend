@@ -8,7 +8,6 @@ use App\Models\Livestream_model as livestreammodel;
 class Livestream extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -17,13 +16,12 @@ class Livestream extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
   }
 
   public function index()
   {
     $livestreammodel = new livestreammodel();
-    $this->viewdata['livestreams'] = $livestreammodel->livestreamsListing($this->apitoken);
+    $this->viewdata['livestreams'] = $livestreammodel->livestreamsListing();
     return $this->view("livestream/listing", $this->viewdata);
   }
 
@@ -35,7 +33,7 @@ class Livestream extends BaseController
   public function editLivestream($id = 0)
   {
     $livestreammodel = new livestreammodel();
-    $this->viewdata['livestream'] = $livestreammodel->getLivestreamInfo($id, $this->apitoken);
+    $this->viewdata['livestream'] = $livestreammodel->getLivestreamInfo($id);
     if (count((array)$this->viewdata['livestream']) == 0) {
       return redirect()->to(base_url() . '/livestream');
     }
@@ -73,7 +71,6 @@ class Livestream extends BaseController
     }
     
     $info = array(
-      'apitoken' => $this->apitoken,
       'title' => $title,
       'source' => $source,
       'description' => $description,
@@ -130,7 +127,7 @@ class Livestream extends BaseController
       }
     }
 
-    $livestreammodel->editLivestream($info, $id, $this->apitoken);
+    $livestreammodel->editLivestream($info, $id);
     if ($livestreammodel->status == "ok") {
       $this->session->setFlashdata('success', $livestreammodel->message);
     } else {
@@ -142,8 +139,13 @@ class Livestream extends BaseController
 
   function deleteLivestream($id = 0)
   {
+    $id = intval($id);
     $livestreammodel = new livestreammodel();
-    $livestreammodel->deleteLivestream($id, $this->apitoken);
+    if ($id <= 0) {
+      $this->session->setFlashdata('error', 'Invalid livestream ID.');
+      return redirect()->to(base_url() . '/livestreams');
+    }
+    $livestreammodel->deleteLivestream($id);
     if ($livestreammodel->status == "ok") {
       $this->session->setFlashdata('success', $livestreammodel->message);
     } else {
@@ -154,8 +156,8 @@ class Livestream extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/')) {
+      mkdir('./uploads/thumbnails/', 0777, true);
     }
     helper(['form', 'url']);
     // If no file was provided, consider it okay; return empty name
@@ -175,7 +177,7 @@ class Livestream extends BaseController
     }
 
     $img = $this->request->getFile('thumbnail');
-    $img->move('./uploads/thumbnails/' . $this->apitoken);
+    $img->move('./uploads/thumbnails/');
     return ['ok', $img->getName()];
   }
 }

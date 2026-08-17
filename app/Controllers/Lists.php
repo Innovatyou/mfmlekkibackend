@@ -8,7 +8,6 @@ use App\Models\Lists_model as listsmodel;
 class Lists extends BaseController
 {
     protected $session;
-    protected $apitoken = "";
 
     /**
      * constructor
@@ -17,20 +16,19 @@ class Lists extends BaseController
     {
         helper(['form', 'url']);
         $this->session = session();
-        $this->apitoken = $this->session->get('apitoken');
     }
 
     public function index()
     {
         $listsmodel = new listsmodel();
-        $this->viewdata['lists'] = $listsmodel->listsListing($this->apitoken);
+        $this->viewdata['lists'] = $listsmodel->listsListing();
         return $this->view("lists/listing", $this->viewdata);
     }
 
     public function fetchlists($branch)
     {
         $listsmodel = new listsmodel();
-        $lists = $listsmodel->listsListingbybranch($this->apitoken);
+        $lists = $listsmodel->listsListingbybranch();
         echo json_encode(array("lists" => $lists));
         exit;
     }
@@ -43,7 +41,7 @@ class Lists extends BaseController
     public function editList($id = 0)
     {
         $listsmodel = new listsmodel();
-        $this->viewdata['lists'] = $listsmodel->getListInfo($id, $this->apitoken);
+        $this->viewdata['lists'] = $listsmodel->getListInfo($id);
         if (count((array)$this->viewdata['event']) == 0) {
             return redirect()->to(base_url() . '/lists');
         }
@@ -57,8 +55,6 @@ class Lists extends BaseController
         //$members = $this->request->getVar('members');
         //var_dump($_POST); die;
         $info = array(
-            'apitoken' => $this->apitoken,
-            'apitoken' => $this->apitoken,
             'title' => $title,
         );
         //var_dump($info); die;
@@ -90,7 +86,7 @@ class Lists extends BaseController
         );
 
         $listsmodel = new listsmodel();
-        $listsmodel->editList($info, $id, $this->apitoken);
+        $listsmodel->editList($info, $id);
         if ($listsmodel->status == "ok") {
             $this->session->setFlashdata('success', $listsmodel->message);
         } else {
@@ -104,8 +100,8 @@ class Lists extends BaseController
     function deleteList($id = 0)
     {
         $listsmodel = new listsmodel();
-        $listsmodel->deleteListMembers($id, $this->apitoken);
-        $listsmodel->deleteList($id, $this->apitoken);
+        $listsmodel->deleteListMembers($id);
+        $listsmodel->deleteList($id);
         if ($listsmodel->status == "ok") {
             $this->session->setFlashdata('success', $listsmodel->message);
         } else {
@@ -117,7 +113,7 @@ class Lists extends BaseController
     function removeFromList($id, $listid)
     {
         $listsmodel = new listsmodel();
-        $listsmodel->removeFromList($id, $this->apitoken);
+        $listsmodel->removeFromList($id);
         if ($listsmodel->status == "ok") {
             $this->session->setFlashdata('success', $listsmodel->message);
         } else {
@@ -129,23 +125,23 @@ class Lists extends BaseController
     public function viewListMembers($listid)
     {
         $listsmodel = new listsmodel();
-        $this->viewdata['lists'] = $listsmodel->getListInfo($listid, $this->apitoken);
+        $this->viewdata['lists'] = $listsmodel->getListInfo($listid);
         if (count((array)$this->viewdata['lists']) == 0) {
             return redirect()->to(base_url() . '/lists');
         }
-        $this->viewdata['list'] = $listsmodel->getListInfo($listid, $this->apitoken);
-        $this->viewdata['members'] = $listsmodel->listsMembersListing($listid, $this->apitoken);
+        $this->viewdata['list'] = $listsmodel->getListInfo($listid);
+        $this->viewdata['members'] = $listsmodel->listsMembersListing($listid);
         return $this->view("lists/members", $this->viewdata);
     }
 
     public function addMemberstoList($listid)
     {
         $listsmodel = new listsmodel();
-        $this->viewdata['list'] = $listsmodel->getListInfo($listid, $this->apitoken);
+        $this->viewdata['list'] = $listsmodel->getListInfo($listid);
         if (count((array)$this->viewdata['list']) == 0) {
             return redirect()->to(base_url() . '/lists');
         }
-        $this->viewdata['members'] = $listsmodel->fetchMembersNotinList($this->viewdata['list'], $this->apitoken);
+        $this->viewdata['members'] = $listsmodel->fetchMembersNotinList($this->viewdata['list']);
         //var_dump($this->viewdata['members']); die;
         return $this->view("lists/addmembers", $this->viewdata);
     }
@@ -157,7 +153,6 @@ class Lists extends BaseController
         $members = $this->request->getVar('members');
         foreach ($members as $itm) {
             $info2 = array(
-                'apitoken' => $this->apitoken,
                 'listid' => $listid,
                 'email' => $itm,
             );

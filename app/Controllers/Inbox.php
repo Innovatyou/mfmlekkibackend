@@ -10,19 +10,17 @@ use App\Models\Fcm_model as fcmmodel;
 class Inbox extends BaseController
 {
   protected $role = 0;
-  protected $apitoken = "";
 
   public function __construct()
   {
     $session = session();
-    $this->apitoken = $session->get('apitoken');
     $this->role = $session->get('role');
   }
 
   public function index()
   {
     $inboxmodel = new inboxmodel();
-    $this->viewdata['messages'] = $inboxmodel->inboxListing($this->apitoken);
+    $this->viewdata['messages'] = $inboxmodel->inboxListing();
     return $this->view("inbox/listing", $this->viewdata);
   }
 
@@ -34,7 +32,7 @@ class Inbox extends BaseController
   public function editInbox($id = 0)
   {
     $inboxmodel = new inboxmodel();
-    $this->viewdata['inbox'] = $inboxmodel->getInboxInfo($id, $this->apitoken);
+    $this->viewdata['inbox'] = $inboxmodel->getInboxInfo($id);
     if (count((array)$this->viewdata['inbox']) == 0) {
       return redirect()->to(base_url() . '/inbox');
     }
@@ -44,7 +42,7 @@ class Inbox extends BaseController
   public function resendInbox($id = 0)
   {
     $inboxmodel = new inboxmodel();
-    $this->viewdata['inbox'] = $inboxmodel->getInboxInfo($id, $this->apitoken);
+    $this->viewdata['inbox'] = $inboxmodel->getInboxInfo($id);
     if (count((array)$this->viewdata['inbox']) == 0) {
       return redirect()->to(base_url() . '/inbox');
     }
@@ -55,18 +53,18 @@ class Inbox extends BaseController
   {
     $title = $this->request->getVar('title');
     $message = $this->request->getVar('message');
-    $info = array('itm_id' => 0, 'title' => $title, 'message' => $message, 'type' => "inbox", 'user' => "", 'email' => "", 'timestamp' => time(), "apitoken" => $this->apitoken);
+    $info = array('itm_id' => 0, 'title' => $title, 'message' => $message, 'type' => "inbox", 'user' => "", 'email' => "", 'timestamp' => time());
     $inboxmodel = new inboxmodel();
     $inbox_id = $inboxmodel->addNewInbox($info);
 
     if ($inbox_id != 0) {
-      $inbox = $inboxmodel->getInboxInfo($inbox_id, $this->apitoken);
+      $inbox = $inboxmodel->getInboxInfo($inbox_id);
       //var_dump($article); die;
       if (count((array)$inbox) > 0) {
         $settingsmodel = new settingsmodel();
-        $server_key = $settingsmodel->getFcmServerKey($this->apitoken);
+        $server_key = $settingsmodel->getFcmServerKey();
         $fcmmodel = new fcmmodel();
-        $fcmmodel->push_inbox_data($server_key, $inbox, $this->apitoken);
+        $fcmmodel->push_inbox_data($server_key, $inbox);
       }
     }
 
@@ -85,7 +83,7 @@ class Inbox extends BaseController
       'message' => $message,
     );
     $inboxmodel = new inboxmodel();
-    $inboxmodel->editInbox($info, $id, $this->apitoken);
+    $inboxmodel->editInbox($info, $id);
     $session = session();
     $session->setFlashdata('success', "Message updated successfully.");
     return redirect()->to(base_url() . '/editInbox/' . $id);
@@ -94,7 +92,7 @@ class Inbox extends BaseController
   function deleteInbox($id = 0)
   {
     $inboxmodel = new inboxmodel();
-    $inboxmodel->deleteInbox($id, $this->apitoken);
+    $inboxmodel->deleteInbox($id);
     $session = session();
     if ($inboxmodel->status == "ok") {
       $session->setFlashdata('success', $inboxmodel->message);

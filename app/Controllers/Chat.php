@@ -10,14 +10,12 @@ use App\Models\Settings_model as settingsmodel;
 class Chat extends BaseController
 {
 
-  public $apitoken = "";
 
   /**
    * constructor
    */
   public function __construct()
   {
-    $this->apitoken = $this->check_headers();
   }
 
   public function fetch_user_chats()
@@ -30,8 +28,8 @@ class Chat extends BaseController
       $count = $data->count;
     }
     $chatmodel = new chatmodel();
-    $results = $chatmodel->getUsersChat($email, $count, $this->apitoken);
-    echo json_encode(array("chatsList" => $results));
+    $results = $chatmodel->getUsersChat($email, $count);
+    header('Content-Type: application/json'); echo json_encode(array("chatsList" => $results));
     exit;
   }
 
@@ -43,11 +41,11 @@ class Chat extends BaseController
     $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
     $partner = isset($data->partner) ? filter_var($data->partner, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
     $chatmodel = new chatmodel();
-    $results = $chatmodel->fetch_user_partner_chat($email, $partner, $this->apitoken);
+    $results = $chatmodel->fetch_user_partner_chat($email, $partner);
     if ($results) {
-      echo json_encode(array("status" => "ok", "chat" => $results));
+      header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "chat" => $results));
     } else {
-      echo json_encode(array("status" => "none"));
+      header('Content-Type: application/json'); echo json_encode(array("status" => "none"));
     }
     exit;
   }
@@ -58,8 +56,8 @@ class Chat extends BaseController
     $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
     $date = isset($data->date) ? filter_var($data->date, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : 1602063634;
     $chatmodel = new chatmodel();
-    $results = $chatmodel->checkfornewmessages($email, $date, $this->apitoken);
-    echo json_encode(array("status" => "ok", "chats" => $results));
+    $results = $chatmodel->checkfornewmessages($email, $date);
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "chats" => $results));
     exit;
   }
 
@@ -75,11 +73,11 @@ class Chat extends BaseController
     if ($chat_id == 0) {
       //first we check if a chat have been initiated before
       //between both users and get the chat id
-      $chat_id = $chatmodel->get_user_chatID_if_exists($email, $partner, $this->apitoken);
+      $chat_id = $chatmodel->get_user_chatID_if_exists($email, $partner);
     }
-    $results = $chatmodel->get_chat_messages($chat_id, $email, intval($count), $this->apitoken);
-    $have_more_content = $chatmodel->chats_have_more_content($chat_id, $email, intval($count), $this->apitoken);
-    echo json_encode(array("status" => "ok", "chats" => $results, "have_more_content" => $have_more_content));
+    $results = $chatmodel->get_chat_messages($chat_id, $email, intval($count));
+    $have_more_content = $chatmodel->chats_have_more_content($chat_id, $email, intval($count));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "chats" => $results, "have_more_content" => $have_more_content));
     exit;
   }
 
@@ -96,15 +94,15 @@ class Chat extends BaseController
     if ($chatid == 0) {
       //first we check if a chat have been initiated before
       //between both users and get the chat id
-      $chatid = $chatmodel->get_user_chatID_if_exists($email, $partner, $this->apitoken);
+      $chatid = $chatmodel->get_user_chatID_if_exists($email, $partner);
     }
     if ($chatid != 0) {
-      $chatmodel->on_seen_conversation($chatid, $email, $this->apitoken);
+      $chatmodel->on_seen_conversation($chatid, $email);
       //notify user of conversation read
-      $server_key = $settingsmodel->getFcmServerKey($this->apitoken);
-      $fcmmodel->userSeenConversationNotification($server_key, $partner, $email, $chatid, $this->apitoken);
+      $server_key = $settingsmodel->getFcmServerKey();
+      $fcmmodel->userSeenConversationNotification($server_key, $partner, $email, $chatid);
     }
-    echo json_encode(array("status" => "ok"));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok"));
     exit;
   }
 
@@ -117,9 +115,9 @@ class Chat extends BaseController
     $fcmmodel = new fcmmodel();
     $settingsmodel = new settingsmodel();
 
-    $server_key = $settingsmodel->getFcmServerKey($this->apitoken);
-    $fcmmodel->userTypingNotification($server_key, $partner, $email, $this->apitoken);
-    echo json_encode(array("status" => "ok"));
+    $server_key = $settingsmodel->getFcmServerKey();
+    $fcmmodel->userTypingNotification($server_key, $partner, $email);
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok"));
     exit;
   }
 
@@ -132,10 +130,10 @@ class Chat extends BaseController
     $chatmodel = new chatmodel();
     $fcmmodel = new fcmmodel();
     $settingsmodel = new settingsmodel();
-    $chatmodel->updateUserOnlineStatus($email, $status, $this->apitoken);
-    $server_key = $settingsmodel->getFcmServerKey($this->apitoken);
-    $fcmmodel->notifyUserOnlinePresence($server_key, $email, $status, $this->apitoken);
-    echo json_encode(array("status" => "ok"));
+    $chatmodel->updateUserOnlineStatus($email, $status);
+    $server_key = $settingsmodel->getFcmServerKey();
+    $fcmmodel->notifyUserOnlinePresence($server_key, $email, $status);
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok"));
     exit;
   }
 
@@ -154,10 +152,9 @@ class Chat extends BaseController
     if ($chat_id == 0) {
       //first we check if a chat have been initiated before
       //between both users and get the chat id
-      $chat_id = $chatmodel->get_user_chatID_if_exists($sender, $recipient, $this->apitoken);
+      $chat_id = $chatmodel->get_user_chatID_if_exists($sender, $recipient);
       if ($chat_id == 0) {
         $info = array(
-          'apitoken' => $this->apitoken,
           'email1' => $sender,
           'email2' => $recipient,
           'last_message_time' => $date
@@ -165,7 +162,7 @@ class Chat extends BaseController
         $chat_id = $chatmodel->createUsersChatID($info);
       }
     } else {
-      $chatmodel->updateChatIDLastMessageTime($chat_id, $date, $this->apitoken);
+      $chatmodel->updateChatIDLastMessageTime($chat_id, $date);
     }
     $attachment = "";
     if (!empty($_FILES['photo'])) {
@@ -174,18 +171,17 @@ class Chat extends BaseController
       if ($upload[0] == 'ok') {
         $attachment =  $upload[1];
       } else {
-        echo json_encode(array("status" => "error", "msg" => $upload[1]));
+        header('Content-Type: application/json'); echo json_encode(array("status" => "error", "msg" => $upload[1]));
         exit;
       }
     }
 
     //check if this user is blocked from sending messages
-    $isUserBlocked1 = $chatmodel->verifyIfPartnerIsBlocked($sender, $recipient, $this->apitoken);
-    $isUserBlocked2 = $chatmodel->verifyIfPartnerIsBlocked($recipient, $sender, $this->apitoken);
+    $isUserBlocked1 = $chatmodel->verifyIfPartnerIsBlocked($sender, $recipient);
+    $isUserBlocked2 = $chatmodel->verifyIfPartnerIsBlocked($recipient, $sender);
 
     //save message for sender
     $msg1 = array(
-      'apitoken' => $this->apitoken,
       'chat_id' => $chat_id,
       'message' => $message,
       'attachment' => $attachment,
@@ -201,7 +197,6 @@ class Chat extends BaseController
     if ($isUserBlocked1 != 0 && $isUserBlocked2 != 0) {
       //save message for reciever
       $msg2 = array(
-        'apitoken' => $this->apitoken,
         'chat_id' => $chat_id,
         'message' => $message,
         'attachment' => $attachment,
@@ -212,18 +207,18 @@ class Chat extends BaseController
       );
       //save for recipient
       $converseID = $chatmodel->saveUserChatConversation($msg2);
-      $unseen = $chatmodel->get_unseen_messages($chat_id, $recipient, $this->apitoken);
+      $unseen = $chatmodel->get_unseen_messages($chat_id, $recipient);
       //send notification to recipient
-      $chatsender = $chatmodel->getRecipientDetails($sender, $this->apitoken);
+      $chatsender = $chatmodel->getRecipientDetails($sender);
       /*$notificationmessage = "Sent a photo";
         if($message!=""){
           $notifcationmessage = substr(base64_decode($message),100);
         }*/
-      $chat = $chatmodel->getUserLastConversation($converseID, $this->apitoken);
-      $server_key = $settingsmodel->getFcmServerKey($this->apitoken);
-      $fcmmodel->userConversationNotification($server_key, $recipient, $chatsender, $unseen, $chat, $this->apitoken);
+      $chat = $chatmodel->getUserLastConversation($converseID);
+      $server_key = $settingsmodel->getFcmServerKey();
+      $fcmmodel->userConversationNotification($server_key, $recipient, $chatsender, $unseen, $chat);
     }
-    echo json_encode(array("status" => "ok", "chatid" => $chat_id));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "chatid" => $chat_id));
     exit;
   }
 
@@ -240,10 +235,10 @@ class Chat extends BaseController
     if ($chatid == 0) {
       //first we check if a chat have been initiated before
       //between both users and get the chat id
-      $chatid = $chatmodel->get_user_chatID_if_exists($email, $partner, $this->apitoken);
+      $chatid = $chatmodel->get_user_chatID_if_exists($email, $partner);
     }
-    $chat = $chatmodel->delete_selected_chat_messages($email, $chatid, $msgReciepts, $this->apitoken);
-    echo json_encode(array("status" => "ok"));
+    $chat = $chatmodel->delete_selected_chat_messages($email, $chatid, $msgReciepts);
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok"));
     exit;
   }
 
@@ -258,10 +253,10 @@ class Chat extends BaseController
     if ($chatid == 0) {
       //first we check if a chat have been initiated before
       //between both users and get the chat id
-      $chatid = $chatmodel->get_user_chatID_if_exists($email, $partner, $this->apitoken);
+      $chatid = $chatmodel->get_user_chatID_if_exists($email, $partner);
     }
-    $chat = $chatmodel->clear_user_chat_messages($email, $chatid, $this->apitoken);
-    echo json_encode(array("status" => "ok"));
+    $chat = $chatmodel->clear_user_chat_messages($email, $chatid);
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok"));
     exit;
   }
 
@@ -279,22 +274,21 @@ class Chat extends BaseController
       $info = array(
         'blocked_user' => $partner,
         'blocked_by' => $email,
-        'apitoken' => $this->apitoken
       );
       $chatmodel->blockUser($info);
     } else {
-      $chatmodel->unblockUser($partner, $email, $this->apitoken);
+      $chatmodel->unblockUser($partner, $email);
     }
 
-    echo json_encode(array("status" => "ok"));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok"));
     exit;
   }
 
 
   public function upload_file()
   {
-    if (!file_exists('./uploads/socials/chats/' . $this->apitoken)) {
-      mkdir('./uploads/socials/chats/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/socials/chats/')) {
+      mkdir('./uploads/socials/chats/', 0777, true);
     }
     $path = $_FILES["photo"]['name'];
     $ext = pathinfo($path, PATHINFO_EXTENSION);
@@ -314,7 +308,7 @@ class Chat extends BaseController
       return ['error', $this->validator->getErrors()['photo']];
     } else {
       $img = $this->request->getFile('photo');
-      $img->move('./uploads/socials/chats/' . $this->apitoken, $new_name);
+      $img->move('./uploads/socials/chats/', $new_name);
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

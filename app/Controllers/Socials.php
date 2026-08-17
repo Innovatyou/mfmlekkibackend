@@ -8,14 +8,12 @@ use App\Models\Socials_model as socialsmodel;
 class Socials extends BaseController
 {
 
-  public $apitoken = "";
 
   /**
    * constructor
    */
   public function __construct()
   {
-    $this->apitoken = $this->check_headers();
   }
 
   function userBioInfo()
@@ -24,8 +22,8 @@ class Socials extends BaseController
     $data = $this->get_data();
     $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
     $viewer = isset($data->viewer) ? filter_var($data->viewer, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
-    $user = $socialsmodel->getuserBioInfo($email, $this->apitoken);
-    $post_count = $socialsmodel->get_total_posts($email, $this->apitoken);
+    $user = $socialsmodel->getuserBioInfo($email);
+    $post_count = $socialsmodel->get_total_posts($email);
     $followers_count = 0;
     $following_count = 0;
     $isFollowing = 1;
@@ -48,7 +46,7 @@ class Socials extends BaseController
       }
     }
 
-    echo json_encode(array(
+    header('Content-Type: application/json'); echo json_encode(array(
       "status" => "ok", "user" => $user, "post_count" => $post_count, "followers_count" => $followers_count, "following_count" => $following_count, "isFollowing" => $isFollowing
     ));
     exit;
@@ -61,12 +59,12 @@ class Socials extends BaseController
     $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
     $viewer = isset($data->viewer) ? filter_var($data->viewer, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
-    $post_count = $socialsmodel->get_total_posts($email, $this->apitoken);
-    $followers_count = $socialsmodel->getUsersFollowersCount($email, $this->apitoken);
-    $following_count = $socialsmodel->getUsersFollowingCount($email, $this->apitoken);
-    $isFollowing = $socialsmodel->getFollowStatus($email, $viewer, $this->apitoken);
+    $post_count = $socialsmodel->get_total_posts($email);
+    $followers_count = $socialsmodel->getUsersFollowersCount($email);
+    $following_count = $socialsmodel->getUsersFollowingCount($email);
+    $isFollowing = $socialsmodel->getFollowStatus($email, $viewer);
 
-    echo json_encode(array(
+    header('Content-Type: application/json'); echo json_encode(array(
       "status" => "ok", "post_count" => $post_count, "followers_count" => $followers_count, "following_count" => $following_count, "isFollowing" => $isFollowing
     ));
     exit;
@@ -85,10 +83,10 @@ class Socials extends BaseController
       $page = $data->page;
     }
 
-    $results = $socialsmodel->fetch_posts($page, $email, $this->apitoken);
-    $total_items = $socialsmodel->get_total_posts($email, $this->apitoken);
+    $results = $socialsmodel->fetch_posts($page, $email);
+    $total_items = $socialsmodel->get_total_posts($email);
     $isLastPage = (($page + 1) * 20) >= $total_items;
-    echo json_encode(array("status" => "ok", "posts" => $results, "isLastPage" => $isLastPage));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "posts" => $results, "isLastPage" => $isLastPage));
     exit;
   }
 
@@ -106,10 +104,10 @@ class Socials extends BaseController
       $page = $data->page;
     }
 
-    $results = $socialsmodel->fetchUserPins($page, $email, $this->apitoken);
-    $total_items = $socialsmodel->get_user_total_pins($email, $this->apitoken);
+    $results = $socialsmodel->fetchUserPins($page, $email);
+    $total_items = $socialsmodel->get_user_total_pins($email);
     $isLastPage = (($page + 1) * 20) >= $total_items;
-    echo json_encode(array("status" => "ok", "posts" => $results, "isLastPage" => $isLastPage));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "posts" => $results, "isLastPage" => $isLastPage));
     exit;
   }
 
@@ -132,11 +130,11 @@ class Socials extends BaseController
     if ($email == $viewer) {
       $me = TRUE;
     }
-    $results = $socialsmodel->fetch_user_posts($page, $email, $viewer, $me, $this->apitoken);
-    $total_items = $socialsmodel->get_user_total_posts($email, $me, $this->apitoken);
+    $results = $socialsmodel->fetch_user_posts($page, $email, $viewer, $me);
+    $total_items = $socialsmodel->get_user_total_posts($email, $me);
     $isLastPage = (($page + 1) * 20) >= $total_items;
 
-    echo json_encode(array("status" => "ok", "posts" => $results, "isLastPage" => $isLastPage));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "posts" => $results, "isLastPage" => $isLastPage));
     exit;
   }
 
@@ -154,14 +152,14 @@ class Socials extends BaseController
       $action = isset($data->action) ? filter_var($data->action, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($email != "" && $id != 0) {
-        $socialsmodel->likeunlikepost($id, $email, $action, $this->apitoken);
-        $count = $socialsmodel->getUsersPostLikesCount($id, $this->apitoken);
+        $socialsmodel->likeunlikepost($id, $email, $action);
+        $count = $socialsmodel->getUsersPostLikesCount($id);
         if ($action == "like") {
-          $this->check_notify_user($id, "like", $user, $email, $this->apitoken);
+          $this->check_notify_user($id, "like", $user, $email);
         }
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message, "count" => $count));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message, "count" => $count));
     exit;
   }
 
@@ -176,10 +174,10 @@ class Socials extends BaseController
       $action = isset($data->action) ? filter_var($data->action, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($email != "" && $id != 0) {
-        $socialsmodel->pinunpinpost($id, $email, $action, $this->apitoken);
+        $socialsmodel->pinunpinpost($id, $email, $action);
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
     exit;
   }
 
@@ -197,11 +195,11 @@ class Socials extends BaseController
       $page = $data->page;
     }
 
-    $results = $socialsmodel->usersToFollowListing($page, $query, $email, $this->apitoken);
-    $total_items = $socialsmodel->get_total_users($email, $query, $this->apitoken);
+    $results = $socialsmodel->usersToFollowListing($page, $query, $email);
+    $total_items = $socialsmodel->get_total_users($email, $query);
     $isLastPage = (($page + 1) * 20) >= $total_items;
 
-    echo json_encode(array("status" => "ok", "users" => $results, "isLastPage" => $isLastPage));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "users" => $results, "isLastPage" => $isLastPage));
     exit;
   }
 
@@ -220,14 +218,14 @@ class Socials extends BaseController
       $page = $data->page;
     }
     if ($option == "followers") {
-      $results = $socialsmodel->users_followers_people($page, $user, $email, $this->apitoken);
-      $total_items = $socialsmodel->getUsersFollowersCount($user, $this->apitoken);
+      $results = $socialsmodel->users_followers_people($page, $user, $email);
+      $total_items = $socialsmodel->getUsersFollowersCount($user);
     } else {
-      $results = $socialsmodel->users_following_people($page, $user, $email, $this->apitoken);
-      $total_items = $socialsmodel->getUsersFollowingCount($user, $this->apitoken);
+      $results = $socialsmodel->users_following_people($page, $user, $email);
+      $total_items = $socialsmodel->getUsersFollowingCount($user);
     }
     $isLastPage = (($page + 1) * 20) >= $total_items;
-    echo json_encode(array("status" => "ok", "users" => $results, "isLastPage" => $isLastPage));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "users" => $results, "isLastPage" => $isLastPage));
     exit;
   }
 
@@ -243,10 +241,10 @@ class Socials extends BaseController
     if (isset($data->page)) {
       $page = $data->page;
     }
-    $results = $socialsmodel->post_likes_people($page, $post, $this->apitoken);
-    $total_items = $socialsmodel->getUsersPostLikesCount($post, $this->apitoken);
+    $results = $socialsmodel->post_likes_people($page, $post);
+    $total_items = $socialsmodel->getUsersPostLikesCount($post);
     $isLastPage = (($page + 1) * 20) >= $total_items;
-    echo json_encode(array("status" => "ok", "users" => $results, "isLastPage" => $isLastPage));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "users" => $results, "isLastPage" => $isLastPage));
     exit;
   }
 
@@ -261,10 +259,10 @@ class Socials extends BaseController
     if (isset($data->page)) {
       $page = $data->page;
     }
-    $results = $socialsmodel->userNotifications($page, $email, $this->apitoken);
-    $total_items = $socialsmodel->getUsersNotificationCount($email, FALSE, $this->apitoken);
+    $results = $socialsmodel->userNotifications($page, $email);
+    $total_items = $socialsmodel->getUsersNotificationCount($email, FALSE);
     $isLastPage = (($page + 1) * 20) >= $total_items;
-    echo json_encode(array("status" => "ok", "notifications" => $results, "isLastPage" => $isLastPage));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "notifications" => $results, "isLastPage" => $isLastPage));
     exit;
   }
 
@@ -273,8 +271,8 @@ class Socials extends BaseController
     $socialsmodel = new socialsmodel();
     $data = $this->get_data();
     $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
-    $total_items = $socialsmodel->getUsersNotificationCount($email, TRUE, $this->apitoken);
-    echo json_encode(array("status" => "ok", "count" => $total_items));
+    $total_items = $socialsmodel->getUsersNotificationCount($email, TRUE);
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "count" => $total_items));
     exit;
   }
 
@@ -287,20 +285,19 @@ class Socials extends BaseController
     $action = isset($data->action) ? filter_var($data->action, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
     if ($user == "" || $follower == "") {
-      echo json_encode(array("status" => "error", "msg" => "No matching users found."));
+      header('Content-Type: application/json'); echo json_encode(array("status" => "error", "msg" => "No matching users found."));
       exit;
     }
 
     if ($action == "follow") {
       $info['user_email'] = $user;
       $info['follower_email'] = $follower;
-      $info['apitoken'] = $this->apitoken;
       $socialsmodel->followUser($info);
-      $this->check_notify_user(0, "follow", $user, $follower, $this->apitoken);
-      echo json_encode(array("status" => "ok", "action" => $action));
+      $this->check_notify_user(0, "follow", $user, $follower);
+      header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "action" => $action));
     } else if ($action == "unfollow") {
       $socialsmodel->unfollowUser($user, $follower);
-      echo json_encode(array("status" => "ok", "action" => $action));
+      header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "action" => $action));
     }
     exit;
   }
@@ -320,8 +317,8 @@ class Socials extends BaseController
       "show_dateofbirth" => $show_dateofbirth, "show_phone" => $show_phone, "notify_follows" => $notify_follows, "notify_comments" => $notify_comments, "notify_likes" => $notify_likes
     );
 
-    $socialsmodel->updateUserSettings($settings, $email, $this->apitoken);
-    echo json_encode(array(
+    $socialsmodel->updateUserSettings($settings, $email);
+    header('Content-Type: application/json'); echo json_encode(array(
       "status" => $socialsmodel->status, "msg" => $socialsmodel->message
     ));
     exit;
@@ -333,8 +330,8 @@ class Socials extends BaseController
     $data = $this->get_data();
     $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
-    $user = $socialsmodel->fetch_user_settings($email, $this->apitoken);
-    echo json_encode(array("status" => "ok", "user" => $user));
+    $user = $socialsmodel->fetch_user_settings($email);
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "user" => $user));
     exit;
   }
 
@@ -347,13 +344,13 @@ class Socials extends BaseController
     if (isset($data->token) && $data->token != "" && isset($data->email) && $data->email != "") {
       $token = $data->token;
       $email = $data->email;
-      $data = array("token" => $token, "email" => $email, "apitoken" => $this->apitoken);
+      $data = array("token" => $token, "email" => $email);
       //delete existing token
-      $socialsmodel->deleteSocialToken($token, $this->apitoken);
+      $socialsmodel->deleteSocialToken($token);
       //add new
       $socialsmodel->updateUserSocialFcmToken($data);
     }
-    echo json_encode(array(
+    header('Content-Type: application/json'); echo json_encode(array(
       "status" => $socialsmodel->status, "msg" => $socialsmodel->message
     ));
     exit;
@@ -399,7 +396,7 @@ class Socials extends BaseController
       if ($upload[0] == 'ok') {
         $info['avatar'] =  $upload[1];
       } else {
-        echo json_encode(array("status" => "error", "msg" => $upload[1]));
+        header('Content-Type: application/json'); echo json_encode(array("status" => "error", "msg" => $upload[1]));
         exit;
       }
     }
@@ -409,7 +406,7 @@ class Socials extends BaseController
       if ($upload[0] == 'ok') {
         $info['cover_photo'] =  $upload[1];
       } else {
-        echo json_encode(array("status" => "error", "msg" => $upload[1]));
+        header('Content-Type: application/json'); echo json_encode(array("status" => "error", "msg" => $upload[1]));
         exit;
       }
     }
@@ -431,9 +428,9 @@ class Socials extends BaseController
       $foldata['_ignore'] = 1;
       $socialsmodel->followUser($foldata);
     }
-    $user = $socialsmodel->getUpdatedUserProfile($email, $this->apitoken);
+    $user = $socialsmodel->getUpdatedUserProfile($email);
 
-    echo json_encode(array("status" => "ok", "msg" => "Profile was updated successfully", "user" => $user));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "msg" => "Profile was updated successfully", "user" => $user));
     exit;
   }
 
@@ -448,10 +445,10 @@ class Socials extends BaseController
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       if ($content != "" && $id != "") {
 
-        $socialsmodel->editpost($id, $content, $visibility, $this->apitoken);
+        $socialsmodel->editpost($id, $content, $visibility);
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
     exit;
   }
 
@@ -465,10 +462,10 @@ class Socials extends BaseController
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       if ($id != "") {
 
-        $socialsmodel->deletepost($id, $this->apitoken);
+        $socialsmodel->deletepost($id);
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
     exit;
   }
 
@@ -480,10 +477,10 @@ class Socials extends BaseController
     if (!empty($data)) {
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       if ($id != "") {
-        $socialsmodel->deleteNotification($id, $this->apitoken);
+        $socialsmodel->deleteNotification($id);
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
     exit;
   }
 
@@ -495,10 +492,10 @@ class Socials extends BaseController
     if (!empty($data)) {
       $email = isset($data->email) ? filter_var($data->email, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       if ($email != "") {
-        $socialsmodel->setSeenNotifications($email, $this->apitoken);
+        $socialsmodel->setSeenNotifications($email);
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
     exit;
   }
 
@@ -511,7 +508,6 @@ class Socials extends BaseController
     $uploaded_files = $this->do_post_uploads();
 
     $post = array(
-      'apitoken' => $this->apitoken,
       'email' => $email,
       'content' => $text,
       'visibility' => $visibility,
@@ -520,7 +516,7 @@ class Socials extends BaseController
     );
     //var_dump($post); die;
     $socialsmodel->saveUserPost($post);
-    echo json_encode(array("status" => "ok"));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok"));
     exit;
   }
 
@@ -557,11 +553,11 @@ class Socials extends BaseController
 
   public function do_post_uploads()
   {
-    if (!file_exists('./uploads/socials/photos/' . $this->apitoken)) {
-      mkdir('./uploads/socials/photos/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/socials/photos/')) {
+      mkdir('./uploads/socials/photos/', 0777, true);
     }
-    if (!file_exists('./uploads/socials/videos/' . $this->apitoken)) {
-      mkdir('./uploads/socials/videos/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/socials/videos/')) {
+      mkdir('./uploads/socials/videos/', 0777, true);
     }
     $countfiles = count($_FILES);
     $upload_files = [];
@@ -573,10 +569,10 @@ class Socials extends BaseController
 
       if ($filedata['type'] == "video/mp4") {
         $new_name = uniqid() . "_video_" . time() . "." . $ext;
-        $upload_path = './uploads/socials/videos/' . $this->apitoken;
+        $upload_path = './uploads/socials/videos/';
       } else {
         $new_name = uniqid() . "_photo_" . time() . "." . $ext;
-        $upload_path   = './uploads/socials/photos/' . $this->apitoken;
+        $upload_path   = './uploads/socials/photos/';
       }
       //validate
       $input = $this->validate([
@@ -588,7 +584,7 @@ class Socials extends BaseController
       ]);
       if (!$input) {
         //return ['error',$this->validator->getErrors()['files_'.$i]];
-        echo json_encode(array("status" => "error", "msg" => $this->validator->getErrors()['files_' . $i]));
+        header('Content-Type: application/json'); echo json_encode(array("status" => "error", "msg" => $this->validator->getErrors()['files_' . $i]));
         exit;
       } else {
         $img = $this->request->getFile('files_' . $i);
@@ -614,12 +610,12 @@ class Socials extends BaseController
       $post = isset($data->post) ? filter_var($data->post, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($email != "" && $post != "" && $content != "") {
-        $comment = $socialsmodel->makeComment($post, $email, $content, $this->apitoken);
-        $total_count = $socialsmodel->get_total_comments($post, $this->apitoken);
-        $this->check_notify_user($post, "comment", $user, $email, $this->apitoken);
+        $comment = $socialsmodel->makeComment($post, $email, $content);
+        $total_count = $socialsmodel->get_total_comments($post);
+        $this->check_notify_user($post, "comment", $user, $email);
       }
     }
-    echo json_encode(array(
+    header('Content-Type: application/json'); echo json_encode(array(
       "status" => $socialsmodel->status, "message" => $socialsmodel->message,
       "comment" => $comment, "total_count" => $total_count
     ));
@@ -636,10 +632,10 @@ class Socials extends BaseController
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($content != "" && $id != "") {
-        $comment = $socialsmodel->editComment($id, $content, $this->apitoken);
+        $comment = $socialsmodel->editComment($id, $content);
       }
     }
-    echo json_encode(array(
+    header('Content-Type: application/json'); echo json_encode(array(
       "status" => $socialsmodel->status, "message" => $socialsmodel->message,
       "comment" => $comment
     ));
@@ -657,11 +653,11 @@ class Socials extends BaseController
       $post = isset($data->post) ? filter_var($data->post, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($id != "") {
-        $socialsmodel->deleteComment($id, $this->apitoken);
-        $total_count = $socialsmodel->get_total_comments($post, $this->apitoken);
+        $socialsmodel->deleteComment($id);
+        $total_count = $socialsmodel->get_total_comments($post);
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message, "total_count" => $total_count));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message, "total_count" => $total_count));
     exit;
   }
 
@@ -682,13 +678,13 @@ class Socials extends BaseController
       $post = $data->post;
     }
 
-    $results = $socialsmodel->loadcomments($post, $id, $this->apitoken);
-    $has_more = $socialsmodel->checkIfpostHasMoreComments($post, $id, $this->apitoken);
-    $total_count = $socialsmodel->get_total_comments($post, $this->apitoken);
+    $results = $socialsmodel->loadcomments($post, $id);
+    $has_more = $socialsmodel->checkIfpostHasMoreComments($post, $id);
+    $total_count = $socialsmodel->get_total_comments($post);
     if (count((array)$results) > 0) {
       http_response_code(200);
     }
-    echo json_encode(array("status" => "ok", "comments" => $results, "has_more" => $has_more, "total_count" => $total_count));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "comments" => $results, "has_more" => $has_more, "total_count" => $total_count));
     exit;
   }
 
@@ -702,10 +698,10 @@ class Socials extends BaseController
       $reason = isset($data->reason) ? filter_var($data->reason, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
       if ($email != "" && $type != "" && $id != "") {
-        $socialsmodel->reportComment($id, $email, $type, $reason, $this->apitoken);
+        $socialsmodel->reportComment($id, $email, $type, $reason);
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message));
     exit;
   }
 
@@ -722,11 +718,11 @@ class Socials extends BaseController
       $comment = isset($data->comment) ? filter_var($data->comment, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($email != "" || $content != "") {
-        $reply = $socialsmodel->replyComment($comment, $email, $content, $this->apitoken);
-        $total_count = $socialsmodel->get_total_replies($comment, $this->apitoken);
+        $reply = $socialsmodel->replyComment($comment, $email, $content);
+        $total_count = $socialsmodel->get_total_replies($comment);
       }
     }
-    echo json_encode(array(
+    header('Content-Type: application/json'); echo json_encode(array(
       "status" => $socialsmodel->status, "message" => $socialsmodel->message,
       "comment" => $reply, "total_count" => $total_count
     ));
@@ -744,10 +740,10 @@ class Socials extends BaseController
       $id = isset($data->id) ? filter_var($data->id, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($content != "" || $id != "") {
-        $comment = $socialsmodel->editReply($id, $content, $this->apitoken);
+        $comment = $socialsmodel->editReply($id, $content);
       }
     }
-    echo json_encode(array(
+    header('Content-Type: application/json'); echo json_encode(array(
       "status" => $socialsmodel->status, "message" => $socialsmodel->message,
       "comment" => $comment
     ));
@@ -764,11 +760,11 @@ class Socials extends BaseController
       $comment_id = isset($data->comment) ? filter_var($data->comment, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_STRIP_HIGH) : "";
 
       if ($id != "") {
-        $socialsmodel->deleteReply($id, $this->apitoken);
-        $total_count = $socialsmodel->get_total_replies($comment_id, $this->apitoken);
+        $socialsmodel->deleteReply($id);
+        $total_count = $socialsmodel->get_total_replies($comment_id);
       }
     }
-    echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message, "total_count" => $total_count));
+    header('Content-Type: application/json'); echo json_encode(array("status" => $socialsmodel->status, "message" => $socialsmodel->message, "total_count" => $total_count));
     exit;
   }
 
@@ -788,13 +784,13 @@ class Socials extends BaseController
     if (isset($data->comment)) {
       $comment = $data->comment;
     }
-    $results = $socialsmodel->loadreplies($comment, $id, $this->apitoken);
-    $has_more = $socialsmodel->checkIfCommentHaveMoreReplies($comment, $id, $this->apitoken);
-    $total_count = $socialsmodel->get_total_replies($comment, $this->apitoken);
+    $results = $socialsmodel->loadreplies($comment, $id);
+    $has_more = $socialsmodel->checkIfCommentHaveMoreReplies($comment, $id);
+    $total_count = $socialsmodel->get_total_replies($comment);
     if (count((array)$results) > 0) {
       http_response_code(200);
     }
-    echo json_encode(array("status" => "ok", "comments" => $results, "has_more" => $has_more, "total_count" => $total_count));
+    header('Content-Type: application/json'); echo json_encode(array("status" => "ok", "comments" => $results, "has_more" => $has_more, "total_count" => $total_count));
     exit;
   }
 }

@@ -8,7 +8,6 @@ use App\Models\Settings_model as settingsmodel;
 class Settings extends BaseController
 {
   protected $role = 0;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -16,23 +15,21 @@ class Settings extends BaseController
   public function __construct()
   {
     $session = session();
-    $this->apitoken = $session->get('apitoken');
     $this->role = $session->get('role');
   }
 
   public function index()
   {
     $settingsmodel = new settingsmodel();
-    $this->viewdata['settings'] = $settingsmodel->getSettings($this->apitoken);
+    $this->viewdata['settings'] = $settingsmodel->getSettings();
     if (!$this->viewdata['settings']) {
       $data = array(
-        'app_login' => 0, 'allow_downloads' => 0, 'join_groups' => 0, 'post_prayer' => 0, 'auto_approve_group_membership' => 1, 'post_testimony' => 0, 'auto_approve_prayer' => 1, 'auto_approve_testimony' => 1, 'facebook' => "", 'twitter' => "", 'instagram' => "", 'youtube' => "", 'website' => "", 'twilio_account_sid' => "", 'twilio_auth_token' => "", 'twilio_phonenumber' => "", 'termi_sender_id' => "", 'termi_apikey' => "", 'prefered_gateway' => "paypal, stripe, flutterwaves, paystack", 'flutterwaves_api_key' => "", 'paystack_api_key' => "", 'currency_code' => "", 'donations_link' => "", 'features' => "bible,audiomessages, videomessages, donations, livestreams, events, articles, hymns, radio, photos, groups, prayer, testimony, devotionals, notes, books, gosocial", 'churchname' => "", 'terms' => "", 'privacy' => "", 'aboutus' => ""
+        'app_login' => 0, 'allow_downloads' => 0, 'join_groups' => 0, 'post_prayer' => 0, 'auto_approve_group_membership' => 1, 'post_testimony' => 0, 'auto_approve_prayer' => 1, 'auto_approve_testimony' => 1, 'facebook' => "", 'twitter' => "", 'instagram' => "", 'youtube' => "", 'website' => "", 'twilio_account_sid' => "", 'twilio_auth_token' => "", 'twilio_phonenumber' => "", 'termi_sender_id' => "", 'termi_apikey' => "", 'prefered_gateway' => "paypal, stripe, flutterwaves, paystack", 'book_payment_gateway' => "paystack", 'flutterwaves_api_key' => "", 'paystack_api_key' => "", 'currency_code' => "", 'donations_link' => "", 'features' => "bible,audiomessages, videomessages, donations, livestreams, events, articles, hymns, radio, photos, groups, prayer, testimony, devotionals, notes, books, gosocial", 'churchname' => "", 'terms' => "", 'privacy' => "", 'aboutus' => ""
       );
-      $data['apitoken'] = $this->apitoken;
       $data['fcm_server_key'] = "";
       $settingsmodel = new settingsmodel();
       $settingsmodel->addNewChurchSettings($data);
-      $this->viewdata['settings'] = $settingsmodel->getSettings($this->apitoken);
+      $this->viewdata['settings'] = $settingsmodel->getSettings();
     }
     return $this->view("settings", $this->viewdata);
   }
@@ -78,7 +75,7 @@ class Settings extends BaseController
       'stripe_public' => $this->request->getVar('stripe_public'),
       'stripe_secret' => $this->request->getVar('stripe_secret'),
       'thankyou' => $this->request->getVar('thankyou'),
-      'paystack_api_key' => $this->request->getVar('paystack_api_key'), 'currency_code' => $this->request->getVar('currency_code'), 'donations_link' => $this->request->getVar('donations_link'), 'features' => $features, 'churchname' => $this->request->getVar('churchname'), 'terms' => $this->request->getVar('terms'), 'privacy' => $this->request->getVar('privacy'), 'aboutus' => $this->request->getVar('aboutus')
+      'paystack_api_key' => $this->request->getVar('paystack_api_key'), 'currency_code' => $this->request->getVar('currency_code'), 'donations_link' => $this->request->getVar('donations_link'), 'book_payment_gateway' => $this->request->getVar('book_payment_gateway') ?: 'paystack', 'marketplace_currency' => $this->request->getVar('marketplace_currency') ?: 'USD', 'features' => $features, 'churchname' => $this->request->getVar('churchname'), 'terms' => $this->request->getVar('terms'), 'privacy' => $this->request->getVar('privacy'), 'aboutus' => $this->request->getVar('aboutus')
     );
 
     if (!empty($_FILES['thumbnail']['name'])) {
@@ -92,7 +89,7 @@ class Settings extends BaseController
     }
 
     $settingsmodel = new settingsmodel();
-    $settingsmodel->updateSettings($data, $this->apitoken);
+    $settingsmodel->updateSettings($data);
 
     $session->setFlashdata('success', "Settings updated successfully.");
     return redirect()->to(base_url() . '/settings');
@@ -100,72 +97,32 @@ class Settings extends BaseController
 
   public function terms()
   {
-    $apitoken = isset($_GET['_p']) ? $_GET['_p'] : '';
-    if ($apitoken == '') {
-      $this->viewdata['churchname'] = "404";
-      $this->viewdata['title'] = "Page not found";
-      $this->viewdata['content'] = "";
-      return view("content", $this->viewdata);
-    } else {
-      $settingsmodel = new settingsmodel();
-      $settings = $settingsmodel->getSettings($apitoken);
-      $this->viewdata['churchname'] = $settings->churchname;
-      $this->viewdata['title'] = "Terms & Conditions";
-      $this->viewdata['content'] = $settings->terms;
-      return view("content", $this->viewdata);
-    }
+    $settingsmodel = new settingsmodel();
+    $settings = $settingsmodel->getSettings();
+    $this->viewdata['churchname'] = $settings ? $settings->churchname : "";
+    $this->viewdata['title'] = "Terms & Conditions";
+    $this->viewdata['content'] = $settings ? $settings->terms : "";
+    return view("content", $this->viewdata);
   }
 
   public function privacy()
   {
-    $apitoken = isset($_GET['_p']) ? $_GET['_p'] : '';
-    if ($apitoken == '') {
-      $this->viewdata['churchname'] = "404";
-      $this->viewdata['title'] = "Page not found";
-      $this->viewdata['content'] = "";
-      return view("content", $this->viewdata);
-    } else {
-      $settingsmodel = new settingsmodel();
-      $settings = $settingsmodel->getSettings($apitoken);
-      $this->viewdata['churchname'] = $settings->churchname;
-      $this->viewdata['title'] = "Privacy Policy";
-      $this->viewdata['content'] = $settings->privacy;
-      return view("content", $this->viewdata);
-    }
+    $settingsmodel = new settingsmodel();
+    $settings = $settingsmodel->getSettings();
+    $this->viewdata['churchname'] = $settings ? $settings->churchname : "";
+    $this->viewdata['title'] = "Privacy Policy";
+    $this->viewdata['content'] = $settings ? $settings->privacy : "";
+    return view("content", $this->viewdata);
   }
 
   public function aboutus()
   {
-    $apitoken = isset($_GET['_p']) ? $_GET['_p'] : '';
-    if ($apitoken == '') {
-      $this->viewdata['churchname'] = "404";
-      $this->viewdata['title'] = "Page not found";
-      $this->viewdata['content'] = "";
-      return view("content", $this->viewdata);
-    } else {
-      $settingsmodel = new settingsmodel();
-      $settings = $settingsmodel->getSettings($apitoken);
-      $this->viewdata['churchname'] = $settings->churchname;
-      $this->viewdata['title'] = "About Us";
-      $this->viewdata['content'] = $settings->aboutus;
-      return view("content", $this->viewdata);
-    }
-  }
-
-  /**
-   * Public account & data deletion instructions page (Google Play Data safety).
-   * Serves the self-contained static page so there is a single source of truth.
-   * No API token required — must be publicly accessible at /delete-account.
-   */
-  public function deleteAccount()
-  {
-    $file = FCPATH . 'delete-account.html';
-    if (is_file($file)) {
-      return $this->response
-        ->setHeader('Content-Type', 'text/html; charset=UTF-8')
-        ->setBody(file_get_contents($file));
-    }
-    return $this->response->setStatusCode(404)->setBody('Page not found.');
+    $settingsmodel = new settingsmodel();
+    $settings = $settingsmodel->getSettings();
+    $this->viewdata['churchname'] = $settings ? $settings->churchname : "";
+    $this->viewdata['title'] = "About Us";
+    $this->viewdata['content'] = $settings ? $settings->aboutus : "";
+    return view("content", $this->viewdata);
   }
 
   function upload_thumbnail()

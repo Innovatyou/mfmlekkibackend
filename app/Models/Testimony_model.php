@@ -16,12 +16,11 @@ class Testimony_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function fetch_items($page = 0, $apitoken = "")
+  public function fetch_items($page = 0)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_testimonies');
     $builder->select('tbl_testimonies.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('status', 0);
     $builder->orderby('id', 'desc');
     if ($page != 0) {
@@ -37,12 +36,11 @@ class Testimony_model extends Basemodel
     return $result;
   }
 
-  public function getTotalItems($apitoken)
+  public function getTotalItems()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_testimonies');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
@@ -50,22 +48,21 @@ class Testimony_model extends Basemodel
   }
 
 
-  public function get_total_items($apitoken)
+  public function get_total_items()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_testimonies');
-    $query = $builder->select("COUNT(*) as num")->where('apitoken', $apitoken)->get();
+    $query = $builder->select("COUNT(*) as num")->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  function itemsListing($apitoken)
+  function itemsListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_testimonies');
     $builder->select('tbl_testimonies.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('title', 'ASC');
     $query = $builder->get();
     return $query->getResult();
@@ -82,35 +79,32 @@ class Testimony_model extends Basemodel
   }
 
 
-  function editItem($info, $id, $apitoken)
+  function editItem($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_testimonies');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['testimony_updated'];
   }
 
 
-  function getItemInfo($id, $apitoken)
+  function getItemInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_testimonies');
     $builder->select('tbl_testimonies.*');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     return $query->getRow(0);
   }
 
-  function deleteItem($id, $apitoken)
+  function deleteItem($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_testimonies');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['testimony_del'];

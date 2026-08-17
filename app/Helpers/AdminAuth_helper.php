@@ -50,17 +50,22 @@ function hasPermission($permission)
         return true;
     }
 
-    // Then check database for permissions (if they exist)
-    $db = \Config\Database::connect();
-    $result = $db->table('tbl_role_permissions')
-        ->select('tbl_permissions.*')
-        ->join('tbl_permissions', 'tbl_permissions.id = tbl_role_permissions.permission_id')
-        ->where('tbl_role_permissions.role_id', $roleId)
-        ->where('tbl_permissions.name', $permission)
-        ->get()
-        ->getRow();
+    // Then check database for permissions (if the RBAC tables exist)
+    try {
+        $db = \Config\Database::connect();
+        $result = $db->table('tbl_role_permissions')
+            ->select('tbl_permissions.*')
+            ->join('tbl_permissions', 'tbl_permissions.id = tbl_role_permissions.permission_id')
+            ->where('tbl_role_permissions.role_id', $roleId)
+            ->where('tbl_permissions.name', $permission)
+            ->get()
+            ->getRow();
 
-    return $result !== null;
+        return $result !== null;
+    } catch (\Throwable $e) {
+        // RBAC tables not yet migrated — deny DB-based permissions
+        return false;
+    }
 }
 
 /**
@@ -172,13 +177,33 @@ function getAllPermissionsByModule()
 }
 
 /**
- * Check if user is super admin
+ * Check if user is super admin.
+ *
+ * Three-layer check to handle all account creation paths:
+ *  1. roleId = 1  (new RBAC system, session set at login)
+ *  2. role = 1    (legacy integer stored by SuperAdminSeeder)
+ *  3. role name   (string like 'Super Admin' / 'super_admin')
  *
  * @return bool
  */
 function isSuperAdmin()
 {
-    return (int)session()->get('roleId') === 1;
+    // Layer 1: new RBAC numeric role ID
+    if ((int) session()->get('roleId') === 1) {
+        return true;
+    }
+
+    $role = session()->get('role');
+
+    // Layer 2: legacy integer role (SuperAdminSeeder stores role = 1)
+    if (is_numeric($role) && (int) $role === 1) {
+        return true;
+    }
+
+    // Layer 3: string role name
+    $roleName = strtolower(trim((string) $role));
+    $roleName  = str_replace([' ', '-'], '_', $roleName);
+    return in_array($roleName, ['super_admin', 'superadmin'], true);
 }
 
 /**
@@ -188,8 +213,11 @@ function isSuperAdmin()
  */
 function isAdmin()
 {
-    $roleId = session()->get('roleId');
-    return $roleId == 1 || $roleId == 2;
+    if (isSuperAdmin()) {
+        return true;
+    }
+    $roleId = (int) session()->get('roleId');
+    return $roleId === 2;
 }
 
 /**

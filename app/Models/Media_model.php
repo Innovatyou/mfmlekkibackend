@@ -16,12 +16,11 @@ class Media_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function searchListing($query, $offset, $email, $apitoken)
+  public function searchListing($query, $offset, $email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select('tbl_media.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where("(`title` LIKE '%$query%'");
     $builder->orwhere("`description` LIKE '%$query%')");
     $builder->orderby('dateInserted', 'desc');
@@ -32,36 +31,34 @@ class Media_model extends Basemodel
     foreach ($result as $res) {
       // ✅ CRITICAL: Ensure source (video ID/link) is ALWAYS a string, never int
       $res->source = isset($res->source) ? (string) $res->source : '';
-      $res->cover_photo = $this->get_thumbnail_source($res->cover_photo, $apitoken);
-      $res->stream = $this->get_media_source($res->type, $res->video_type, $res->source, $apitoken);
-      $res->download = $this->get_media_source($res->type, $res->video_type, $res->source, $apitoken);
+      $res->cover_photo = $this->get_thumbnail_source($res->cover_photo);
+      $res->stream = $this->get_media_source($res->type, $res->video_type, $res->source);
+      $res->download = $this->get_media_source($res->type, $res->video_type, $res->source);
       $res->comments_count = 0; //$this->get_total_comments($res->id);
       $res->user_liked = 0; //$this->checkIfUserLikedMedia($res->id,$email);
       // Provide normalized YouTube payload for YouTube media (no iframe/embed HTML)
       if (isset($res->video_type) && $res->video_type === 'youtube_video') {
-        $res->normalized_video = $this->get_youtube_payload($res->source, $apitoken);
+        $res->normalized_video = $this->get_youtube_payload($res->source);
       }
     }
     return $result;
   }
 
-  public function update_media_total_views($media, $apitoken)
+  public function update_media_total_views($media)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
-    $builder->where('apitoken', $apitoken);
     $builder->set('views_count', 'views_count+1', FALSE);
     $builder->where('id', $media);
     $builder->update();
   }
 
 
-  function getLatestMedia($apitoken)
+  function getLatestMedia()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select('tbl_media.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderby('dateInserted', 'desc');
     $builder->limit(10);
     $query = $builder->get();
@@ -69,24 +66,23 @@ class Media_model extends Basemodel
     foreach ($result as $res) {
       // ✅ CRITICAL: Ensure source (video ID/link) is ALWAYS a string, never int
       $res->source = isset($res->source) ? (string) $res->source : '';
-      $res->cover_photo = $this->get_thumbnail_source($res->cover_photo, $apitoken);
-      $res->stream = $this->get_media_source($res->type, $res->video_type, $res->source, $apitoken);
-      $res->download = $this->get_media_source($res->type, $res->video_type, $res->source, $apitoken);
+      $res->cover_photo = $this->get_thumbnail_source($res->cover_photo);
+      $res->stream = $this->get_media_source($res->type, $res->video_type, $res->source);
+      $res->download = $this->get_media_source($res->type, $res->video_type, $res->source);
       $res->comments_count = 0; //$this->get_total_comments($res->id);
       $res->user_liked = 0; //$this->checkIfUserLikedMedia($res->id,$email);
       if (isset($res->video_type) && $res->video_type === 'youtube_video') {
-        $res->normalized_video = $this->get_youtube_payload($res->source, $apitoken);
+        $res->normalized_video = $this->get_youtube_payload($res->source);
       }
     }
     return $result;
   }
 
-  public function fetch_media($type, $page = 0, $email = "null", $apitoken = "")
+  public function fetch_media($type, $page = 0, $email = "null")
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select('tbl_media.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('type', $type);
     $builder->orderby('id', 'desc');
     if ($page != 0) {
@@ -99,22 +95,22 @@ class Media_model extends Basemodel
     foreach ($result as $res) {
       // ✅ CRITICAL: Ensure source (video ID/link) is ALWAYS a string, never int
       $res->source = isset($res->source) ? (string) $res->source : '';
-      $res->cover_photo = $this->get_thumbnail_source($res->cover_photo, $apitoken);
-      $res->stream = $this->get_media_source($res->type, $res->video_type, $res->source, $apitoken);
-      $res->download = $this->get_media_source($res->type, $res->video_type, $res->source, $apitoken);
+      $res->cover_photo = $this->get_thumbnail_source($res->cover_photo);
+      $res->stream = $this->get_media_source($res->type, $res->video_type, $res->source);
+      $res->download = $this->get_media_source($res->type, $res->video_type, $res->source);
       $res->comments_count = 0; //$this->get_total_comments($res->id);
       $res->user_liked = 0; //$this->checkIfUserLikedMedia($res->id,$email);
       if (isset($res->video_type) && $res->video_type === 'youtube_video') {
-        $res->normalized_video = $this->get_youtube_payload($res->source, $apitoken);
+        $res->normalized_video = $this->get_youtube_payload($res->source);
       }
     }
     return $result;
   }
 
-  private function get_youtube_payload($video_id, $apitoken)
+  private function get_youtube_payload($video_id)
   {
     $ytModel = new YouTube_model();
-    $check = $ytModel->getCheck($video_id, $apitoken);
+    $check = $ytModel->getCheck($video_id);
 
     $is_embeddable = null;
     $reason = null;
@@ -145,12 +141,11 @@ class Media_model extends Basemodel
     return $payload;
   }
 
-  public function get_total_media($type, $apitoken)
+  public function get_total_media($type)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $builder->where('type', $type);
     $query = $builder->get();
     $result = $query->getRow(0);
@@ -159,24 +154,41 @@ class Media_model extends Basemodel
   }
 
 
-  private function get_thumbnail_source($source, $apitoken)
+  private function rewrite_old_url($url)
   {
+    $url = trim((string)$url);
+    $patterns = [
+      'https://app.mfmlekkiphaseone.org/',
+      'http://app.mfmlekkiphaseone.org/',
+    ];
+    foreach ($patterns as $old) {
+      if (strpos($url, $old) === 0) {
+        return rtrim($this->request_base_url(), '/') . '/' . ltrim(substr($url, strlen($old)), '/');
+      }
+    }
+    return $url;
+  }
+
+  private function get_thumbnail_source($source)
+  {
+    $source = $this->rewrite_old_url($source);
     if ($this->isValidURL($source)) {
       return $source;
     }
-    return base_url() . "/uploads/thumbnails/" . $apitoken . "/" . $source;
+    return $this->request_base_url() . "uploads/thumbnails/" . $source;
   }
 
-  private function get_media_source($type, $video_type, $source, $apitoken)
+  private function get_media_source($type, $video_type, $source)
   {
+    $source = $this->rewrite_old_url($source);
     if ($this->isValidURL($source)) {
       return $source;
     }
     if ($type == "audio") {
-      return base_url() . "/uploads/audios/" . $apitoken . "/" . $source;
+      return $this->request_base_url() . "uploads/audios/" . $source;
     } else {
       if ($video_type == "mp4_video") {
-        return base_url() . "/uploads/videos/" . $apitoken . "/" . $source;
+        return $this->request_base_url() . "uploads/videos/" . $source;
       }
       return $source;
     }

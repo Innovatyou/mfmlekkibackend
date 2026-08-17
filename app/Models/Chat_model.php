@@ -16,12 +16,11 @@ class Chat_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function getUsersChat($email = "null", $count = 0, $apitoken = "")
+  public function getUsersChat($email = "null", $count = 0)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat');
     $builder->select('tbl_chat.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('email1', $email);
     $builder->orwhere('email2', $email);
     $builder->orderby('last_message_time', 'desc');
@@ -34,23 +33,22 @@ class Chat_model extends Basemodel
     $query = $builder->get();
     $result = $query->getResult();
     foreach ($result as $res) {
-      $res->chats = $this->get_chat_messages($res->id, $email, $count, $apitoken);
-      $res->unseen = $this->get_unseen_messages($res->id, $email, $apitoken);
-      $res->isOnline = $this->getUserOnlineStatus($res->email1 == $email ? $res->email2 : $res->email1, $apitoken);
-      $res->partner = $this->getPartner($res->email1 == $email ? $res->email2 : $res->email1, $apitoken);
-      $res->lastSeenDate = $this->getUserLastSeenDate($res->email1 == $email ? $res->email2 : $res->email1, $apitoken);
-      $res->is_blocked = $this->verifyIfPartnerIsBlocked($email, $res->email1 == $email ? $res->email2 : $res->email1, $apitoken);
-      $res->have_more_content = $this->chats_have_more_content($res->id, $email, $count, $apitoken);
+      $res->chats = $this->get_chat_messages($res->id, $email, $count);
+      $res->unseen = $this->get_unseen_messages($res->id, $email);
+      $res->isOnline = $this->getUserOnlineStatus($res->email1 == $email ? $res->email2 : $res->email1);
+      $res->partner = $this->getPartner($res->email1 == $email ? $res->email2 : $res->email1);
+      $res->lastSeenDate = $this->getUserLastSeenDate($res->email1 == $email ? $res->email2 : $res->email1);
+      $res->is_blocked = $this->verifyIfPartnerIsBlocked($email, $res->email1 == $email ? $res->email2 : $res->email1);
+      $res->have_more_content = $this->chats_have_more_content($res->id, $email, $count);
     }
     return $result;
   }
 
-  public function get_chat_messages($chat_id, $email, $count, $apitoken)
+  public function get_chat_messages($chat_id, $email, $count)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->select('tbl_chat_messages.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('chat_id', $chat_id);
     $builder->where('msg_owner', $email);
     $builder->orderby('date', 'desc');
@@ -64,23 +62,21 @@ class Chat_model extends Basemodel
     $result = $query->getResult();
     foreach ($result as $res) {
       if ($res->attachment != "") {
-        $res->attachment = base_url() . "/uploads/socials/chats/" . $apitoken . "/" . $res->attachment;
+        $res->attachment = $this->request_base_url() . "/uploads/socials/chats/" . $res->attachment;
       }
       if ($res->message != "") {
         $res->message = base64_decode($res->message);
       }
     }
-    //var_dump($result); die;
     return $result;
   }
 
 
-  public function checkfornewmessages($email, $date, $apitoken)
+  public function checkfornewmessages($email, $date)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->select('tbl_chat_messages.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('sender !=', $email);
     $builder->where('msg_owner', $email);
     $builder->where('date > ', $date);
@@ -89,22 +85,20 @@ class Chat_model extends Basemodel
     $result = $query->getResult();
     foreach ($result as $res) {
       if ($res->attachment != "") {
-        $res->attachment = base_url() . "/uploads/socials/chats/" . $apitoken . "/" . $res->attachment;
+        $res->attachment = $this->request_base_url() . "/uploads/socials/chats/" . $res->attachment;
       }
       if ($res->message != "") {
         $res->message = base64_decode($res->message);
       }
     }
-    //var_dump($result); die;
     return $result;
   }
 
-  public function get_unseen_messages($chat_id, $email, $apitoken)
+  public function get_unseen_messages($chat_id, $email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->select('COUNT(*) as num');
-    $builder->where('apitoken', $apitoken);
     $builder->where('chat_id', $chat_id);
     $builder->where('sender !=', $email);
     $builder->where('msg_owner', $email);
@@ -115,12 +109,11 @@ class Chat_model extends Basemodel
     return 0;
   }
 
-  public function get_user_unseen_messages($email, $apitoken)
+  public function get_user_unseen_messages($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->select('COUNT(*) as num');
-    $builder->where('apitoken', $apitoken);
     $builder->where('sender !=', $email);
     $builder->where('msg_owner', $email);
     $builder->where('seen', 1);
@@ -130,12 +123,11 @@ class Chat_model extends Basemodel
     return 0;
   }
 
-  public function chats_have_more_content($chatid, $email, $count, $apitoken)
+  public function chats_have_more_content($chatid, $email, $count)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->select('COUNT(*) as num');
-    $builder->where('apitoken', $apitoken);
     $builder->where('chat_id', $chatid);
     $builder->where('msg_owner', $email);
     $query = $builder->get();
@@ -152,52 +144,49 @@ class Chat_model extends Basemodel
   }
 
 
-  function getPartner($email, $apitoken)
+  function getPartner($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('tbl_members.email', $email);
     $query = $builder->get();
     $user = $query->getRow(0);
     if ($user) {
       $user->activated = 1;
-      $user->photo = $user->thumbnail == "" ? "" : base_url() . "/uploads/members/" . $apitoken . "/" . $user->thumbnail;
-      $user->coverphoto = $user->coverphoto == "" ? "" : base_url() . "/uploads/members/" . $apitoken . "/" . $user->coverphoto;
-      //$res->following = 1;
+      $user->photo = $user->thumbnail == "" ? "" : $this->request_base_url() . "/uploads/members/" . $user->thumbnail;
+      $user->coverphoto = $user->coverphoto == "" ? "" : $this->request_base_url() . "/uploads/members/" . $user->coverphoto;
       return $user;
     } else {
       return null;
     }
   }
 
-  public function fetch_user_partner_chat($email, $partner, $apitoken)
+  public function fetch_user_partner_chat($email, $partner)
   {
-    $sql = "SELECT * FROM tbl_chat WHERE (apitoken = '" . $apitoken . "' AND email1 = '" . $email . "' AND email2 = '" . $partner . "') OR (apitoken = '" . $apitoken . "' AND email1 = '" . $partner . "' AND email2 = '" . $email . "')";
+    $sql = "SELECT * FROM tbl_chat WHERE (email1 = '" . $email . "' AND email2 = '" . $partner . "') OR (email1 = '" . $partner . "' AND email2 = '" . $email . "')";
     $db = \Config\Database::connect("default");
     $query = $db->query($sql);
-    //var_dump($query); die;
     $result = $query->getResult();
     if ($result) {
       $res = new \stdClass();
       $res = $result[0];
-      $res->chats = $this->get_chat_messages($res->id, $email, 0, $apitoken);
-      $res->unseen = $this->get_unseen_messages($res->id, $email, $apitoken);
-      $res->isOnline = $this->getUserOnlineStatus($res->email1 == $email ? $res->email2 : $res->email1, $apitoken);
-      $res->partner = $this->getPartner($res->email1 == $email ? $res->email2 : $res->email1, $apitoken);
-      $res->lastSeenDate = $this->getUserLastSeenDate($res->email1 == $email ? $res->email2 : $res->email1, $apitoken);
-      $res->is_blocked = $this->verifyIfPartnerIsBlocked($email, $res->email1 == $email ? $res->email2 : $res->email1, $apitoken);
-      $res->have_more_content = $this->chats_have_more_content($res->id, $email, 0, $apitoken);
+      $res->chats = $this->get_chat_messages($res->id, $email, 0);
+      $res->unseen = $this->get_unseen_messages($res->id, $email);
+      $res->isOnline = $this->getUserOnlineStatus($res->email1 == $email ? $res->email2 : $res->email1);
+      $res->partner = $this->getPartner($res->email1 == $email ? $res->email2 : $res->email1);
+      $res->lastSeenDate = $this->getUserLastSeenDate($res->email1 == $email ? $res->email2 : $res->email1);
+      $res->is_blocked = $this->verifyIfPartnerIsBlocked($email, $res->email1 == $email ? $res->email2 : $res->email1);
+      $res->have_more_content = $this->chats_have_more_content($res->id, $email, 0);
       return $res;
     } else {
       return null;
     }
   }
 
-  public function verifyIfPartnerIsBlocked($email, $partner, $apitoken)
+  public function verifyIfPartnerIsBlocked($email, $partner)
   {
-    $sql = "SELECT * FROM tbl_blocked_users WHERE apitoken = '" . $apitoken . "' AND  blocked_user = '" . $partner . "' AND blocked_by = '" . $email . "' ";
+    $sql = "SELECT * FROM tbl_blocked_users WHERE blocked_user = '" . $partner . "' AND blocked_by = '" . $email . "' ";
     $db = \Config\Database::connect("default");
     $query = $db->query($sql);
     $result = $query->getResult();
@@ -208,12 +197,11 @@ class Chat_model extends Basemodel
     }
   }
 
-  public function get_user_chatID_if_exists($email, $partner, $apitoken)
+  public function get_user_chatID_if_exists($email, $partner)
   {
-    $sql = "SELECT * FROM tbl_chat WHERE (apitoken = '" . $apitoken . "' AND email1 = '" . $email . "' AND email2 = '" . $partner . "') OR (apitoken = '" . $apitoken . "' AND email1 = '" . $partner . "' AND email2 = '" . $email . "')";
+    $sql = "SELECT * FROM tbl_chat WHERE (email1 = '" . $email . "' AND email2 = '" . $partner . "') OR (email1 = '" . $partner . "' AND email2 = '" . $email . "')";
     $db = \Config\Database::connect("default");
     $query = $db->query($sql);
-    //var_dump($query);
     $result = $query->getResult();
     if ($result) {
       $res = new \stdClass();
@@ -232,13 +220,12 @@ class Chat_model extends Basemodel
     return $db->insertID();
   }
 
-  public function updateChatIDLastMessageTime($id, $date, $apitoken)
+  public function updateChatIDLastMessageTime($id, $date)
   {
     $data = ['last_message_time' => $date];
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->update($data);
   }
 
@@ -250,45 +237,41 @@ class Chat_model extends Basemodel
     return $db->insertID();
   }
 
-  public function on_seen_conversation($chatid, $email, $apitoken)
+  public function on_seen_conversation($chatid, $email)
   {
     $data = ['seen' => 0];
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->where('chat_id', $chatid);
     $builder->where('msg_owner', $email);
-    $builder->where('apitoken', $apitoken);
     $builder->update($data);
   }
 
 
-  function getRecipientDetails($email, $apitoken)
+  function getRecipientDetails($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.*');
     $builder->where('tbl_members.email', $email);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $user = $query->getRow(0);
     if ($user) {
       $user->activated = 1;
-      $user->photo = $user->thumbnail == "" ? "" : base_url() . "/uploads/members/" . $apitoken . "/" . $user->thumbnail;
-      $user->coverphoto = $user->coverphoto == "" ? "" : base_url() . "/uploads/members/" . $apitoken . "/" . $user->coverphoto;
-      //$res->following = 1;
+      $user->photo = $user->thumbnail == "" ? "" : $this->request_base_url() . "/uploads/members/" . $user->thumbnail;
+      $user->coverphoto = $user->coverphoto == "" ? "" : $this->request_base_url() . "/uploads/members/" . $user->coverphoto;
       return $user;
     } else {
       return null;
     }
   }
 
-  function getUserLastSeenDate($email, $apitoken)
+  function getUserLastSeenDate($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.last_seen_date');
     $builder->where('tbl_members.email', $email);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $user = $query->getRow(0);
     if ($user) {
@@ -298,13 +281,12 @@ class Chat_model extends Basemodel
     }
   }
 
-  function getUserOnlineStatus($email, $apitoken)
+  function getUserOnlineStatus($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->select('tbl_members.online_status');
     $builder->where('tbl_members.email', $email);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $user = $query->getRow(0);
     if ($user) {
@@ -314,58 +296,52 @@ class Chat_model extends Basemodel
     }
   }
 
-  public function updateUserOnlineStatus($email, $status, $apitoken)
+  public function updateUserOnlineStatus($email, $status)
   {
     $data = ['online_status' => $status, 'last_seen_date' => time()];
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
     $builder->where('email', $email);
-    $builder->where('apitoken', $apitoken);
     $builder->update($data);
   }
 
 
-  public function getUserLastConversation($id, $apitoken)
+  public function getUserLastConversation($id)
   {
-    //print($chat_id);
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->select('tbl_chat_messages.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('id', $id);
 
     $query = $builder->get();
     $res = $query->getRow(0);
     if ($res) {
       if ($res->attachment != "") {
-        $res->attachment = base_url() . "/uploads/socials/chats/" . $apitoken . "/" . $res->attachment;
+        $res->attachment = $this->request_base_url() . "/uploads/socials/chats/" . $res->attachment;
       }
       if ($res->message != "") {
         $res->message = base64_decode($res->message);
       }
     }
-    //var_dump($result); die;
     return $res;
   }
 
-  function delete_selected_chat_messages($email, $chatid, $msgReciepts, $apitoken)
+  function delete_selected_chat_messages($email, $chatid, $msgReciepts)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->where('msg_owner', $email);
     $builder->where('chat_id', $chatid);
-    $builder->where('apitoken', $apitoken);
     $builder->wherein('msg_reciept', $msgReciepts);
     $builder->delete();
   }
 
-  function clear_user_chat_messages($email, $chatid, $apitoken)
+  function clear_user_chat_messages($email, $chatid)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_chat_messages');
     $builder->where('msg_owner', $email);
     $builder->where('chat_id', $chatid);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
   }
 

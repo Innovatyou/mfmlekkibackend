@@ -11,7 +11,6 @@ use App\Models\Branches_model as branchesmodel;
 class Videos extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
   /**
    * constructor
    */
@@ -19,7 +18,6 @@ class Videos extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
       exit();
@@ -57,8 +55,8 @@ class Videos extends BaseController
     }
 
 
-    $audios = $videomodel->videoListing($columnName, $columnSortOrder, $searchValue, $start, $length, $this->apitoken);
-    $total_audios = $videomodel->get_total_videos($searchValue, $this->apitoken);
+    $audios = $videomodel->videoListing($columnName, $columnSortOrder, $searchValue, $start, $length);
+    $total_audios = $videomodel->get_total_videos($searchValue);
     //var_dump($users); die;
     $dat = array();
 
@@ -117,19 +115,19 @@ class Videos extends BaseController
   public function newVideo()
   {
     $branchesmodel = new branchesmodel();
-    $this->viewdata['branches'] = $branchesmodel->branchesListing($this->apitoken);
+    $this->viewdata['branches'] = $branchesmodel->branchesListing();
     return $this->view("media/newvideo", $this->viewdata);
   }
 
   public function editVideo($id = 0)
   {
     $videomodel = new videomodel();
-    $this->viewdata['video'] = $videomodel->getVideoInfo($id, $this->apitoken);
+    $this->viewdata['video'] = $videomodel->getVideoInfo($id);
     if (count((array)$this->viewdata['video']) == 0) {
       return redirect()->to(base_url() . '/videos');
     }
     $branchesmodel = new branchesmodel();
-    $this->viewdata['branches'] = $branchesmodel->branchesListing($this->apitoken);
+    $this->viewdata['branches'] = $branchesmodel->branchesListing();
     $_duration = new Duration;
     $this->viewdata['video']->duration = $_duration->formatted(($this->viewdata['video']->duration) / 1000);
     return $this->view("media/editvideo", $this->viewdata);
@@ -182,7 +180,6 @@ class Videos extends BaseController
 
       $info = array(
         'branch' => 1,
-        'apitoken' => $this->apitoken,
         'category' => $category,
         'title' => $title,
         'description' => $description,
@@ -223,7 +220,7 @@ class Videos extends BaseController
           $ytService = new \App\Libraries\YouTubeService();
           $ytModel = new \App\Models\YouTube_model();
           $check = $ytService->checkVideo($videoId);
-          $ytModel->setCheck($videoId, $this->apitoken, $check['is_embeddable'], $check['reason'], $check['privacy_status'], $check['content_details']);
+          $ytModel->setCheck($videoId, $check['is_embeddable'], $check['reason'], $check['privacy_status'], $check['content_details']);
         }
       } else {
         $info['cover_photo'] = isset($data->thumbnail_link) ? $data->thumbnail_link : '';
@@ -302,7 +299,7 @@ class Videos extends BaseController
       'duration' => $duration_ms,
     );
 
-    $videomodel->editVideoData($info, $id, $this->apitoken);
+    $videomodel->editVideoData($info, $id);
 
     echo json_encode(array("status" => $videomodel->status, "msg" => $videomodel->message));
     exit;
@@ -310,13 +307,19 @@ class Videos extends BaseController
 
   function deleteVideo($id = 0)
   {
-    $videomodel = new videomodel();
-    $video = $videomodel->getVideoInfo($id, $this->apitoken);
-    if (count((array)$video) > 0) {
-      @unlink('./uploads/videos/' . $this->apitoken . "/" . $video->source);
-      @unlink('./uploads/thumbnails/' . $this->apitoken . "/" . $video->cover_photo);
+    $id = intval($id);
+    if ($id <= 0) {
+      $this->session->setFlashdata('error', 'Invalid video ID.');
+      return redirect()->to(base_url() . '/videos');
     }
-    $videomodel->deleteVideo($id, $this->apitoken);
+
+    $videomodel = new videomodel();
+    $video = $videomodel->getVideoInfo($id);
+    if (count((array)$video) > 0) {
+      @unlink('./uploads/videos/' . $video->source);
+      @unlink('./uploads/thumbnails/' . $video->cover_photo);
+    }
+    $videomodel->deleteVideo($id);
     if ($videomodel->status == "ok") {
       $this->session->setFlashdata('success', $videomodel->message);
     } else {
@@ -327,8 +330,8 @@ class Videos extends BaseController
 
   public function upload_video()
   {
-    if (!file_exists('./uploads/videos/' . $this->apitoken)) {
-      mkdir('./uploads/videos/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/videos/')) {
+      mkdir('./uploads/videos/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -345,7 +348,7 @@ class Videos extends BaseController
     } else {
 
       $img = $this->request->getFile('video');
-      $img->move('./uploads/videos/' . $this->apitoken);
+      $img->move('./uploads/videos/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()
@@ -357,8 +360,8 @@ class Videos extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/')) {
+      mkdir('./uploads/thumbnails/', 0777, true);
     }
     helper(['form', 'url']);
     // If no file provided, consider it optional
@@ -378,7 +381,7 @@ class Videos extends BaseController
     }
 
     $img = $this->request->getFile('thumbnail');
-    $img->move('./uploads/thumbnails/' . $this->apitoken);
+    $img->move('./uploads/thumbnails/');
     return ['ok', $img->getName()];
   }
 }

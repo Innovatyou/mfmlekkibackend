@@ -16,13 +16,12 @@ class Prayer_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function fetch_items($page = 0, $apitoken = "", $email = "")
+  public function fetch_items($page = 0, $email = "")
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_prayers');
     $builder->select('tbl_prayers.*');
     $builder->where('status', 0);
-    $builder->where('apitoken', $apitoken);
     if ($email != "") {
       $builder->where("public = 0 OR email = '" . $email . "'");
     } else {
@@ -42,12 +41,11 @@ class Prayer_model extends Basemodel
     return $result;
   }
 
-  public function getTotalItems($apitoken)
+  public function getTotalItems()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_prayers');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
@@ -55,13 +53,12 @@ class Prayer_model extends Basemodel
   }
 
 
-  public function get_total_items($apitoken, $email)
+  public function get_total_items($email)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_prayers');
     $builder->select("COUNT(*) as num");
     $builder->where('status', 0);
-    $builder->where('apitoken', $apitoken);
     if ($email != "") {
       $builder->where("public = 0 OR email = '" . $email . "'");
     } else {
@@ -73,12 +70,11 @@ class Prayer_model extends Basemodel
     return 0;
   }
 
-  function itemsListing($apitoken)
+  function itemsListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_prayers');
     $builder->select('tbl_prayers.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('id', 'DESC');
     $query = $builder->get();
     return $query->getResult();
@@ -95,35 +91,32 @@ class Prayer_model extends Basemodel
   }
 
 
-  function editItem($info, $id, $apitoken)
+  function editItem($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_prayers');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['prayer_updated'];
   }
 
 
-  function getItemInfo($id, $apitoken)
+  function getItemInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_prayers');
     $builder->select('tbl_prayers.*');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     return $query->getRow(0);
   }
 
-  function deleteItem($id, $apitoken)
+  function deleteItem($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_prayers');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['prayer_del'];

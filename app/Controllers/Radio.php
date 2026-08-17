@@ -8,7 +8,6 @@ use App\Models\Radio_model as radiomodel;
 class Radio extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -17,13 +16,12 @@ class Radio extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
   }
 
   public function index()
   {
     $radiomodel = new radiomodel();
-    $this->viewdata['radio'] = $radiomodel->radioListing($this->apitoken);
+    $this->viewdata['radio'] = $radiomodel->radioListing();
     return $this->view("radio/listing", $this->viewdata);
   }
 
@@ -35,7 +33,7 @@ class Radio extends BaseController
   public function editRadio($id = 0)
   {
     $radiomodel = new radiomodel();
-    $this->viewdata['radio'] = $radiomodel->getRadioInfo($id, $this->apitoken);
+    $this->viewdata['radio'] = $radiomodel->getRadioInfo($id);
     if (count((array)$this->viewdata['radio']) == 0) {
       return redirect()->to(base_url() . '/radio');
     }
@@ -61,7 +59,6 @@ class Radio extends BaseController
     $status = $this->request->getVar('status');
     $info = array(
       'title' => $title,
-      'apitoken' => $this->apitoken,
       'description' => $description,
       'link' => $link,
       'status' => $status,
@@ -103,7 +100,7 @@ class Radio extends BaseController
       }
     }
 
-    $radiomodel->editRadio($info, $id, $this->apitoken);
+    $radiomodel->editRadio($info, $id);
     if ($radiomodel->status == "ok") {
       $this->session->setFlashdata('success', $radiomodel->message);
     } else {
@@ -116,7 +113,7 @@ class Radio extends BaseController
   function deleteRadio($id = 0)
   {
     $radiomodel = new radiomodel();
-    $radiomodel->deleteRadio($id, $this->apitoken);
+    $radiomodel->deleteRadio($id);
     if ($radiomodel->status == "ok") {
       $this->session->setFlashdata('success', $radiomodel->message);
     } else {
@@ -127,8 +124,8 @@ class Radio extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/')) {
+      mkdir('./uploads/thumbnails/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -143,7 +140,7 @@ class Radio extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('thumbnail');
-      $img->move('./uploads/thumbnails/' . $this->apitoken);
+      $img->move('./uploads/thumbnails/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

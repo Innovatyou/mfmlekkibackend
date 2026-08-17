@@ -1,0 +1,15 @@
+# Block direct access to sensitive files
+<Files "config.php">
+    Order deny,allow
+    Deny from all
+</Files>
+
+<FilesMatch "\.db$">
+    Order deny,allow
+    Deny from all
+</FilesMatch>
+
+<Files "install.php">
+    Order deny,allow
+    Deny from all
+</Files>

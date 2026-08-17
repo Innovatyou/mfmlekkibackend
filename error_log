@@ -1,4 +1,0 @@
-[10-Dec-2025 08:46:23 America/Chicago] PHP Fatal error:  Cannot redeclare App\Models\Inbox_model::get_last_seen_notification_count() in /home/innovat8/public_html/church.innovative.ng/app/Models/Inbox_model.php on line 45
-[10-Dec-2025 09:19:52 America/Chicago] PHP Fatal error:  Cannot redeclare App\Models\Inbox_model::get_last_seen_notification_count() in /home/innovat8/public_html/church.innovative.ng/app/Models/Inbox_model.php on line 45
-[10-Dec-2025 11:51:36 America/Chicago] PHP Fatal error:  Cannot redeclare App\Models\Inbox_model::get_last_seen_notification_count() in /home/innovat8/public_html/church.innovative.ng/app/Models/Inbox_model.php on line 45
-[10-Dec-2025 21:40:59 America/Chicago] PHP Fatal error:  Cannot redeclare App\Models\Inbox_model::get_last_seen_notification_count() in /home/innovat8/public_html/church.innovative.ng/app/Models/Inbox_model.php on line 45

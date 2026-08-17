@@ -16,13 +16,12 @@ class Video_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function getTotalItems($apitoken)
+  public function getTotalItems()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select("COUNT(*) as num");
     $builder->where('type', 'video');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
@@ -30,12 +29,11 @@ class Video_model extends Basemodel
   }
 
 
-  function videoListing($columnName, $columnSortOrder, $searchValue, $start, $length, $apitoken)
+  function videoListing($columnName, $columnSortOrder, $searchValue, $start, $length)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select('tbl_media.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('type', 'video');
     if ($searchValue != "") {
       $builder->like('title', $searchValue);
@@ -49,17 +47,16 @@ class Video_model extends Basemodel
     $query = $builder->get();
     $result = $query->getResult();
     foreach ($result as $res) {
-      $res->source = $this->get_media_source($res->source, $res->video_type, $apitoken);
+      $res->source = $this->get_media_source($res->source, $res->video_type);
     }
     return $result;
   }
 
-  public function get_total_videos($searchValue = "", $apitoken = "")
+  public function get_total_videos($searchValue = "")
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select("COUNT(*) as num");
-    $builder->where('apitoken', $apitoken);
     $builder->where('tbl_media.type', 'video');
     if ($searchValue != "") {
       $builder->like('title', $searchValue);
@@ -83,22 +80,21 @@ class Video_model extends Basemodel
     return $db->insertID();
   }
 
-  function getVideoInfo($id, $apitoken)
+  function getVideoInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->select('tbl_media.*');
     $builder->where('tbl_media.id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
-      $row->thumbnail = $this->get_thumbnail_source($row->cover_photo, $apitoken);
-      $row->video = $this->get_media_source($row->source, $row->video_type, $apitoken);
+      $row->thumbnail = $this->get_thumbnail_source($row->cover_photo);
+      $row->video = $this->get_media_source($row->source, $row->video_type);
       if (isset($row->video_type) && $row->video_type === 'youtube_video') {
         // Provide normalized payload for client
         $ytModel = new \App\Models\YouTube_model();
-        $check = $ytModel->getCheck($row->source, $apitoken);
+        $check = $ytModel->getCheck($row->source);
         $row->normalized_video = new \stdClass();
         $row->normalized_video->video_type = 'youtube';
         $row->normalized_video->video_id = $row->source;
@@ -110,44 +106,54 @@ class Video_model extends Basemodel
     return $row;
   }
 
-  function editVideoData($info, $id, $apitoken)
+  function editVideoData($info, $id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->update($info);
 
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['video_data_edit'];
   }
 
-  function deleteVideo($id, $apitoken)
+  function deleteVideo($id)
   {
+    $id = intval($id);
+    if ($id <= 0) {
+      $this->status = $this->applocal['error'];
+      $this->message = 'Invalid video ID.';
+      return;
+    }
+
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_media');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
-    $this->status = $this->applocal['ok'];
-    $this->message = $this->applocal['video_data_del'];
+    if ($db->affectedRows() > 0) {
+      $this->status = $this->applocal['ok'];
+      $this->message = $this->applocal['video_data_del'];
+    } else {
+      $this->status = $this->applocal['error'];
+      $this->message = 'Video not found.';
+    }
   }
 
-  private function get_thumbnail_source($source, $apitoken)
+  private function get_thumbnail_source($source)
   {
     if ($this->isValidURL($source)) {
       return $source;
     }
-    return site_url() . "uploads/thumbnails/" . $apitoken . "/" . $source;
+    return site_url() . "uploads/thumbnails/" . $source;
   }
 
-  private function get_media_source($source, $video_type, $apitoken)
+  private function get_media_source($source, $video_type)
   {
     if ($this->isValidURL($source)) {
       return $source;
     }
     if ($video_type == "mp4_video") {
-      return site_url() . "uploads/videos/" . $apitoken . "/" . $source;
+      return site_url() . "uploads/videos/" . $source;
     }
     return $source;
   }

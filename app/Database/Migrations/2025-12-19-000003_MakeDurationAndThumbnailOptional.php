@@ -8,8 +8,9 @@ class MakeDurationAndThumbnailOptional extends Migration
 {
     public function up()
     {
-        // Make duration nullable in tbl_media
-        // Allows videos without specified duration
+        if (!$this->db->tableExists('tbl_media')) {
+            return;
+        }
         $this->forge->modifyColumn('tbl_media', [
             'duration' => [
                 'type'       => 'INT',

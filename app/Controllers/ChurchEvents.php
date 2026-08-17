@@ -11,7 +11,6 @@ use App\Models\Fcm_model as fcmmodel;
 class ChurchEvents extends BaseController
 {
   protected $session;
-  protected $apitoken = "";
 
   /**
    * constructor
@@ -20,7 +19,6 @@ class ChurchEvents extends BaseController
   {
     helper(['form', 'url']);
     $this->session = session();
-    $this->apitoken = $this->session->get('apitoken');
 
     if ($this->session->get('status') != 0) {
       header("Location: " . base_url());
@@ -31,7 +29,7 @@ class ChurchEvents extends BaseController
   public function index()
   {
     $eventsmodel = new eventsmodel();
-    $this->viewdata['events'] = $eventsmodel->eventsListing($this->apitoken);
+    $this->viewdata['events'] = $eventsmodel->eventsListing();
     return $this->view("events/listing", $this->viewdata);
   }
 
@@ -43,7 +41,7 @@ class ChurchEvents extends BaseController
   public function editEvent($id = 0)
   {
     $eventsmodel = new eventsmodel();
-    $this->viewdata['event'] = $eventsmodel->getEventInfo($id, $this->apitoken);
+    $this->viewdata['event'] = $eventsmodel->getEventInfo($id);
     if (count((array)$this->viewdata['event']) == 0) {
       return redirect()->to(base_url() . '/events');
     }
@@ -70,7 +68,6 @@ class ChurchEvents extends BaseController
       $month =  $_date->format("m") + 0;
       $day =  $_date->format("d") + 0;
       $info = array(
-        'apitoken' => $this->apitoken,
         'title' => $title,
         'details' => $details,
         'date' => $date,
@@ -84,13 +81,13 @@ class ChurchEvents extends BaseController
 
       $insertid = $eventsmodel->addNewEvent($info);
       if ($insertid != 0) {
-        $itm = $eventsmodel->getEventInfo($insertid, $this->apitoken);
+        $itm = $eventsmodel->getEventInfo($insertid);
         //var_dump($article); die;
         if (count((array)$itm) > 0) {
           $settingsmodel = new settingsmodel();
-          $server_key = $settingsmodel->getFcmServerKey($this->apitoken);
+          $server_key = $settingsmodel->getFcmServerKey();
           $fcmmodel = new fcmmodel();
-          $fcmmodel->push_item_data($server_key, $itm, "Event", $this->apitoken);
+          $fcmmodel->push_item_data($server_key, $itm, "Event");
         }
       }
       if ($eventsmodel->status == "ok") {
@@ -143,7 +140,7 @@ class ChurchEvents extends BaseController
       }
     }
 
-    $eventsmodel->editEvent($info, $id, $this->apitoken);
+    $eventsmodel->editEvent($info, $id);
     if ($eventsmodel->status == "ok") {
       $this->session->setFlashdata('success', $eventsmodel->message);
     } else {
@@ -157,7 +154,7 @@ class ChurchEvents extends BaseController
   function deleteEvent($id = 0)
   {
     $eventsmodel = new eventsmodel();
-    $eventsmodel->deleteEvent($id, $this->apitoken);
+    $eventsmodel->deleteEvent($id);
     if ($eventsmodel->status == "ok") {
       $this->session->setFlashdata('success', $eventsmodel->message);
     } else {
@@ -169,8 +166,8 @@ class ChurchEvents extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/events/' . $this->apitoken)) {
-      mkdir('./uploads/thumbnails/events/' . $this->apitoken, 0777, true);
+    if (!file_exists('./uploads/thumbnails/events/')) {
+      mkdir('./uploads/thumbnails/events/', 0777, true);
     }
     helper(['form', 'url']);
     $input = $this->validate([
@@ -185,7 +182,7 @@ class ChurchEvents extends BaseController
       return ['error', $this->validator->getErrors()];
     } else {
       $img = $this->request->getFile('thumbnail');
-      $img->move('./uploads/thumbnails/events/' . $this->apitoken);
+      $img->move('./uploads/thumbnails/events/');
       $data = [
         'name' =>  $img->getName(),
         'type'  => $img->getClientMimeType()

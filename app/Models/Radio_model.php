@@ -16,12 +16,11 @@ class Radio_model extends Basemodel
     $this->message = $this->applocal['process_error'];
   }
 
-  public function fetch_radio($page = 0, $apitoken = "")
+  public function fetch_radio($page = 0)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_radio');
     $builder->select('tbl_radio.*');
-    $builder->where('apitoken', $apitoken);
     $builder->where('status', 0);
     $builder->orderBy('title', 'ASC');
 
@@ -33,54 +32,50 @@ class Radio_model extends Basemodel
     $query = $builder->get();
     $result = $query->getResult();
     foreach ($result as $row) {
-      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo, $apitoken);
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
     }
     return $result;
   }
 
 
-  public function get_total_radio($apitoken)
+  public function get_total_radio()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_radio');
     $builder->where('status', 0);
-    $query = $builder->select("COUNT(*) as num")->where('apitoken', $apitoken)->get();
+    $query = $builder->select("COUNT(*) as num")->get();
     $result = $query->getRow(0);
     if (isset($result)) return $result->num;
     return 0;
   }
 
-  function radioListing($apitoken)
+  function radioListing()
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_radio');
     $builder->select('tbl_radio.*');
-    $builder->where('apitoken', $apitoken);
     $builder->orderBy('title', 'ASC');
     $query = $builder->get();
     return $query->getResult();
   }
 
-  function checkRadioExists($title, $id = 0, $apitoken = "")
+  function checkRadioExists($title, $id = 0)
   {
-    //echo $name . " and ". $group;
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_radio');
     $builder->select("title");
-    $builder->where('apitoken', $apitoken);
     $builder->where("title", $title);
     if ($id != 0) {
       $builder->where("id !=", $id);
     }
     $query = $builder->get();
-    //var_dump($query->result()); die;
     return $query->getResult();
   }
 
 
   function addNewRadio($info)
   {
-    if (empty($this->checkRadioExists($info['title'], 0, $info['apitoken']))) {
+    if (empty($this->checkRadioExists($info['title']))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_radio');
       $builder->insert($info);
@@ -90,19 +85,15 @@ class Radio_model extends Basemodel
       $this->status = $this->applocal['error'];
       $this->message = $this->applocal['radio_exist'];
     }
-    
-    
-
   }
 
 
-  function editRadio($info, $id, $apitoken)
+  function editRadio($info, $id)
   {
-    if (empty($this->checkRadioExists($info['title'], $id, $apitoken))) {
+    if (empty($this->checkRadioExists($info['title'], $id))) {
       $db = \Config\Database::connect("default");
       $builder = $db->table('tbl_radio');
       $builder->where('id', $id);
-      $builder->where('apitoken', $apitoken);
       $builder->update($info);
       $this->status = $this->applocal['ok'];
       $this->message = $this->applocal['radio_edit'];
@@ -110,47 +101,39 @@ class Radio_model extends Basemodel
       $this->status = $this->applocal['error'];
       $this->message = $this->applocal['radio_exist'];
     }
-    
-    
-
   }
 
 
-  function getRadioInfo($id, $apitoken)
+  function getRadioInfo($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_radio');
     $builder->select('tbl_radio.*');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
-      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo, $apitoken);
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
     }
     return $row;
   }
 
-  function deleteRadio($id, $apitoken)
+  function deleteRadio($id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_radio');
     $builder->where('id', $id);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['radio_del'];
-    
-    
-
   }
 
-  private function get_thumbnail_source($source, $apitoken)
+  private function get_thumbnail_source($source)
   {
     if ($this->isValidURL($source)) {
       return $source;
     }
-    return base_url() . "/uploads/thumbnails/" . $apitoken . "/" . $source;
+    return $this->request_base_url() . "/uploads/thumbnails/" . $source;
   }
 
   function isValidURL($url)

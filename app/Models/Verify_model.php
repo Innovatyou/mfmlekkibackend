@@ -31,16 +31,14 @@ class Verify_model extends Basemodel
     $builder->where('activation_id', $activation_id);
     $query = $builder->get();
     $row = $query->getRow(0);
-    //var_dump($activation_id); die;
     return $row;
   }
 
   //delete details when user have been verified
-  public function deleteActivationDetails($activation_id, $apitoken)
+  public function deleteActivationDetails($activation_id)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_verification');
-    $builder->where('apitoken', $apitoken);
     $builder->where('activation_id', $activation_id);
     $builder->delete();
     $this->status = $this->applocal['ok'];

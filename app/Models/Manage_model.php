@@ -107,7 +107,6 @@ class Manage_model extends Basemodel
 
   function checkEmailExists($email, $id = 0)
   {
-    //echo $name . " and ". $group;
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_churches');
     $builder->select("email");
@@ -116,7 +115,6 @@ class Manage_model extends Basemodel
       $builder->where("id !=", $id);
     }
     $query = $builder->get();
-    //var_dump($query->result()); die;
     return $query->getResult();
   }
 
@@ -157,7 +155,7 @@ class Manage_model extends Basemodel
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
       if ($row->logo != "") {
-        $row->logo = base_url() . "/uploads/churches/" . $row->logo;
+        $row->logo = $this->request_base_url() . "/uploads/churches/" . $row->logo;
       }
     }
     return $row;
@@ -165,13 +163,9 @@ class Manage_model extends Basemodel
 
   function getManagerSettings()
   {
-      
-      $session = session();
-      $apitoken = $session->get('apitoken');
     $db = \Config\Database::connect("default");
     $builder = $db->table('settings');
     $builder->select('settings.*');
-    $builder->where('apitoken', $apitoken);
     $query = $builder->get();
     $row = $query->getRow(0);
     return $row;
@@ -206,11 +200,10 @@ class Manage_model extends Basemodel
     return $result;
   }
 
-  function deleteChurchData($tbl, $apitoken)
+  function deleteChurchData($tbl)
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table($tbl);
-    $builder->where('apitoken', $apitoken);
     $builder->delete();
   }
 }

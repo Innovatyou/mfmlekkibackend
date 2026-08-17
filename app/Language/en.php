@@ -2,7 +2,7 @@
 
 // override core en language system validation or define your own en language validation message
 return [
-	'site_title' => "MFM Lekki Church",
+	'site_title' => "Church",
 	'dashboard' => "Dashboard",
 	'welcome_message' => "Welcome back ! Your subscription is ",
 	'overview' => "Overview",
@@ -175,6 +175,12 @@ return [
 	'book_desc' => "Book Description",
 	'num_pages' => "Number of Pages",
 	'update_book' => "UPDATE BOOK",
+	'sell_book' => "Sell this Book",
+	'book_pricing' => "Pricing",
+	'book_price' => "Price",
+	'book_currency' => "Currency",
+	'book_for_sale' => "For Sale",
+	'book_free' => "Free",
 	'church_loc' => "Church Locations",
 	'edit_loc' => "Edit Location",
 	'branch_name' => "Branch Name",
