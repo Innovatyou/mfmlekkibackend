@@ -8,12 +8,3 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ index.php/$1 [L,QSA]
 
-# Explicit PHP handler mapping — some LiteSpeed/cPanel accounts don't
-# reliably serve .php as PHP without this, especially on freshly created
-# (sub)domains that inherit the account's default PHP version rather than
-# having one explicitly assigned. Update the ea-phpXX version here if the
-# account's PHP version changes.
-<IfModule mime_module>
-  AddHandler application/x-httpd-ea-php83 .php .php8 .phtml
-</IfModule>
-
