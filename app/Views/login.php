@@ -1,11 +1,21 @@
+<?php
+$brandColor = \Config\Database::connect('default')->table('settings')->select('brand_color')->get()->getRow(0)->brand_color ?? '#6366f1';
+if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $brandColor)) {
+	$brandColor = '#6366f1';
+}
+$brandColorDark = '#' . implode('', array_map(
+	fn($c) => str_pad(dechex((int) max(0, round(hexdec($c) * 0.8))), 2, '0', STR_PAD_LEFT),
+	str_split(ltrim($brandColor, '#'), 2)
+));
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 	<meta charset="utf-8">
 	<title>MyChurchApp — Sign In</title>
-	<link rel="icon" type="image/svg+xml" href="<?php echo base_url(); ?>/public/favicon.svg">
-	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/favicon.svg">
+	<link rel="icon" type="image/png" href="<?php echo base_url(); ?>/public/favicon.png">
+	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/apple-touch-icon.png">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
@@ -202,12 +212,12 @@
 		.field-group input:not(:placeholder-shown) {
 			background: #fff;
 		}
-		.field-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.1); }
+		.field-group input:focus { border-color: <?= $brandColor ?>; box-shadow: 0 0 0 4px <?= $brandColor ?>1a; }
 		.field-group input:focus + label,
 		.field-group input:not(:placeholder-shown) + label {
 			top: 10px;
 			font-size: 0.72rem;
-			color: #3b82f6;
+			color: <?= $brandColor ?>;
 			font-weight: 500;
 		}
 		.field-icon {
@@ -225,7 +235,7 @@
 			display: flex;
 			align-items: center;
 		}
-		.field-icon:hover { color: #3b82f6; }
+		.field-icon:hover { color: <?= $brandColor ?>; }
 		/* keep placeholder invisible so floating label trick works */
 		.field-group input::placeholder { color: transparent; }
 
@@ -256,7 +266,7 @@
 			height: 52px;
 			border: none;
 			border-radius: 12px;
-			background: linear-gradient(135deg, #2563eb, #7c3aed);
+			background: linear-gradient(135deg, <?= $brandColor ?>, <?= $brandColorDark ?>);
 			color: #fff;
 			font-family: 'Inter', sans-serif;
 			font-size: 0.95rem;
@@ -382,7 +392,7 @@
 					<?php endif; ?>
 
 					<div style="text-align:right; margin-top:-8px; margin-bottom:16px;">
-						<a href="<?= base_url('forgot-password') ?>" style="font-size:0.8rem; color:#3b82f6; text-decoration:none;">Forgot password?</a>
+						<a href="<?= base_url('forgot-password') ?>" style="font-size:0.8rem; color:<?= $brandColor ?>; text-decoration:none;">Forgot password?</a>
 					</div>
 
 					<!-- Flash messages -->

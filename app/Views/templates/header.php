@@ -2,14 +2,26 @@
 helper('AdminAuth');
 $url = 'https://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
 $session = session();
+
+$brandColor = \Config\Database::connect('default')->table('settings')->select('brand_color')->get()->getRow(0)->brand_color ?? '#6366f1';
+if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $brandColor)) {
+  $brandColor = '#6366f1';
+}
+// A darker shade for hover/active states, derived from the chosen color
+// the same way the original hardcoded pair (#6366f1 / #4f46e5) relate —
+// each RGB channel scaled down ~20%.
+$brandColorDark = '#' . implode('', array_map(
+  fn($c) => str_pad(dechex((int) max(0, round(hexdec($c) * 0.8))), 2, '0', STR_PAD_LEFT),
+  str_split(ltrim($brandColor, '#'), 2)
+));
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title><?= $locale['site_title'] ?></title>
-  <link rel="icon" type="image/svg+xml" href="<?= base_url() ?>/public/favicon.svg">
-  <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url() ?>/public/favicon.svg">
+  <link rel="icon" type="image/png" href="<?= base_url() ?>/public/favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="<?= base_url() ?>/public/apple-touch-icon.png">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="csrf-token" content="<?= csrf_hash() ?>"><?php // CI4 CSRF token for AJAX requests ?>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -37,8 +49,8 @@ $session = session();
       --sb-active-fg: #a5b4fc;
       --sb-icon:      rgba(100,116,139,.8);
       --sb-label:     rgba(71,85,105,.75);
-      --accent:       #6366f1;
-      --accent-d:     #4f46e5;
+      --accent:       <?= $brandColor ?>;
+      --accent-d:     <?= $brandColorDark ?>;
       --page-bg:      #f0f2f5;
       --card-bg:      #ffffff;
       --border:       #e2e8f0;

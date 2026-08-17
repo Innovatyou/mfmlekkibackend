@@ -45,6 +45,9 @@ class Settings_model extends Basemodel
     if ($row && $row->donationslogo != "") {
       $row->donationslogo = $this->request_base_url() . "/uploads/churches/" . $row->donationslogo;
     }
+    if ($row && empty($row->brand_color)) {
+      $row->brand_color = '#6366f1';
+    }
     return $row;
   }
 

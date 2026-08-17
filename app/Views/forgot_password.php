@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<title>MyChurchApp — Forgot Password</title>
-	<link rel="icon" type="image/svg+xml" href="<?php echo base_url(); ?>/public/favicon.svg">
+	<link rel="icon" type="image/png" href="<?php echo base_url(); ?>/public/favicon.png">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url(); ?>/public/assets/vendors/styles/core.css">
