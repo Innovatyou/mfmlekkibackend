@@ -38,6 +38,8 @@ export interface LandingContent {
   hero_image: string;
   hero_cta_text: string;
   hero_cta_link: string;
+  hero_text_color: string;
+  hero_overlay_opacity: number;
   about_title: string;
   about_content: string;
   about_image: string;
@@ -111,12 +113,13 @@ export interface ChurchEvent {
 }
 
 export interface Sermon {
-  id: number;
+  id: number | string;
   title: string;
   type: "audio" | "video";
   category: string;
   cover_photo: string;
   source: string;
+  stream_source?: LiveStreamSource;
 }
 
 export interface GalleryImage {
@@ -214,6 +217,8 @@ export const FALLBACK_LANDING_CONTENT: LandingContentResponse = {
     hero_image: "",
     hero_cta_text: "Plan Your Visit",
     hero_cta_link: "#service-times",
+    hero_text_color: "#ffffff",
+    hero_overlay_opacity: 25,
     about_title: "Who We Are",
     about_content:
       "We're a community of believers dedicated to worship, fellowship, and service.\nOur doors — and hearts — are open to everyone, wherever you are on your journey.",
@@ -295,6 +300,11 @@ function toStr(value: unknown, fallback = ""): string {
   return String(value);
 }
 
+function toNum(value: unknown, fallback = 0): number {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
 function toArr<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
@@ -327,6 +337,8 @@ function normalizeLandingContent(raw: unknown): LandingContentResponse {
       hero_image: toStr(content.hero_image),
       hero_cta_text: toStr(content.hero_cta_text, FALLBACK_LANDING_CONTENT.content.hero_cta_text),
       hero_cta_link: toStr(content.hero_cta_link, FALLBACK_LANDING_CONTENT.content.hero_cta_link),
+      hero_text_color: toStr(content.hero_text_color, "#ffffff") || "#ffffff",
+      hero_overlay_opacity: Math.min(80, Math.max(0, toNum(content.hero_overlay_opacity, 25))),
       about_title: toStr(content.about_title, FALLBACK_LANDING_CONTENT.content.about_title),
       about_content: toStr(content.about_content, FALLBACK_LANDING_CONTENT.content.about_content),
       about_image: toStr(content.about_image),
@@ -415,12 +427,15 @@ function normalizeLandingContent(raw: unknown): LandingContentResponse {
       thumbnail: toStr(e.thumbnail),
     })),
     sermons: toArr<Record<string, unknown>>(data.sermons).map((s) => ({
-      id: Number(s.id) || 0,
+      id: typeof s.id === "string" ? s.id : Number(s.id) || 0,
       title: toStr(s.title),
       type: s.type === "audio" ? "audio" : "video",
       category: toStr(s.category),
       cover_photo: toStr(s.cover_photo),
       source: toStr(s.source),
+      stream_source: LIVE_SOURCES.includes(toStr(s.stream_source) as LiveStreamSource)
+        ? (toStr(s.stream_source) as LiveStreamSource)
+        : undefined,
     })),
     gallery: toArr<Record<string, unknown>>(data.gallery).map((g) => ({
       image: toStr(g.image),

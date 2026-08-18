@@ -72,6 +72,21 @@ class Livestream_model extends Basemodel
     return $result;
   }
 
+  public function getLatestForLanding(int $limit = 6)
+  {
+    $db = \Config\Database::connect("default");
+    $rows = $db->table('tbl_livestreams')
+      ->orderBy('id', 'DESC')
+      ->limit($limit)
+      ->get()
+      ->getResult();
+
+    foreach ($rows as $row) {
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
+    }
+    return $rows;
+  }
+
 
   public function get_total_livestreams()
   {
@@ -179,6 +194,9 @@ class Livestream_model extends Basemodel
 
   private function get_thumbnail_source($source)
   {
+    if (empty($source)) {
+      return '';
+    }
     if ($this->isValidURL($source)) {
       return $source;
     }
