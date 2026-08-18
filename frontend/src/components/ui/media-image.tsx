@@ -28,6 +28,7 @@ interface MediaImageProps {
  */
 export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: MediaImageProps) {
   const [failed, setFailed] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -38,6 +39,12 @@ export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: 
     setFailed(false);
     if (timerRef.current) window.clearTimeout(timerRef.current);
     if (!hasText(src)) return;
+
+    const image = imageRef.current;
+    if (image?.complete) {
+      setFailed(image.naturalWidth === 0);
+      return;
+    }
 
     timerRef.current = window.setTimeout(() => setFailed(true), 5000);
     return () => {
@@ -60,6 +67,7 @@ export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
+      ref={imageRef}
       src={src}
       alt={alt}
       loading={loading}
