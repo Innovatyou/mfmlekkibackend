@@ -3,6 +3,16 @@ RewriteEngine on
 RewriteCond %{HTTP:Authorization} ^(.*)
 RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
 
+# Route the Next.js frontend through CloudLinux Passenger.
+PassengerAppRoot "/home/mfmlbbcm/tmpm/frontend"
+PassengerBaseURI "/site"
+PassengerNodejs "/home/mfmlbbcm/nodevenv/tmpm/frontend/20/bin/node"
+PassengerAppType node
+PassengerStartupFile server.js
+
+# Keep the frontend mount out of CodeIgniter's PHP catch-all.
+RewriteRule ^site(?:/.*)?$ - [L]
+
 # Redirect all requests through root index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
