@@ -27,6 +27,24 @@
               <th>#</th><th>Name</th><th>Contact</th><th>Gender</th><th>Submitted</th><th style="width:170px;">Actions</th>
             </tr>
           </thead>
+          <tbody>
+            <?php foreach ($signupRequests as $index => $request): ?>
+              <tr>
+                <td><?= $index + 1 ?></td>
+                <td><?= esc(trim($request->firstname . ' ' . $request->lastname)) ?></td>
+                <td><?= esc($request->email) ?><br><span style="font-size:.75rem;color:var(--t3);"><?= esc($request->phonenumber) ?></span></td>
+                <td><?= esc($request->gender) ?></td>
+                <td><?= $request->date_inserted ? date('M j, Y g:i A', strtotime($request->date_inserted)) : '—' ?></td>
+                <td class="text-center">
+                  <div style="display:flex;gap:6px;justify-content:center;">
+                    <a href="<?= base_url('viewMember/' . $request->id) ?>" class="mp-act-btn mp-act-view" title="View"><i class="dw dw-eye"></i></a>
+                    <button type="button" data-id="<?= (int) $request->id ?>" class="mp-act-btn mp-act-approve signup-approve-btn" title="Approve"><i class="dw dw-check-circle-2"></i> Approve</button>
+                    <button type="button" data-id="<?= (int) $request->id ?>" class="mp-act-btn mp-act-reject signup-reject-btn" title="Reject"><i class="dw dw-close-circle-1"></i> Reject</button>
+                  </div>
+                </td>
+              </tr>
+            <?php endforeach; ?>
+          </tbody>
         </table>
       </div>
     </div>
@@ -46,11 +64,8 @@
 <script>
 $(document).ready(function(){
   var dt = $('#signups_table').DataTable({
-    processing: true,
-    serverSide: true,
     pageLength: 15,
     order: [[4, 'desc']],
-    ajax: { url: '<?= base_url('getSignupRequests') ?>', type: 'GET' },
     dom: "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
     language: {
       search: '', searchPlaceholder: 'Search…',
