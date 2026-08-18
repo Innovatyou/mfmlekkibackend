@@ -76,6 +76,9 @@ class LandingContent extends BaseController
             $info[$t] = $this->request->getVar($t) ? 1 : 0;
         }
 
+        if ($this->request->getVar('remove_hero_image')) {
+            $info['hero_image'] = '';
+        }
         if (!empty($_FILES['hero_image']['name'])) {
             $upload = $this->uploadLandingImage('hero_image');
             if ($upload) $info['hero_image'] = $upload;
