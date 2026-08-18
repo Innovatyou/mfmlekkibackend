@@ -59,7 +59,8 @@ class LandingApi extends BaseController
         $settings = $settingsmodel->getSettings();
         $church = $settingsmodel->getChurchProfile();
         $content = $landingcontentmodel->getContent();
-        $live = (new livestreammodel())->getCurrentLive();
+        $livestreammodel = new livestreammodel();
+        $live = $livestreammodel->getCurrentLive();
 
         return $this->json([
             'church' => [
@@ -76,7 +77,7 @@ class LandingApi extends BaseController
             'content' => $content,
             'serviceTimes' => $servicetimesmodel->fetchActive(),
             'events' => $eventsmodel->getUpcomingEvents(),
-            'sermons' => $this->getLatestSermons(6),
+            'sermons' => $this->getLatestSermons($livestreammodel, 6),
             'gallery' => $this->getGalleryImages($photosmodel, 8),
             'leadership' => $leadershipmodel->fetchActive(),
             'live' => $live ? [
@@ -247,7 +248,7 @@ class LandingApi extends BaseController
         }
     }
 
-    private function getLatestSermons(int $limit)
+    private function getLatestSermons($livestreammodel, int $limit)
     {
         $db = \Config\Database::connect('default');
         $builder = $db->table('tbl_media');
@@ -260,7 +261,19 @@ class LandingApi extends BaseController
             $res->cover_photo = $this->resolveMediaAsset($res->cover_photo, 'thumbnails');
             $res->source = $this->resolveMediaAsset($res->source, $res->type == 'video' ? 'videos' : 'audios');
         }
-        return $result;
+        $livestreams = array_map(static function ($stream) {
+            return (object) [
+                'id' => 'livestream-' . $stream->id,
+                'title' => $stream->title ?? '',
+                'type' => 'video',
+                'category' => 'Livestream',
+                'cover_photo' => $stream->cover_photo ?? '',
+                'source' => (string) ($stream->link ?? ''),
+                'stream_source' => $stream->source ?? '',
+            ];
+        }, $livestreammodel->getLatestForLanding($limit));
+
+        return array_slice(array_merge($livestreams, $result), 0, $limit);
     }
 
     private function resolveMediaAsset(?string $source, string $folder): string

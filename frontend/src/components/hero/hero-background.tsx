@@ -72,7 +72,6 @@ export function HeroBackground({
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ backgroundImage: `url(${JSON.stringify(imageUrl)})` }}
         />
-        <div className="absolute inset-0 bg-background/35" />
       </div>
     );
   }
