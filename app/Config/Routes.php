@@ -82,7 +82,7 @@ $routes->post('editLeaderData', 'LandingContent::editLeaderData', ['filter' => '
 $routes->get('deleteLeader/(:num)', 'LandingContent::deleteLeader/$1', ['filter' => 'auth']);
 
 $routes->get('signupRequests', 'LandingContent::signupRequests', ['filter' => 'auth']);
-$routes->post('getSignupRequests', 'LandingContent::getSignupRequests', ['filter' => 'auth']);
+$routes->get('getSignupRequests', 'LandingContent::getSignupRequests', ['filter' => 'auth']);
 $routes->get('approveSignupRequest/(:num)', 'LandingContent::approveSignupRequest/$1', ['filter' => 'auth']);
 $routes->get('rejectSignupRequest/(:num)', 'LandingContent::rejectSignupRequest/$1', ['filter' => 'auth']);
 

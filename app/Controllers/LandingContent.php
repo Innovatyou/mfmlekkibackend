@@ -305,10 +305,11 @@ class LandingContent extends BaseController
     public function getSignupRequests()
     {
         $model = new membersmodel();
-        $draw = intval($_POST['draw']);
-        $start = intval($_POST['start']);
-        $length = intval($_POST['length']);
-        $search = $_POST['search']['value'] ?? '';
+        $draw = (int) $this->request->getGet('draw');
+        $start = max(0, (int) $this->request->getGet('start'));
+        $length = max(1, (int) ($this->request->getGet('length') ?: 15));
+        $searchInput = $this->request->getGet('search');
+        $search = is_array($searchInput) ? ($searchInput['value'] ?? '') : '';
 
         $rows = $model->getPendingSignupsListing($search, $start, $length);
         $total = $model->getPendingSignupsTotal($search);
@@ -334,8 +335,7 @@ class LandingContent extends BaseController
             $count++;
         }
 
-        header('Content-Type: application/json');
-        echo json_encode([
+        return $this->response->setJSON([
             'draw' => $draw,
             'recordsTotal' => $total,
             'recordsFiltered' => $total,
