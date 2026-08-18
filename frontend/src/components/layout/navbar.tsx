@@ -26,6 +26,8 @@ export function Navbar({
 }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const brandName = hasText(content.header_text) ? content.header_text : church.name;
+  const brandLogo = hasText(content.header_logo) ? content.header_logo : church.logo;
 
   useEffect(() => {
     function onScroll() {
@@ -63,9 +65,9 @@ export function Navbar({
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-3">
-          <Avatar src={church.logo} name={church.name} className="h-9 w-9 shrink-0 text-sm" />
+          <Avatar src={brandLogo} name={brandName} className="h-9 w-9 shrink-0 text-sm" />
           <span className="truncate font-heading text-lg font-semibold text-foreground">
-            {church.name}
+            {brandName}
           </span>
         </Link>
 

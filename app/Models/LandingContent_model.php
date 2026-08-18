@@ -35,6 +35,8 @@ class LandingContent_model extends Basemodel
       $row->hero_image = $row->hero_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->hero_image : "";
       $row->about_image = $row->about_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->about_image : "";
       $row->seo_og_image = $row->seo_og_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->seo_og_image : "";
+      $row->header_logo = $row->header_logo != "" ? $this->request_base_url() . "uploads/landing/" . $row->header_logo : "";
+      $row->favicon_image = $row->favicon_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->favicon_image : "";
     }
 
     return $row;

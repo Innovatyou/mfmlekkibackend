@@ -15,7 +15,12 @@ export function buildMetadata(
   const name = church.name || "Our Church";
 
   const title =
-    overrides?.title || (hasText(content.seo_meta_title) ? content.seo_meta_title : `${name} | Home`);
+    overrides?.title ||
+    (hasText(content.favicon_text)
+      ? content.favicon_text
+      : hasText(content.seo_meta_title)
+        ? content.seo_meta_title
+        : `${name} | Home`);
   const description =
     overrides?.description ||
     (hasText(content.seo_meta_description)
@@ -59,6 +64,15 @@ export function buildMetadata(
       index: content.seo_robots_index,
       follow: content.seo_robots_index,
     },
+    ...(hasText(content.favicon_image)
+      ? {
+          icons: {
+            icon: content.favicon_image,
+            shortcut: content.favicon_image,
+            apple: content.favicon_image,
+          },
+        }
+      : {}),
     ...(hasText(content.seo_google_site_verification)
       ? { verification: { google: content.seo_google_site_verification } }
       : {}),

@@ -29,6 +29,10 @@ export interface SocialSettings {
 }
 
 export interface LandingContent {
+  header_logo: string;
+  header_text: string;
+  favicon_image: string;
+  favicon_text: string;
   hero_title: string;
   hero_subtitle: string;
   hero_image: string;
@@ -200,6 +204,10 @@ export const FALLBACK_LANDING_CONTENT: LandingContentResponse = {
     website: "",
   },
   content: {
+    header_logo: "",
+    header_text: "",
+    favicon_image: "",
+    favicon_text: "",
     hero_title: "You Are Welcome Here",
     hero_subtitle:
       "A warm community gathered around faith, hope, and love — join us this week.",
@@ -310,6 +318,10 @@ function normalizeLandingContent(raw: unknown): LandingContentResponse {
       website: toStr(settings.website),
     },
     content: {
+      header_logo: toStr(content.header_logo),
+      header_text: toStr(content.header_text),
+      favicon_image: toStr(content.favicon_image),
+      favicon_text: toStr(content.favicon_text),
       hero_title: toStr(content.hero_title, FALLBACK_LANDING_CONTENT.content.hero_title),
       hero_subtitle: toStr(content.hero_subtitle, FALLBACK_LANDING_CONTENT.content.hero_subtitle),
       hero_image: toStr(content.hero_image),
