@@ -299,6 +299,8 @@ class LandingContent extends BaseController
         if (!hasPermission('landing.view') && !isSuperAdmin()) {
             return $this->response->setStatusCode(403)->setBody('Access Denied');
         }
+        $model = new membersmodel();
+        $this->viewdata['signupRequests'] = $model->getPendingSignupsListing('', 0, 1000);
         return $this->view('landing_content/signups', $this->viewdata);
     }
 
