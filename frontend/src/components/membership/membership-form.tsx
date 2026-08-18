@@ -31,7 +31,6 @@ export function MembershipForm() {
     // reloadToken) work — this effect synchronizes component state with an
     // external system (the network request below), which is exactly the
     // documented, sanctioned use of setState-in-effect.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadState("loading");
     setLoadError(null);
 

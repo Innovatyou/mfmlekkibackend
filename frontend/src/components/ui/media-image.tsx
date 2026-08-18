@@ -35,7 +35,6 @@ export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: 
     // external timer system below — the documented, sanctioned use of
     // setState-in-effect (this is not derivable from render: it must reset
     // exactly when a *new* image starts loading).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFailed(false);
     if (timerRef.current) window.clearTimeout(timerRef.current);
     if (!hasText(src)) return;

@@ -4,6 +4,8 @@
  * assigns via process.env.PORT — not `next start` directly. CommonJS
  * (require/module.exports) since package.json has no "type": "module".
  */
+process.env.NODE_ENV = 'production';
+
 const { createServer } = require('http');
 const next = require('next');
 
