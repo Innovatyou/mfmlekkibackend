@@ -50,8 +50,15 @@ export function ContactSection({ content }: { content: LandingContent }) {
                 />
               )}
               {hasMap && (
-                <div className="overflow-hidden rounded-2xl border border-border [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:min-h-[280px]">
-                  <div dangerouslySetInnerHTML={{ __html: content.contact_map_embed }} />
+                <div className="overflow-hidden rounded-2xl border border-border">
+                  <iframe
+                    src={content.contact_map_embed}
+                    title="Church location"
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                    className="min-h-[280px] w-full"
+                  />
                 </div>
               )}
             </Reveal>
