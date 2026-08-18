@@ -494,7 +494,7 @@ export interface LandingContentResult {
 export async function getLandingContent(): Promise<LandingContentResult> {
   try {
     const res = await fetch(`${API_URL}/api/landingContent`, {
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
     if (!res.ok) {
       throw new Error(`Request failed with status ${res.status}`);

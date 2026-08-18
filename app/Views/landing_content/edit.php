@@ -109,6 +109,10 @@
                   <label class="nf-label">Background Image</label>
                   <?php if(!empty($content->hero_image)):?>
                     <div style="margin-bottom:10px;"><img src="<?=esc($content->hero_image)?>" style="max-width:220px;border-radius:10px;"></div>
+                    <label style="display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;color:#b42318;font-size:.82rem;font-weight:600;cursor:pointer;">
+                      <input type="checkbox" name="remove_hero_image" value="1">
+                      Remove current background image
+                    </label>
                   <?php endif;?>
                   <label class="nf-upload-zone" style="display:block;" onclick="document.getElementById('hero-image-input').click()">
                     <div class="nf-upload-icon"><i class="dw dw-upload"></i></div>
