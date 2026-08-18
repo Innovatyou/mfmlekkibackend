@@ -41,7 +41,7 @@ class LandingContent extends BaseController
 
     public function update()
     {
-        if (!hasPermission('landing.edit') && !isSuperAdmin()) {
+        if (!hasPermission('landing.view') && !isSuperAdmin()) {
             return $this->response->setStatusCode(403)->setBody('Access Denied');
         }
 
