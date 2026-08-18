@@ -49,6 +49,7 @@ class LandingContent extends BaseController
 
         $fields = [
             'hero_title', 'hero_subtitle', 'hero_cta_text', 'hero_cta_link',
+            'hero_text_color', 'hero_overlay_opacity',
             'about_title', 'about_content',
             'service_times_title', 'service_times_subtitle',
             'events_title', 'events_subtitle',
@@ -345,9 +346,43 @@ class LandingContent extends BaseController
     public function approveSignupRequest($id = 0)
     {
         $model = new membersmodel();
+        $member = $model->getMemberInfo($id);
         $model->approveSignup($id);
+        if ($model->status === $model->applocal['ok'] && $member && !empty($member->email)) {
+            $this->sendSignupApprovalEmail($member);
+        }
         $this->session->setFlashdata('success', $model->message);
         return redirect()->to(base_url('signupRequests'));
+    }
+
+    private function sendSignupApprovalEmail($member): void
+    {
+        try {
+            $settingsmodel = new settingsmodel();
+            $church = $settingsmodel->getChurchProfile();
+            $emailconfig = $settingsmodel->getEmailConfig();
+            if (!$church || !$emailconfig || empty($emailconfig->mail_username)) {
+                return;
+            }
+
+            $content = (new landingcontentmodel())->getContent();
+            $registrationUrl = rtrim($content->web_app_url, '/') . '/?register=1';
+            $name = trim(($member->firstname ?? '') . ' ' . ($member->lastname ?? ''));
+            $htmlContent = '<p>Hi ' . esc($name ?: 'Member') . ',</p>'
+                . '<p>Your membership request has been approved.</p>'
+                . '<p><a href="' . esc($registrationUrl) . '" style="display:inline-block;padding:12px 20px;background:#8f005c;color:#fff;text-decoration:none;border-radius:6px;">Register for the Member Web App</a></p>'
+                . '<p>Use your approved email address when creating your account.</p>';
+
+            $this->sendEmail(
+                'no-reply',
+                $emailconfig,
+                $member->email,
+                'Your membership request has been approved',
+                $this->getChurchEmailTemplate($church->fullname, $htmlContent)
+            );
+        } catch (\Throwable $exception) {
+            log_message('error', 'Signup approval email failed: ' . $exception->getMessage());
+        }
     }
 
     public function rejectSignupRequest($id = 0)
