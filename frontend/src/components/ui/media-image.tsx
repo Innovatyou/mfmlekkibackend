@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { hasText } from "@/lib/utils";
 
 interface MediaImageProps {
@@ -28,8 +28,6 @@ interface MediaImageProps {
  */
 export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: MediaImageProps) {
   const [failed, setFailed] = useState(false);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Resets watchdog state whenever `src` changes, synchronizing with the
@@ -37,28 +35,7 @@ export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: 
     // setState-in-effect (this is not derivable from render: it must reset
     // exactly when a *new* image starts loading).
     setFailed(false);
-    if (timerRef.current) window.clearTimeout(timerRef.current);
-    if (!hasText(src)) return;
-
-    const image = imageRef.current;
-    if (image?.complete) {
-      setFailed(image.naturalWidth === 0);
-      return;
-    }
-
-    timerRef.current = window.setTimeout(() => setFailed(true), 5000);
-    return () => {
-      if (timerRef.current) window.clearTimeout(timerRef.current);
-    };
   }, [src]);
-
-  function settle(isFailed: boolean) {
-    if (timerRef.current) {
-      window.clearTimeout(timerRef.current);
-      timerRef.current = null;
-    }
-    setFailed(isFailed);
-  }
 
   if (!hasText(src) || failed) {
     return <>{fallback}</>;
@@ -67,13 +44,12 @@ export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: 
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      ref={imageRef}
       src={src}
       alt={alt}
       loading={loading}
       className={className}
-      onLoad={(e) => settle(e.currentTarget.naturalWidth === 0)}
-      onError={() => settle(true)}
+      onLoad={() => setFailed(false)}
+      onError={() => setFailed(true)}
     />
   );
 }
