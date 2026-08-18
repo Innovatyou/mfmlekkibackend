@@ -41,6 +41,10 @@ class LandingContent_model extends Basemodel
       $row->favicon_image = $faviconImage !== "" ? $this->request_base_url() . "uploads/landing/" . $faviconImage : "";
       $row->header_text = $row->header_text ?? "";
       $row->favicon_text = $row->favicon_text ?? "";
+      $mapEmbed = $row->contact_map_embed ?? "";
+      if (preg_match('/<iframe[^>]+src=["\']([^"\']+)["\']/i', $mapEmbed, $matches)) {
+        $row->contact_map_embed = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+      }
     }
 
     return $row;

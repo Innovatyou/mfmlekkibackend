@@ -276,7 +276,7 @@
                 </div>
                 <div>
                   <label class="nf-label">Map Embed (optional)</label>
-                  <textarea name="contact_map_embed" class="nf-input" rows="3" placeholder="Paste a Google Maps <iframe> embed code"><?= esc($content->contact_map_embed) ?></textarea>
+                  <input type="url" id="contact_map_embed" name="contact_map_embed" class="nf-input" value="<?= esc($content->contact_map_embed) ?>" placeholder="https://www.google.com/maps/embed?pb=...">
                   <p class="nf-setting-hint">From Google Maps: Share → Embed a map → copy the &lt;iframe&gt; code</p>
                 </div>
               </div>
@@ -558,6 +558,18 @@
 (function(){
   var tabs = document.querySelectorAll('.st-nav-item');
   var panels = document.querySelectorAll('.st-panel');
+  var mapEmbed = document.getElementById('contact_map_embed');
+
+  if (mapEmbed) {
+    mapEmbed.addEventListener('paste', function(event) {
+      var pasted = event.clipboardData.getData('text');
+      var match = pasted.match(/<iframe[^>]+src=["']([^"']+)["']/i);
+      if (match) {
+        event.preventDefault();
+        mapEmbed.value = match[1].replace(/&amp;/g, '&');
+      }
+    });
+  }
 
   function activate(tabId) {
     tabs.forEach(function(t){ t.classList.toggle('active', t.dataset.tab === tabId); });
