@@ -105,20 +105,6 @@
                     <input type="text" name="hero_cta_link" class="nf-input" value="<?= esc($content->hero_cta_link) ?>" placeholder="#service-times">
                   </div>
                 </div>
-                <div class="nf-row" style="margin-bottom:16px;">
-                  <div class="nf-col-half">
-                    <label class="nf-label">Hero Text Colour</label>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                      <input type="color" name="hero_text_color" value="<?= esc($content->hero_text_color ?? '#ffffff') ?>" style="width:44px;height:38px;border:1.5px solid var(--border);border-radius:8px;padding:2px;">
-                      <span class="nf-setting-hint" style="margin:0;">Headline and subtitle colour</span>
-                    </div>
-                  </div>
-                  <div class="nf-col-half">
-                    <label class="nf-label">Background Overlay Strength</label>
-                    <input type="range" name="hero_overlay_opacity" min="0" max="80" step="5" value="<?= (int) ($content->hero_overlay_opacity ?? 25) ?>" style="width:100%;">
-                    <span class="nf-setting-hint">0 keeps the image clear; increase it for stronger text contrast.</span>
-                  </div>
-                </div>
                 <div>
                   <label class="nf-label">Background Image</label>
                   <?php if(!empty($content->hero_image)):?>

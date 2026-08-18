@@ -12,14 +12,8 @@ export function HeroSection({ content }: { content: LandingContent }) {
         <HeroBackground primaryColor={content.primary_color} imageUrl={content.hero_image} />
       </div>
 
-      {content.hero_image ? (
-        <div
-          className="pointer-events-none absolute inset-0 z-[1]"
-          style={{ backgroundColor: `rgba(0, 0, 0, ${content.hero_overlay_opacity / 100})` }}
-        />
-      ) : (
-        <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background via-background/40 to-background/10" />
-      )}
+      {/* Legibility scrim, theme-aware */}
+      <div className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-background via-background/40 to-background/10" />
 
       <div className="relative z-10 mx-auto w-full max-w-4xl px-4 py-32 text-center sm:px-6 lg:px-8">
         <motion.div
@@ -27,11 +21,10 @@ export function HeroSection({ content }: { content: LandingContent }) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.7 }}
           className="mb-7 flex items-center justify-center gap-3"
-          style={{ color: content.hero_text_color }}
           aria-hidden="true"
         >
           <span className="h-px w-10 bg-[color-mix(in_srgb,var(--primary)_55%,transparent)]" />
-          <OrnamentIcon className="h-4 w-4" />
+          <OrnamentIcon className="h-4 w-4 text-[var(--primary)]" />
           <span className="h-px w-10 bg-[color-mix(in_srgb,var(--primary)_55%,transparent)]" />
         </motion.div>
         <motion.h1
@@ -39,7 +32,6 @@ export function HeroSection({ content }: { content: LandingContent }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
           className="text-balance font-heading text-4xl font-semibold leading-[1.08] text-foreground sm:text-5xl md:text-[3.75rem]"
-          style={{ color: content.hero_text_color }}
         >
           {content.hero_title}
         </motion.h1>
@@ -48,7 +40,6 @@ export function HeroSection({ content }: { content: LandingContent }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
           className="mx-auto mt-6 max-w-2xl text-balance text-lg text-muted-foreground sm:text-xl"
-          style={{ color: content.hero_text_color }}
         >
           {content.hero_subtitle}
         </motion.p>

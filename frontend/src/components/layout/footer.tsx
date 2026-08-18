@@ -1,6 +1,5 @@
 import type { Church, LandingContent, SocialSettings } from "@/lib/api";
 import { API_URL } from "@/lib/api";
-import { MediaImage } from "@/components/ui/media-image";
 import { hasText } from "@/lib/utils";
 
 const SOCIAL_ICONS: Record<keyof SocialSettings, (props: { className?: string }) => React.ReactElement> = {
@@ -46,7 +45,6 @@ export function Footer({
   content: LandingContent;
 }) {
   const year = new Date().getFullYear();
-  const brandLogo = hasText(content.header_logo) ? content.header_logo : church.logo;
   const socialEntries = (Object.keys(settings) as (keyof SocialSettings)[]).filter((key) =>
     hasText(settings[key])
   );
@@ -54,14 +52,7 @@ export function Footer({
   return (
     <footer className="border-t border-border bg-surface">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-4 py-10 text-center sm:px-6 lg:px-8">
-        {hasText(brandLogo) && (
-          <MediaImage
-            src={brandLogo}
-            alt={`${church.name} logo`}
-            className="max-h-20 w-auto max-w-56 object-contain"
-            fallback={null}
-          />
-        )}
+        <span className="font-heading text-lg font-semibold text-foreground">{church.name}</span>
 
         {socialEntries.length > 0 && (
           <div className="flex items-center gap-3">

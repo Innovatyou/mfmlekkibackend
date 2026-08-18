@@ -41,17 +41,10 @@ class LandingContent_model extends Basemodel
       $row->favicon_image = $faviconImage !== "" ? $this->request_base_url() . "uploads/landing/" . $faviconImage : "";
       $row->header_text = $row->header_text ?? "";
       $row->favicon_text = $row->favicon_text ?? "";
-      $row->hero_text_color = $row->hero_text_color ?? "#ffffff";
-      $row->hero_overlay_opacity = $row->hero_overlay_opacity ?? 25;
       $mapEmbed = $row->contact_map_embed ?? "";
       if (preg_match('/<iframe[^>]+src=["\']([^"\']+)["\']/i', $mapEmbed, $matches)) {
         $row->contact_map_embed = html_entity_decode($matches[1], ENT_QUOTES | ENT_HTML5, 'UTF-8');
       }
-      $row->web_app_url = $row->web_app_url ?? "";
-      if ($row->web_app_url === "") {
-        $row->web_app_url = env('WEB_APP_URL') ?: base_url('web/');
-      }
-      $row->web_app_login_text = $row->web_app_login_text ?? "Member Login";
     }
 
     return $row;
