@@ -451,10 +451,40 @@
           <!-- ══ Branding ══ -->
           <div class="st-panel" id="tab-branding">
             <div class="st-panel-head">
-              <div><h2 class="st-panel-title">Branding &amp; Footer</h2><p class="st-panel-sub">Colours and footer text for the public website</p></div>
+              <div><h2 class="st-panel-title">Branding &amp; Footer</h2><p class="st-panel-sub">Header identity, browser tab, colours and footer text</p></div>
             </div>
             <div class="nf-card">
               <div class="nf-card-body">
+                <div class="nf-row" style="margin-bottom:16px;">
+                  <div class="nf-col-half">
+                    <label class="nf-label">Landing Page Header Text</label>
+                    <input type="text" name="header_text" class="nf-input" value="<?= esc($content->header_text ?? '') ?>" placeholder="<?= esc($content->header_text ?: 'Your Church Name') ?>">
+                    <span class="nf-setting-hint">Shown beside the logo in the website header.</span>
+                  </div>
+                  <div class="nf-col-half">
+                    <label class="nf-label">Browser Tab Text</label>
+                    <input type="text" name="favicon_text" class="nf-input" value="<?= esc($content->favicon_text ?? '') ?>" placeholder="Your Church | Home">
+                    <span class="nf-setting-hint">Used as the browser-tab title.</span>
+                  </div>
+                </div>
+                <div class="nf-row" style="margin-bottom:16px;">
+                  <div class="nf-col-half">
+                    <label class="nf-label">Landing Page Header Logo</label>
+                    <?php if(!empty($content->header_logo)):?>
+                      <div style="margin-bottom:10px;"><img src="<?= esc($content->header_logo) ?>" style="width:64px;height:64px;object-fit:cover;border-radius:50%;"></div>
+                    <?php endif;?>
+                    <input type="file" name="header_logo" class="nf-input" accept=".jpg,.jpeg,.png,.webp">
+                    <span class="nf-setting-hint">Square PNG or WEBP recommended.</span>
+                  </div>
+                  <div class="nf-col-half">
+                    <label class="nf-label">Favicon Logo</label>
+                    <?php if(!empty($content->favicon_image)):?>
+                      <div style="margin-bottom:10px;"><img src="<?= esc($content->favicon_image) ?>" style="width:48px;height:48px;object-fit:contain;"></div>
+                    <?php endif;?>
+                    <input type="file" name="favicon_image" class="nf-input" accept=".jpg,.jpeg,.png,.webp">
+                    <span class="nf-setting-hint">Square image displayed in the browser tab.</span>
+                  </div>
+                </div>
                 <div style="margin-bottom:16px;">
                   <label class="nf-label">Primary Colour</label>
                   <div style="display:flex;align-items:center;gap:10px;">

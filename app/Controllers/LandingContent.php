@@ -59,7 +59,7 @@ class LandingContent extends BaseController
             'contact_title', 'contact_address', 'contact_phone', 'contact_email', 'contact_map_embed',
             'contact_form_title', 'contact_form_subtitle', 'contact_notification_email',
             'signup_title', 'signup_subtitle',
-            'footer_text', 'primary_color',
+            'footer_text', 'primary_color', 'header_text', 'favicon_text',
             'web_app_url', 'web_app_login_text',
             'android_app_url', 'ios_app_url',
             'app_download_title', 'app_download_subtitle',
@@ -87,6 +87,14 @@ class LandingContent extends BaseController
         if (!empty($_FILES['seo_og_image']['name'])) {
             $upload = $this->uploadLandingImage('seo_og_image');
             if ($upload) $info['seo_og_image'] = $upload;
+        }
+        if (!empty($_FILES['header_logo']['name'])) {
+            $upload = $this->uploadLandingImage('header_logo');
+            if ($upload) $info['header_logo'] = $upload;
+        }
+        if (!empty($_FILES['favicon_image']['name'])) {
+            $upload = $this->uploadLandingImage('favicon_image');
+            if ($upload) $info['favicon_image'] = $upload;
         }
 
         $model->updateContent($info);

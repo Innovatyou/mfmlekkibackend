@@ -9,7 +9,7 @@ export function HeroSection({ content }: { content: LandingContent }) {
   return (
     <section className="relative flex min-h-[92vh] w-full items-center overflow-hidden bg-background">
       <div className="absolute inset-0 z-0">
-        <HeroBackground primaryColor={content.primary_color} />
+        <HeroBackground primaryColor={content.primary_color} imageUrl={content.hero_image} />
       </div>
 
       {/* Legibility scrim, theme-aware */}

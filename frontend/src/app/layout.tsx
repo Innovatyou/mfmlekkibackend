@@ -33,6 +33,7 @@ export default async function RootLayout({
   const { data } = await getLandingContent();
   const primaryColor = data.content.primary_color;
   const gaId = data.content.seo_google_analytics_id;
+  const favicon = data.content.favicon_image;
   const hasAnalytics = isValidAnalyticsId(gaId);
 
   return (
@@ -43,6 +44,13 @@ export default async function RootLayout({
       className={`${fraunces.variable} ${inter.variable}`}
       style={{ ["--primary" as string]: primaryColor }}
     >
+      {favicon && (
+        <head>
+          <link rel="icon" href={favicon} />
+          <link rel="shortcut icon" href={favicon} />
+          <link rel="apple-touch-icon" href={favicon} />
+        </head>
+      )}
       <body className="min-h-screen bg-background text-foreground antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}

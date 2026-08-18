@@ -56,8 +56,26 @@ function GradientFallback() {
  * tree in an error boundary so a driver/browser failure never breaks the
  * page — it just quietly falls back to a themed gradient.
  */
-export function HeroBackground({ primaryColor }: { primaryColor: string }) {
+export function HeroBackground({
+  primaryColor,
+  imageUrl,
+}: {
+  primaryColor: string;
+  imageUrl?: string;
+}) {
   const webglOk = useClientValue(supportsWebGL, false);
+
+  if (imageUrl?.trim()) {
+    return (
+      <div className="absolute inset-0 bg-background">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${JSON.stringify(imageUrl)})` }}
+        />
+        <div className="absolute inset-0 bg-background/35" />
+      </div>
+    );
+  }
 
   if (!webglOk) {
     return <GradientFallback />;
