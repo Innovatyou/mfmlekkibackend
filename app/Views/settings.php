@@ -134,11 +134,13 @@
                 <div class="row">
                   <div class="col-md-6"><label class="nf-label">App Name</label><input type="text" name="mobile_app_name" class="nf-input" value="<?= esc($settings->mobile_app_name ?? '') ?>" placeholder="<?= esc($settings->churchname ?: 'Church App') ?>"></div>
                   <div class="col-md-6">
-                    <label class="nf-label">Logo URL</label>
+                    <label class="nf-label">Logo URL (optional)</label>
                     <input type="url" name="mobile_logo_url" class="nf-input" value="<?= esc($settings->mobile_logo_url ?? '') ?>" placeholder="https://example.org/logo.png">
-                    <label class="nf-label" style="margin-top:10px;">Or Upload Logo</label>
-                    <input type="file" name="mobile_logo_file" class="nf-input" accept="image/jpeg,image/png,image/webp">
-                    <small>JPG, PNG or WEBP, maximum 5 MB. Uploading replaces the Logo URL.</small>
+                    <div style="margin-top:12px;padding:16px;border:2px dashed #cbd5e1;border-radius:12px;background:#f8fafc;">
+                      <label class="nf-label" for="mobile-logo-file">Upload Logo From Device</label>
+                      <input id="mobile-logo-file" type="file" name="mobile_logo_file" class="nf-input" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                      <small style="display:block;margin-top:6px;">JPG, PNG or WEBP, maximum 5 MB. A selected file replaces the Logo URL.</small>
+                    </div>
                     <?php if (!empty($settings->mobile_logo_url)): ?>
                       <div style="margin-top:10px;"><img src="<?= esc($settings->mobile_logo_url) ?>" alt="Current mobile app logo" style="width:72px;height:72px;object-fit:contain;border-radius:14px;border:1px solid #e2e8f0;"></div>
                     <?php endif; ?>
