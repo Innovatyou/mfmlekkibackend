@@ -66,6 +66,8 @@ class Settings_model extends Basemodel
       settings.mobile_tagline,
       settings.mobile_header_color,
       settings.mobile_chat_background_color,
+      settings.mobile_surface_color,
+      settings.mobile_text_color,
       settings.mobile_logo_url,
       settings.allow_downloads,
       settings.join_groups,
