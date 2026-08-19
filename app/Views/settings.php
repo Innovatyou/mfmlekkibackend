@@ -133,7 +133,16 @@
               <div class="nf-card-body">
                 <div class="row">
                   <div class="col-md-6"><label class="nf-label">App Name</label><input type="text" name="mobile_app_name" class="nf-input" value="<?= esc($settings->mobile_app_name ?? '') ?>" placeholder="<?= esc($settings->churchname ?: 'Church App') ?>"></div>
-                  <div class="col-md-6"><label class="nf-label">Logo URL</label><input type="url" name="mobile_logo_url" class="nf-input" value="<?= esc($settings->mobile_logo_url ?? '') ?>" placeholder="https://example.org/logo.png"></div>
+                  <div class="col-md-6">
+                    <label class="nf-label">Logo URL</label>
+                    <input type="url" name="mobile_logo_url" class="nf-input" value="<?= esc($settings->mobile_logo_url ?? '') ?>" placeholder="https://example.org/logo.png">
+                    <label class="nf-label" style="margin-top:10px;">Or Upload Logo</label>
+                    <input type="file" name="mobile_logo_file" class="nf-input" accept="image/jpeg,image/png,image/webp">
+                    <small>JPG, PNG or WEBP, maximum 5 MB. Uploading replaces the Logo URL.</small>
+                    <?php if (!empty($settings->mobile_logo_url)): ?>
+                      <div style="margin-top:10px;"><img src="<?= esc($settings->mobile_logo_url) ?>" alt="Current mobile app logo" style="width:72px;height:72px;object-fit:contain;border-radius:14px;border:1px solid #e2e8f0;"></div>
+                    <?php endif; ?>
+                  </div>
                 </div>
                 <div class="row" style="margin-top:14px;">
                   <div class="col-md-12"><label class="nf-label">App Tagline</label><input type="text" name="mobile_tagline" class="nf-input" maxlength="160" value="<?= esc($settings->mobile_tagline ?? 'Towards global evangelism') ?>"></div>

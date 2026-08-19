@@ -109,6 +109,16 @@ class Settings extends BaseController
       }
     }
 
+    $mobileLogo = $this->request->getFile('mobile_logo_file');
+    if ($mobileLogo && $mobileLogo->getError() !== UPLOAD_ERR_NO_FILE) {
+      $upload = $this->uploadMobileLogo($mobileLogo);
+      if ($upload[0] !== 'ok') {
+        $session->setFlashdata('error', $upload[1]);
+        return redirect()->to(base_url() . '/settings#tab-general');
+      }
+      $data['mobile_logo_url'] = $upload[1];
+    }
+
     $settingsmodel = new settingsmodel();
     $settingsmodel->updateSettings($data);
 
@@ -174,5 +184,24 @@ class Settings extends BaseController
       ];
       return ['ok', $img->getName()];
     }
+  }
+
+  private function uploadMobileLogo($logo)
+  {
+    if (!$logo->isValid()) return ['error', $logo->getErrorString()];
+    $allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!in_array($logo->getMimeType(), $allowed, true)) {
+      return ['error', 'Mobile app logo must be a JPG, PNG, or WEBP image.'];
+    }
+    if ($logo->getSize() > 5 * 1024 * 1024) {
+      return ['error', 'Mobile app logo must not exceed 5 MB.'];
+    }
+    $directory = FCPATH . 'uploads/mobile-branding';
+    if (!is_dir($directory) && !mkdir($directory, 0755, true)) {
+      return ['error', 'Unable to create the mobile branding upload directory.'];
+    }
+    $name = $logo->getRandomName();
+    $logo->move($directory, $name);
+    return ['ok', base_url('uploads/mobile-branding/' . $name)];
   }
 }

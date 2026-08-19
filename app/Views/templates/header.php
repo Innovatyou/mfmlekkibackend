@@ -427,6 +427,12 @@ if ('serviceWorker' in navigator) {
           </a>
         </li>
 
+        <li>
+          <a href="<?= base_url() ?>/mobileAdverts" class="dropdown-toggle no-arrow <?= strpos(strtolower($url), 'mobileadverts') !== false ? 'active' : '' ?>">
+            <span class="micon dw dw-image"></span><span class="mtext">Mobile Adverts</span>
+          </a>
+        </li>
+
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'landingcontent') !== false || strpos(strtolower($url), 'servicetimes') !== false || strpos(strtolower($url), 'leadership') !== false || strpos(strtolower($url), 'signuprequests') !== false || strpos(strtolower($url), 'membershipform') !== false || strpos(strtolower($url), 'contactmessage') !== false) ? 'active' : '' ?>">
             <span class="micon dw dw-browser"></span><span class="mtext">Website</span>

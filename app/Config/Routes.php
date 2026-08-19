@@ -534,6 +534,11 @@ $routes->post('admin/users/assignRole/(:num)', 'AdminUsers::assignRole/$1', ['fi
 // Note: admin/users/view route is defined in the grouped routes section above
 
 //other pages
+$routes->get('mobileAdverts', 'MobileAdverts::index', ['filter' => 'auth']);
+$routes->post('mobileAdverts/store', 'MobileAdverts::store', ['filter' => 'auth']);
+$routes->get('mobileAdverts/toggle/(:num)', 'MobileAdverts::toggle/$1', ['filter' => 'auth']);
+$routes->get('mobileAdverts/delete/(:num)', 'MobileAdverts::delete/$1', ['filter' => 'auth']);
+$routes->get('mobile-adverts/feed', 'MobileAdverts::feed');
 $routes->get('terms', 'Settings::terms');
 $routes->get('privacy', 'Settings::privacy');
 $routes->get('aboutus', 'Settings::aboutus');
