@@ -77,6 +77,10 @@
                 <div class="nf-feat-grid">
                   <?php
                   $featureList = [
+                    'marketplace'   => ['Marketplace',      'dw-shopping-cart'],
+                    'counseling'    => ['Counseling',       'dw-chat-3'],
+                    'wellness'      => ['Wellness',         'dw-heart-1'],
+                    'partnership'   => ['Partnership',      'dw-handshake'],
                     'audiomessages' => ['Audio Messages',   'dw-music'],
                     'videomessages' => ['Video Messages',   'dw-video-1'],
                     'donations'     => ['Donations',        'dw-heart'],
@@ -121,6 +125,19 @@
               <div>
                 <h2 class="st-panel-title">General Settings</h2>
                 <p class="st-panel-sub">App behaviour, content permissions and member controls</p>
+              </div>
+            </div>
+
+            <div class="nf-card" style="margin-bottom:16px;">
+              <div class="nf-card-head"><h3 class="nf-card-title">Mobile App Availability</h3><p class="nf-card-sub">Hide or show the entire member app</p></div>
+              <div class="nf-card-body">
+                <div class="st-toggle-row">
+                  <div><p class="st-toggle-label">Mobile app enabled</p><p class="st-toggle-hint">Hidden prevents members from opening app modules.</p></div>
+                  <select name="mobile_app_enabled" class="nf-input st-inline-select">
+                    <option value="1" <?= ($settings->mobile_app_enabled ?? 1)==1?'selected':'' ?>>Visible</option>
+                    <option value="0" <?= ($settings->mobile_app_enabled ?? 1)==0?'selected':'' ?>>Hidden</option>
+                  </select>
+                </div>
               </div>
             </div>
 

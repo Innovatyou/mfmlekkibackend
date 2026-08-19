@@ -57,6 +57,7 @@ class Settings_model extends Basemodel
     $builder = $db->table('settings');
     $builder->select('settings.features,
       settings.app_login,
+      settings.mobile_app_enabled,
       settings.allow_downloads,
       settings.join_groups,
       settings.post_prayer,
