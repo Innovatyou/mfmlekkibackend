@@ -65,7 +65,7 @@ class BaseController extends Controller
 		$origin = $request->getHeaderLine('Origin') ?: '*';
 		header('Access-Control-Allow-Origin: ' . $origin);
 		header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-		header('Access-Control-Allow-Headers: Content-Type, Authorization');
+		header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Mobile-Token');
 		header('Access-Control-Max-Age: 86400');
 		header('Vary: Origin');
 

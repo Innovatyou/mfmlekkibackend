@@ -99,8 +99,9 @@
                     'devotionals'   => ['Devotionals',      'dw-bookmark'],
                     'gosocial'      => ['Go Social',        'dw-share'],
                   ];
+                  $enabledFeatures = array_filter(array_map('trim', explode(',', (string) $settings->features)));
                   foreach ($featureList as $key => [$label, $icon]):
-                    $checked = strpos($settings->features, $key) !== false ? 'checked' : '';
+                    $checked = in_array($key, $enabledFeatures, true) ? 'checked' : '';
                   ?>
                   <label class="nf-feat-item">
                     <input type="checkbox" name="features[]['<?= $key ?>']" value="<?= $key ?>" <?= $checked ?>>

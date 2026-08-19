@@ -39,9 +39,26 @@ class MobileTokenAuth implements FilterInterface
 
     private function extractToken(RequestInterface $request): ?string
     {
-        $header = $request->getServer('HTTP_AUTHORIZATION');
+        $directToken = trim($request->getHeaderLine('X-Mobile-Token'));
+        if ($directToken !== '') {
+            return $directToken;
+        }
+
+        $header = $request->getHeaderLine('Authorization');
+        if (!$header) {
+            $header = $request->getServer('HTTP_AUTHORIZATION')
+                ?: $request->getServer('REDIRECT_HTTP_AUTHORIZATION');
+        }
         if (!$header && function_exists('getallheaders')) {
-            $header = getallheaders()['Authorization'] ?? null;
+            foreach (getallheaders() as $name => $value) {
+                if (strcasecmp($name, 'Authorization') === 0) {
+                    $header = $value;
+                    break;
+                }
+                if (strcasecmp($name, 'X-Mobile-Token') === 0 && trim($value) !== '') {
+                    return trim($value);
+                }
+            }
         }
         if ($header && preg_match('/Bearer\s+(\S+)/i', $header, $matches)) {
             return $matches[1];
