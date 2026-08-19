@@ -3,7 +3,17 @@ helper('AdminAuth');
 $url = 'https://' . $_SERVER['SERVER_NAME'] . $_SERVER['REQUEST_URI'];
 $session = session();
 
-$brandColor = \Config\Database::connect('default')->table('settings')->select('brand_color')->get()->getRow(0)->brand_color ?? '#6366f1';
+$adminBranding = \Config\Database::connect('default')->table('settings')
+  ->select('brand_color, churchname, mobile_app_name, mobile_logo_url, donationslogo')
+  ->get()->getRow(0);
+$brandColor = $adminBranding->brand_color ?? '#6366f1';
+$sidebarChurchName = trim((string) ($adminBranding->churchname ?? ''));
+if ($sidebarChurchName === '') $sidebarChurchName = trim((string) ($adminBranding->mobile_app_name ?? ''));
+if ($sidebarChurchName === '') $sidebarChurchName = 'MyChurchApp';
+$sidebarLogo = trim((string) ($adminBranding->mobile_logo_url ?? ''));
+if ($sidebarLogo === '' && !empty($adminBranding->donationslogo)) {
+  $sidebarLogo = base_url('uploads/churches/' . ltrim((string) $adminBranding->donationslogo, '/'));
+}
 if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $brandColor)) {
   $brandColor = '#6366f1';
 }
@@ -104,6 +114,8 @@ $brandColorDark = '#' . implode('', array_map(
       display: flex; align-items: center; justify-content: center;
       color: #fff;
     }
+    .sb-brand-icon.has-logo { background:#fff; overflow:hidden; }
+    .sb-brand-icon img { width:100%; height:100%; object-fit:contain; padding:2px; }
 
     /* ── Nav items (framework keeps position:absolute micon — don't change display/padding) ── */
     .sidebar-menu .dropdown-toggle {
@@ -378,13 +390,17 @@ if ('serviceWorker' in navigator) {
 <div class="left-side-bar">
   <div class="brand-logo">
     <a href="<?= base_url() ?>/dashboard">
-      <span class="sb-brand-icon">
+      <span class="sb-brand-icon<?= $sidebarLogo !== '' ? ' has-logo' : '' ?>">
+        <?php if ($sidebarLogo !== ''): ?>
+          <img src="<?= esc($sidebarLogo) ?>" alt="<?= esc($sidebarChurchName) ?> logo">
+        <?php else: ?>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
           <polyline points="9,22 9,12 15,12 15,22"/>
         </svg>
+        <?php endif; ?>
       </span>
-      <span>MyChurchApp</span>
+      <span><?= esc($sidebarChurchName) ?></span>
     </a>
     <div class="close-sidebar" data-toggle="left-sidebar-close">
       <i class="ion-close-round"></i>

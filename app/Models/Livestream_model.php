@@ -36,7 +36,7 @@ class Livestream_model extends Basemodel
     $builder->limit(1);
     $row = $builder->get()->getRow(0);
     if ($row) {
-      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo, $row->link ?? '');
     }
     return $row;
   }
@@ -56,7 +56,7 @@ class Livestream_model extends Basemodel
     $query = $builder->get();
     $result = $query->getResult();
     foreach ($result as $row) {
-      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo, $row->link ?? '');
     }
     return $result;
   }
@@ -82,7 +82,7 @@ class Livestream_model extends Basemodel
       ->getResult();
 
     foreach ($rows as $row) {
-      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo, $row->link ?? '');
     }
     return $rows;
   }
@@ -165,7 +165,7 @@ class Livestream_model extends Basemodel
     $query = $builder->get();
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
-      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo);
+      $row->cover_photo = $this->get_thumbnail_source($row->cover_photo, $row->link ?? '');
     }
     return $row;
   }
@@ -192,15 +192,29 @@ class Livestream_model extends Basemodel
     }
   }
 
-  private function get_thumbnail_source($source)
+  private function get_thumbnail_source($source, $link = '')
   {
     if (empty($source)) {
-      return '';
+      $youtubeId = $this->youtubeVideoId($link);
+      return $youtubeId ? 'https://i.ytimg.com/vi/' . $youtubeId . '/hqdefault.jpg' : '';
     }
     if ($this->isValidURL($source)) {
       return $source;
     }
     return $this->request_base_url() . "uploads/thumbnails/" . $source;
+  }
+
+  private function youtubeVideoId($url)
+  {
+    if (!is_string($url) || trim($url) === '') return null;
+    $patterns = [
+      '~youtu\.be/([A-Za-z0-9_-]{6,})~',
+      '~youtube(?:-nocookie)?\.com/(?:watch\?.*?v=|embed/|shorts/|live/)([A-Za-z0-9_-]{6,})~',
+    ];
+    foreach ($patterns as $pattern) {
+      if (preg_match($pattern, $url, $matches)) return $matches[1];
+    }
+    return null;
   }
 
   function isValidURL($url)
