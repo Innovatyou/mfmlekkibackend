@@ -201,7 +201,36 @@ class Livestream_model extends Basemodel
     if ($this->isValidURL($source)) {
       return $source;
     }
-    return $this->request_base_url() . "uploads/thumbnails/" . $source;
+
+    $relativePath = ltrim(str_replace('\\', '/', trim((string) $source)), '/');
+    $relativePath = preg_replace('~^(?:tmpm/)?uploads/thumbnails/~i', '', $relativePath);
+    $thumbnailRoot = rtrim(FCPATH, '/\\') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'thumbnails';
+
+    if ($this->thumbnailExists($thumbnailRoot, $relativePath)) {
+      return $this->thumbnailUrl($relativePath);
+    }
+
+    $purchaseCode = trim((string) env('PURCHASE_CODE', ''));
+    if ($purchaseCode !== '') {
+      $tenantPath = $purchaseCode . '/' . basename($relativePath);
+      if ($this->thumbnailExists($thumbnailRoot, $tenantPath)) {
+        return $this->thumbnailUrl($tenantPath);
+      }
+    }
+
+    return $this->thumbnailUrl($relativePath);
+  }
+
+  private function thumbnailExists(string $root, string $relativePath): bool
+  {
+    $fullPath = $root . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    return is_file($fullPath);
+  }
+
+  private function thumbnailUrl(string $relativePath): string
+  {
+    $encodedPath = implode('/', array_map('rawurlencode', explode('/', $relativePath)));
+    return $this->request_base_url() . 'uploads/thumbnails/' . $encodedPath;
   }
 
   private function youtubeVideoId($url)

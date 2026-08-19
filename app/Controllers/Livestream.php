@@ -156,8 +156,13 @@ class Livestream extends BaseController
 
   function upload_thumbnail()
   {
-    if (!file_exists('./uploads/thumbnails/')) {
-      mkdir('./uploads/thumbnails/', 0777, true);
+    $uploadPath = rtrim(FCPATH, '/\\') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'thumbnails';
+    $purchaseCode = trim((string) env('PURCHASE_CODE', ''));
+    if ($purchaseCode !== '') {
+      $uploadPath .= DIRECTORY_SEPARATOR . $purchaseCode;
+    }
+    if (!is_dir($uploadPath)) {
+      mkdir($uploadPath, 0777, true);
     }
     helper(['form', 'url']);
     // If no file was provided, consider it okay; return empty name
@@ -177,7 +182,7 @@ class Livestream extends BaseController
     }
 
     $img = $this->request->getFile('thumbnail');
-    $img->move('./uploads/thumbnails/');
+    $img->move($uploadPath);
     return ['ok', $img->getName()];
   }
 }
