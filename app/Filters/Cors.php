@@ -27,7 +27,7 @@ class Cors implements FilterInterface
         $origin = $request->getHeaderLine('Origin') ?: '*';
         $response->setHeader('Access-Control-Allow-Origin', $origin);
         $response->setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+        $response->setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Mobile-Token');
         $response->setHeader('Access-Control-Max-Age', '86400');
         $response->setHeader('Vary', 'Origin');
     }

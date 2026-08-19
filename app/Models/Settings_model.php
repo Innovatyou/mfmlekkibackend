@@ -84,9 +84,7 @@ class Settings_model extends Basemodel
     if ($row === null) {
       return null;
     }
-    if ($row->features == "" || $row->features === null) {
-      $row->features = "bible,audiomessages,videomessages,donations,livestreams,events,articles,hymns,radio,photos,groups,prayer,testimony,devotionals,notes,books,gosocial";
-    }
+    $row->features = trim((string) ($row->features ?? '')) ?: 'none';
     return $row;
   }
 

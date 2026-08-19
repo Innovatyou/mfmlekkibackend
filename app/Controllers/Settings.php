@@ -64,7 +64,7 @@ class Settings extends BaseController
       }
       $features = rtrim($features, ", ");
     } else {
-      $features = "";
+      $features = "none";
     }
 
     $prefered_gateway = "";
