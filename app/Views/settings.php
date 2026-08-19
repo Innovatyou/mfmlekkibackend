@@ -131,28 +131,26 @@
             <div class="nf-card" style="margin-bottom:16px;">
               <div class="nf-card-head"><h3 class="nf-card-title">Mobile App Branding</h3><p class="nf-card-sub">Customize the member app identity and color palette</p></div>
               <div class="nf-card-body">
-                <div class="row">
-                  <div class="col-md-6"><label class="nf-label">App Name</label><input type="text" name="mobile_app_name" class="nf-input" value="<?= esc($settings->mobile_app_name ?? '') ?>" placeholder="<?= esc($settings->churchname ?: 'Church App') ?>"></div>
-                  <div class="col-md-6">
-                    <label class="nf-label">Logo URL (optional)</label>
-                    <input type="url" name="mobile_logo_url" class="nf-input" value="<?= esc($settings->mobile_logo_url ?? '') ?>" placeholder="https://example.org/logo.png">
-                    <div style="margin-top:12px;padding:16px;border:2px dashed #cbd5e1;border-radius:12px;background:#f8fafc;">
-                      <label class="nf-label" for="mobile-logo-file">Upload Logo From Device</label>
-                      <input id="mobile-logo-file" type="file" name="mobile_logo_file" class="nf-input" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-                      <small style="display:block;margin-top:6px;">JPG, PNG or WEBP, maximum 5 MB. A selected file replaces the Logo URL.</small>
+                <div class="mobile-brand-grid">
+                  <div class="mobile-brand-identity">
+                    <div><label class="nf-label">App Name</label><input type="text" name="mobile_app_name" class="nf-input" value="<?= esc($settings->mobile_app_name ?? '') ?>" placeholder="<?= esc($settings->churchname ?: 'Church App') ?>"></div>
+                    <div><label class="nf-label">App Tagline</label><input type="text" name="mobile_tagline" class="nf-input" maxlength="160" value="<?= esc($settings->mobile_tagline ?? 'Towards global evangelism') ?>"><small class="mobile-brand-help">A short message displayed beneath your app name.</small></div>
+                  </div>
+                  <div class="mobile-logo-card">
+                    <div class="mobile-logo-preview">
+                      <?php if (!empty($settings->mobile_logo_url)): ?><img id="mobile-logo-preview" src="<?= esc($settings->mobile_logo_url) ?>" alt="Current mobile app logo"><?php else: ?><span id="mobile-logo-placeholder"><i class="dw dw-image"></i></span><img id="mobile-logo-preview" src="" alt="Mobile app logo" hidden><?php endif; ?>
                     </div>
-                    <?php if (!empty($settings->mobile_logo_url)): ?>
-                      <div style="margin-top:10px;"><img src="<?= esc($settings->mobile_logo_url) ?>" alt="Current mobile app logo" style="width:72px;height:72px;object-fit:contain;border-radius:14px;border:1px solid #e2e8f0;"></div>
-                    <?php endif; ?>
+                    <div class="mobile-logo-copy"><strong>App Logo</strong><span>Square PNG or WEBP works best.</span><label class="mobile-upload-button" for="mobile-logo-file"><i class="dw dw-upload1"></i> Choose Logo</label><input id="mobile-logo-file" type="file" name="mobile_logo_file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"></div>
                   </div>
                 </div>
-                <div class="row" style="margin-top:14px;">
-                  <div class="col-md-12"><label class="nf-label">App Tagline</label><input type="text" name="mobile_tagline" class="nf-input" maxlength="160" value="<?= esc($settings->mobile_tagline ?? 'Towards global evangelism') ?>"></div>
-                </div>
-                <div class="row" style="margin-top:14px;">
+                <div class="mobile-logo-url"><label class="nf-label">Or use an external logo URL</label><input type="url" name="mobile_logo_url" class="nf-input" value="<?= esc($settings->mobile_logo_url ?? '') ?>" placeholder="https://example.org/logo.png"></div>
+                <div class="mobile-color-section">
+                  <div class="mobile-color-heading"><strong>App Color Palette</strong><span>Choose colors for each part of the member app.</span></div>
+                  <div class="mobile-color-grid">
                   <?php foreach (['mobile_primary_color' => ['Primary / Buttons', '#6366F1'], 'mobile_accent_color' => ['Accent', '#F59E0B'], 'mobile_background_color' => ['Screen Background', '#F0F2F5'], 'mobile_surface_color' => ['Cards / Surfaces', '#FFFFFF'], 'mobile_text_color' => ['Main Text', '#0F172A'], 'mobile_icon_color' => ['Navigation Icons', '#FFFFFF'], 'mobile_header_color' => ['Headers / Welcome', '#4F46E5'], 'mobile_chat_background_color' => ['Chat Background', '#F8F5F8']] as $field => [$label, $fallback]): ?>
-                  <div class="col-md-3"><label class="nf-label"><?= $label ?> Color</label><input type="color" name="<?= $field ?>" class="nf-input" value="<?= esc($settings->{$field} ?? $fallback) ?>" style="height:44px;padding:4px;"></div>
+                    <label class="mobile-color-item"><input type="color" name="<?= $field ?>" value="<?= esc($settings->{$field} ?? $fallback) ?>"><span><strong><?= $label ?></strong><small><?= esc($settings->{$field} ?? $fallback) ?></small></span></label>
                   <?php endforeach; ?>
+                  </div>
                 </div>
               </div>
             </div>
@@ -670,6 +668,14 @@
 .st-panel-title{font-size:1.15rem;font-weight:800;color:var(--t1);margin:0 0 3px;}
 .st-panel-sub{font-size:.8rem;color:var(--t3);margin:0;}
 .st-panel-footer{margin-top:24px;padding-top:16px;border-top:1px solid var(--border);}
+.mobile-brand-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,.75fr);gap:24px;align-items:stretch;}
+.mobile-brand-identity{display:grid;gap:18px;align-content:start;}.mobile-brand-help{display:block;margin-top:6px;color:var(--t3);font-size:.75rem;}
+.mobile-logo-card{display:flex;align-items:center;gap:18px;padding:18px;border:1.5px solid var(--border);border-radius:14px;background:linear-gradient(135deg,#f8fafc,#fff);}
+.mobile-logo-preview{width:96px;height:96px;flex:0 0 96px;display:flex;align-items:center;justify-content:center;border-radius:20px;background:#fff;border:1px solid var(--border);box-shadow:0 8px 22px rgba(15,23,42,.08);overflow:hidden;}.mobile-logo-preview img{width:100%;height:100%;object-fit:contain;padding:7px;}.mobile-logo-preview span{font-size:2rem;color:#94a3b8;}
+.mobile-logo-copy{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;}.mobile-logo-copy strong{color:var(--t1);font-size:.95rem;}.mobile-logo-copy span{color:var(--t3);font-size:.76rem;}.mobile-logo-copy input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;}
+.mobile-upload-button{display:inline-flex;align-items:center;gap:7px;margin-top:7px;padding:9px 14px;border-radius:9px;background:var(--accent);color:#fff;font-size:.8rem;font-weight:700;cursor:pointer;transition:.15s;}.mobile-upload-button:hover{filter:brightness(.94);transform:translateY(-1px);}
+.mobile-logo-url{margin-top:18px;padding-top:18px;border-top:1px solid var(--border);}.mobile-color-section{margin-top:22px;padding-top:20px;border-top:1px solid var(--border);}.mobile-color-heading{display:flex;flex-direction:column;gap:2px;margin-bottom:13px;}.mobile-color-heading strong{font-size:.92rem;color:var(--t1);}.mobile-color-heading span{font-size:.75rem;color:var(--t3);}
+.mobile-color-grid{display:grid;grid-template-columns:repeat(4,minmax(145px,1fr));gap:10px;}.mobile-color-item{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer;transition:.15s;}.mobile-color-item:hover{border-color:#a5b4fc;box-shadow:0 4px 12px rgba(15,23,42,.05);}.mobile-color-item input{width:38px;height:38px;padding:0;border:0;border-radius:9px;background:none;cursor:pointer;}.mobile-color-item input::-webkit-color-swatch{border:1px solid #e2e8f0;border-radius:8px;}.mobile-color-item span{display:flex;flex-direction:column;min-width:0;}.mobile-color-item strong{font-size:.76rem;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.mobile-color-item small{font-size:.68rem;color:var(--t3);text-transform:uppercase;}
 
 /* ── Feature grid ── */
 .nf-feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;}
@@ -733,6 +739,7 @@
   .st-nav-item{flex-direction:column;gap:4px;padding:10px 14px;white-space:nowrap;border-left:none;border-bottom:3px solid transparent;font-size:.75rem;}
   .st-nav-item.active{border-left:none;border-bottom-color:var(--accent);}
   .st-nav-arrow{display:none;}
+  .mobile-brand-grid{grid-template-columns:1fr;}.mobile-color-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 </style>
 <script>
@@ -773,6 +780,14 @@
       document.querySelectorAll('.bpg-option').forEach(function(el){ el.classList.remove('bpg-active'); });
       this.nextElementSibling.classList.add('bpg-active');
     });
+  });
+  var logoInput = document.getElementById('mobile-logo-file');
+  if (logoInput) logoInput.addEventListener('change', function(){
+    if (!this.files || !this.files[0]) return;
+    var preview = document.getElementById('mobile-logo-preview');
+    var placeholder = document.getElementById('mobile-logo-placeholder');
+    preview.src = URL.createObjectURL(this.files[0]); preview.hidden = false;
+    if (placeholder) placeholder.hidden = true;
   });
 })();
 </script>
