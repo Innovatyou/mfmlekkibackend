@@ -724,25 +724,26 @@ class Socials_model extends Basemodel
       $res->thumbnail = "";
       $res->firstname = "";
       $res->lastname = "";
-      if ($res->email != "") {
-        $user = $this->getuserBioInfo($res->email);
+      $notificationEmail = $res->email ?? "";
+      if ($notificationEmail != "") {
+        $user = $this->getuserBioInfo($notificationEmail);
         if($user){
-                     $res->photo = $user->photo;
-                     $res->coverphoto = $user->coverphoto;
-                     $res->firstname = $user->firstname;
-                     $res->lastname = $user->lastname;
+                     $res->photo = $user->photo ?? "";
+                     $res->coverphoto = $user->coverphoto ?? "";
+                     $res->firstname = $user->firstname ?? "";
+                     $res->lastname = $user->lastname ?? "";
                      }
 
       }
 
       $res->following = 1;
 
-      if ($res->type == "follow") {
+      if (($res->type ?? "") == "follow") {
         $res->message = $this->applocal['followed'];
-      } else if ($res->type == "comment") {
+      } else if (($res->type ?? "") == "comment") {
         $res->message = $this->applocal['commented'];
         $res->post = $this->get_postData($res->itm_id, $email);
-      } else if ($res->type == "like") {
+      } else if (($res->type ?? "") == "like") {
         $res->message = $this->applocal['liked'];
         $res->post = $this->get_postData($res->itm_id, $email);
       }

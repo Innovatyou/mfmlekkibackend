@@ -136,8 +136,11 @@
                   <div class="col-md-6"><label class="nf-label">Logo URL</label><input type="url" name="mobile_logo_url" class="nf-input" value="<?= esc($settings->mobile_logo_url ?? '') ?>" placeholder="https://example.org/logo.png"></div>
                 </div>
                 <div class="row" style="margin-top:14px;">
-                  <?php foreach (['mobile_primary_color' => ['Primary', '#6366F1'], 'mobile_accent_color' => ['Accent', '#F59E0B'], 'mobile_background_color' => ['Background', '#F0F2F5']] as $field => [$label, $fallback]): ?>
-                  <div class="col-md-4"><label class="nf-label"><?= $label ?> Color</label><input type="color" name="<?= $field ?>" class="nf-input" value="<?= esc($settings->{$field} ?? $fallback) ?>" style="height:44px;padding:4px;"></div>
+                  <div class="col-md-12"><label class="nf-label">App Tagline</label><input type="text" name="mobile_tagline" class="nf-input" maxlength="160" value="<?= esc($settings->mobile_tagline ?? 'Towards global evangelism') ?>"></div>
+                </div>
+                <div class="row" style="margin-top:14px;">
+                  <?php foreach (['mobile_primary_color' => ['Primary', '#6366F1'], 'mobile_accent_color' => ['Accent', '#F59E0B'], 'mobile_background_color' => ['Background', '#F0F2F5'], 'mobile_icon_color' => ['Navigation Icons', '#FFFFFF'], 'mobile_header_color' => ['Drawer Header', '#4F46E5'], 'mobile_chat_background_color' => ['Chat Background', '#F8F5F8']] as $field => [$label, $fallback]): ?>
+                  <div class="col-md-3"><label class="nf-label"><?= $label ?> Color</label><input type="color" name="<?= $field ?>" class="nf-input" value="<?= esc($settings->{$field} ?? $fallback) ?>" style="height:44px;padding:4px;"></div>
                   <?php endforeach; ?>
                 </div>
               </div>
