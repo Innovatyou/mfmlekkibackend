@@ -24,6 +24,11 @@ class Settings extends BaseController
     $this->viewdata['settings'] = $settingsmodel->getSettings();
     if (!$this->viewdata['settings']) {
       $data = array(
+        'mobile_app_name' => '',
+        'mobile_primary_color' => '#6366F1',
+        'mobile_accent_color' => '#F59E0B',
+        'mobile_background_color' => '#F0F2F5',
+        'mobile_logo_url' => '',
         'mobile_app_enabled' => 1,
         'app_login' => 0, 'allow_downloads' => 0, 'join_groups' => 0, 'post_prayer' => 0, 'auto_approve_group_membership' => 1, 'post_testimony' => 0, 'auto_approve_prayer' => 1, 'auto_approve_testimony' => 1, 'facebook' => "", 'twitter' => "", 'instagram' => "", 'youtube' => "", 'website' => "", 'twilio_account_sid' => "", 'twilio_auth_token' => "", 'twilio_phonenumber' => "", 'termi_sender_id' => "", 'termi_apikey' => "", 'prefered_gateway' => "paypal, stripe, flutterwaves, paystack", 'book_payment_gateway' => "paystack", 'flutterwaves_api_key' => "", 'paystack_api_key' => "", 'currency_code' => "", 'donations_link' => "", 'features' => "bible,audiomessages, videomessages, donations, livestreams, events, articles, hymns, radio, photos, groups, prayer, testimony, devotionals, notes, books, gosocial", 'churchname' => "", 'terms' => "", 'privacy' => "", 'aboutus' => ""
       );
@@ -70,6 +75,11 @@ class Settings extends BaseController
     }
 
     $data = array(
+      'mobile_app_name' => trim((string) $this->request->getVar('mobile_app_name')),
+      'mobile_primary_color' => $this->validColor('mobile_primary_color', '#6366F1'),
+      'mobile_accent_color' => $this->validColor('mobile_accent_color', '#F59E0B'),
+      'mobile_background_color' => $this->validColor('mobile_background_color', '#F0F2F5'),
+      'mobile_logo_url' => filter_var($this->request->getVar('mobile_logo_url'), FILTER_VALIDATE_URL) ?: '',
       'mobile_app_enabled' => $this->request->getVar('mobile_app_enabled') === '0' ? 0 : 1,
       'app_login' => $this->request->getVar('app_login'), 'allow_downloads' => $this->request->getVar('allow_downloads'), 'join_groups' => $this->request->getVar('join_groups'), 'post_prayer' => $this->request->getVar('post_prayer'), 'auto_approve_group_membership' => $this->request->getVar('auto_approve_group_membership'), 'post_testimony' => $this->request->getVar('post_testimony'), 'auto_approve_prayer' => $this->request->getVar('auto_approve_prayer'), 'auto_approve_testimony' => $this->request->getVar('auto_approve_testimony'), 'facebook' => $this->request->getVar('facebook'), 'twitter' => $this->request->getVar('twitter'), 'instagram' => $this->request->getVar('instagram'), 'youtube' => $this->request->getVar('youtube'), 'website' => $this->request->getVar('website'), 'twilio_account_sid' => $this->request->getVar('twilio_account_sid'), 'twilio_auth_token' => $this->request->getVar('twilio_auth_token'), 'twilio_phonenumber' => $this->request->getVar('twilio_phonenumber'), 'termi_sender_id' => $this->request->getVar('termi_sender_id'), 'termi_apikey' => $this->request->getVar('termi_apikey'), 'prefered_gateway' => $prefered_gateway, 'flutterwaves_api_key' => $this->request->getVar('flutterwaves_api_key'), 'paypal_client' => $this->request->getVar('paypal_client'),
                    'mail_port' => $this->request->getVar('mail_port'), 'mail_protocol' => $this->request->getVar('mail_protocol'), 'mail_smtp_host' => $this->request->getVar('mail_smtp_host'), 'mail_password' => $this->request->getVar('mail_password'), 'mail_username' => $this->request->getVar('mail_username'),
@@ -106,6 +116,12 @@ class Settings extends BaseController
     $this->viewdata['title'] = "Terms & Conditions";
     $this->viewdata['content'] = $settings ? $settings->terms : "";
     return view("content", $this->viewdata);
+  }
+
+  private function validColor(string $field, string $fallback): string
+  {
+    $value = (string) $this->request->getVar($field);
+    return preg_match('/^#[0-9A-Fa-f]{6}$/', $value) ? strtoupper($value) : $fallback;
   }
 
   public function privacy()

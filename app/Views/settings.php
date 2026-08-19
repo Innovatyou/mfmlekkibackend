@@ -129,6 +129,21 @@
             </div>
 
             <div class="nf-card" style="margin-bottom:16px;">
+              <div class="nf-card-head"><h3 class="nf-card-title">Mobile App Branding</h3><p class="nf-card-sub">Customize the member app identity and color palette</p></div>
+              <div class="nf-card-body">
+                <div class="row">
+                  <div class="col-md-6"><label class="nf-label">App Name</label><input type="text" name="mobile_app_name" class="nf-input" value="<?= esc($settings->mobile_app_name ?? '') ?>" placeholder="<?= esc($settings->churchname ?: 'Church App') ?>"></div>
+                  <div class="col-md-6"><label class="nf-label">Logo URL</label><input type="url" name="mobile_logo_url" class="nf-input" value="<?= esc($settings->mobile_logo_url ?? '') ?>" placeholder="https://example.org/logo.png"></div>
+                </div>
+                <div class="row" style="margin-top:14px;">
+                  <?php foreach (['mobile_primary_color' => ['Primary', '#6366F1'], 'mobile_accent_color' => ['Accent', '#F59E0B'], 'mobile_background_color' => ['Background', '#F0F2F5']] as $field => [$label, $fallback]): ?>
+                  <div class="col-md-4"><label class="nf-label"><?= $label ?> Color</label><input type="color" name="<?= $field ?>" class="nf-input" value="<?= esc($settings->{$field} ?? $fallback) ?>" style="height:44px;padding:4px;"></div>
+                  <?php endforeach; ?>
+                </div>
+              </div>
+            </div>
+
+            <div class="nf-card" style="margin-bottom:16px;">
               <div class="nf-card-head"><h3 class="nf-card-title">Mobile App Availability</h3><p class="nf-card-sub">Hide or show the entire member app</p></div>
               <div class="nf-card-body">
                 <div class="st-toggle-row">
