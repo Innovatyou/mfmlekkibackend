@@ -1,5 +1,6 @@
 <?php
-$brandColor = \Config\Database::connect('default')->table('settings')->select('brand_color')->get()->getRow(0)->brand_color ?? '#6366f1';
+$loginBranding = \Config\Database::connect('default')->table('settings')->get()->getRow(0);
+$brandColor = $loginBranding->mobile_primary_color ?? $loginBranding->brand_color ?? '#6366f1';
 if (!preg_match('/^#[0-9A-Fa-f]{6}$/', $brandColor)) {
 	$brandColor = '#6366f1';
 }
@@ -7,13 +8,21 @@ $brandColorDark = '#' . implode('', array_map(
 	fn($c) => str_pad(dechex((int) max(0, round(hexdec($c) * 0.8))), 2, '0', STR_PAD_LEFT),
 	str_split(ltrim($brandColor, '#'), 2)
 ));
+$brandColorLight = '#' . implode('', array_map(
+	fn($c) => str_pad(dechex((int) min(255, round(hexdec($c) + (255 - hexdec($c)) * 0.2))), 2, '0', STR_PAD_LEFT),
+	str_split(ltrim($brandColor, '#'), 2)
+));
+$churchName = trim($loginBranding->churchname ?? '') ?: 'MyChurchApp';
+$loginMessage = trim($loginBranding->admin_login_message ?? '') ?: 'Welcome back! Manage your congregation, events, and community from one place.';
+$loginBadges = array_values(array_filter(array_map('trim', explode(',', $loginBranding->admin_login_badges ?? 'Members,Events,Finance,Reports'))));
+$loginLogo = trim($loginBranding->mobile_logo_url ?? '');
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 	<meta charset="utf-8">
-	<title>MyChurchApp — Sign In</title>
+	<title><?= esc($churchName) ?> — Sign In</title>
 	<link rel="icon" type="image/png" href="<?php echo base_url(); ?>/public/favicon.png">
 	<link rel="apple-touch-icon" sizes="180x180" href="<?php echo base_url(); ?>/public/apple-touch-icon.png">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -45,8 +54,8 @@ $brandColorDark = '#' . implode('', array_map(
 			opacity: 0.35;
 			animation: drift 12s ease-in-out infinite alternate;
 		}
-		.orb-1 { width: 520px; height: 520px; background: #3b82f6; top: -180px; left: -120px; animation-delay: 0s; }
-		.orb-2 { width: 400px; height: 400px; background: #8b5cf6; bottom: -150px; right: -80px; animation-delay: -4s; }
+		.orb-1 { width: 520px; height: 520px; background: <?= $brandColor ?>; top: -180px; left: -120px; animation-delay: 0s; }
+		.orb-2 { width: 400px; height: 400px; background: <?= $brandColorLight ?>; bottom: -150px; right: -80px; animation-delay: -4s; }
 		.orb-3 { width: 300px; height: 300px; background: #06b6d4; top: 40%; left: 30%; animation-delay: -7s; }
 		@keyframes drift {
 			from { transform: translate(0, 0) scale(1); }
@@ -83,7 +92,7 @@ $brandColorDark = '#' . implode('', array_map(
 		/* ── Left branding panel ── */
 		.brand-panel {
 			flex: 1;
-			background: linear-gradient(160deg, #1d4ed8 0%, #7c3aed 60%, #0e7490 100%);
+			background: linear-gradient(160deg, <?= $brandColorDark ?> 0%, <?= $brandColor ?> 58%, <?= $brandColorLight ?> 100%);
 			display: flex;
 			flex-direction: column;
 			align-items: center;
@@ -125,6 +134,7 @@ $brandColorDark = '#' . implode('', array_map(
 			border: 1px solid rgba(255,255,255,0.2);
 		}
 		.brand-logo svg { width: 38px; height: 38px; }
+		.brand-logo img { width: 56px; height: 56px; object-fit: contain; border-radius: 14px; }
 		.brand-panel h1 {
 			color: #fff;
 			font-size: 1.75rem;
@@ -329,6 +339,9 @@ $brandColorDark = '#' . implode('', array_map(
 					<div class="brand-circle bc-3"></div>
 				</div>
 				<div class="brand-logo">
+					<?php if ($loginLogo !== ''): ?>
+						<img src="<?= esc($loginLogo, 'attr') ?>" alt="<?= esc($churchName, 'attr') ?> logo">
+					<?php else: ?>
 					<svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
 						<path d="M19 4L19 8M19 4L16 7M19 4L22 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 						<path d="M8 16H30V32C30 33.1046 29.1046 34 28 34H10C8.89543 34 8 33.1046 8 32V16Z" stroke="white" stroke-width="2"/>
@@ -336,14 +349,14 @@ $brandColorDark = '#' . implode('', array_map(
 						<path d="M14 16V10C14 8.89543 14.8954 8 16 8H22C23.1046 8 24 8.89543 24 10V16" stroke="white" stroke-width="2"/>
 						<path d="M16 26H22M19 23V29" stroke="white" stroke-width="2" stroke-linecap="round"/>
 					</svg>
+					<?php endif; ?>
 				</div>
-				<h1>MyChurchApp</h1>
-				<p>Welcome back! Manage your congregation, events, and community from one place.</p>
+				<h1><?= esc($churchName) ?></h1>
+				<p><?= esc($loginMessage) ?></p>
 				<div class="brand-badges">
-					<span class="brand-badge">Members</span>
-					<span class="brand-badge">Events</span>
-					<span class="brand-badge">Finance</span>
-					<span class="brand-badge">Reports</span>
+					<?php foreach ($loginBadges as $badge): ?>
+						<span class="brand-badge"><?= esc($badge) ?></span>
+					<?php endforeach; ?>
 				</div>
 			</div>
 

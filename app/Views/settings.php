@@ -156,6 +156,16 @@
             </div>
 
             <div class="nf-card" style="margin-bottom:16px;">
+              <div class="nf-card-head"><h3 class="nf-card-title">Admin Login Branding</h3><p class="nf-card-sub">Customize the welcome panel shown to administrators</p></div>
+              <div class="nf-card-body">
+                <div class="nf-row">
+                  <div class="nf-col-half"><label class="nf-label">Welcome Message</label><textarea name="admin_login_message" class="nf-input" rows="3" maxlength="255"><?= esc($settings->admin_login_message ?? 'Welcome back! Manage your congregation, events, and community from one place.') ?></textarea></div>
+                  <div class="nf-col-half"><label class="nf-label">Feature Badges</label><input type="text" name="admin_login_badges" class="nf-input" value="<?= esc($settings->admin_login_badges ?? 'Members,Events,Finance,Reports') ?>" placeholder="Members, Events, Finance, Reports"><small class="mobile-brand-help">Separate badge names with commas. The church name, app logo, and primary color are used automatically.</small></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="nf-card" style="margin-bottom:16px;">
               <div class="nf-card-head"><h3 class="nf-card-title">Mobile App Availability</h3><p class="nf-card-sub">Hide or show the entire member app</p></div>
               <div class="nf-card-body">
                 <div class="st-toggle-row">
