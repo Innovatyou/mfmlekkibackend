@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import type { Church, LandingContent } from "@/lib/api";
-import { API_URL } from "@/lib/api";
 import { Avatar } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { hasText } from "@/lib/utils";
@@ -86,12 +85,6 @@ export function Navbar({
 
         <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle />
-          <a
-            href={`${API_URL}/login`}
-            className="text-sm font-medium text-muted-foreground transition-colors hover:text-[var(--primary)]"
-          >
-            Admin Login
-          </a>
           {hasText(content.web_app_url) && (
             <a
               href={content.web_app_url}
@@ -154,12 +147,6 @@ export function Navbar({
                 {link.label}
               </Link>
             ))}
-            <a
-              href={`${API_URL}/login`}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-muted hover:text-[var(--primary)]"
-            >
-              Admin Login
-            </a>
             {hasText(content.web_app_url) && (
               <a
                 href={content.web_app_url}
