@@ -1547,7 +1547,7 @@ class Api extends BaseController
     $memberId = $member ? $member->id : null;
 
     $model = new \App\Models\Partnership_model();
-    $model->addPartnership([
+    $newId = $model->addPartnership([
       'member_id'     => $memberId,
       'tier_id'       => $tierId,
       'partner_name'  => $name,
@@ -1569,6 +1569,7 @@ class Api extends BaseController
       'message' => $model->status === 'ok'
         ? 'Partnership application submitted. Awaiting admin approval.'
         : $model->message,
+      'id'      => $model->status === 'ok' ? $newId : null,
     ]);
     exit;
   }
@@ -1638,6 +1639,7 @@ class Api extends BaseController
     header('Content-Type: application/json'); echo json_encode([
       'status'  => $model->status,
       'message' => $model->message,
+      'id'      => $model->status === 'ok' ? $id : null,
     ]);
     exit;
   }
