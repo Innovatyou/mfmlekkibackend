@@ -62,9 +62,19 @@ class LandingApi extends BaseController
         $livestreammodel = new livestreammodel();
         $live = $livestreammodel->getCurrentLive();
 
+        // tbl_churches.fullname is seeded with the platform's own placeholder
+        // name at install time and has no admin-facing edit screen, so an
+        // uncustomized install leaves it stuck on that default forever. The
+        // church-facing Settings page's "Church Name" field does get set by
+        // the admin, so prefer it whenever it actually has a value; only
+        // fall back to fullname (then a generic default) if it doesn't.
+        $churchName = !empty(trim((string) ($settings->churchname ?? '')))
+            ? trim((string) $settings->churchname)
+            : (!empty(trim((string) ($church->fullname ?? ''))) ? trim((string) $church->fullname) : 'Our Church');
+
         return $this->json([
             'church' => [
-                'name' => $church->fullname ?? ($settings->churchname ?? 'Our Church'),
+                'name' => $churchName,
                 'logo' => !empty($church->logo) ? $church->logo : null,
             ],
             'settings' => [
