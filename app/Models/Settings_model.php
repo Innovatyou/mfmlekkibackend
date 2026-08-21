@@ -148,7 +148,7 @@ class Settings_model extends Basemodel
     $row = $query->getRow(0);
     if (count((array)$row) > 0) {
       if ($row->logo != "") {
-        $row->logo = $this->request_base_url() . "/uploads/churches/" . $row->logo;
+        $row->logo = $this->request_base_url() . "/uploads/churches/" . rawurlencode($row->logo);
       }
       $row->substartdate = $this->calculatesubstartdate($row);
       $row->subexpirydate = date('Y-m-d H:i:s', strtotime($row->substartdate . ' +1 month'));

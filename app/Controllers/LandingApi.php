@@ -290,7 +290,7 @@ class LandingApi extends BaseController
     {
         if (empty($source)) return '';
         if (filter_var($source, FILTER_VALIDATE_URL)) return $source;
-        return base_url('uploads/' . $folder . '/' . $source);
+        return base_url('uploads/' . $folder . '/' . rawurlencode($source));
     }
 
     private function getGalleryImages($photosmodel, int $limit)

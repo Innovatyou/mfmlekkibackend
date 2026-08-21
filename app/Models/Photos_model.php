@@ -35,7 +35,7 @@ class Photos_model extends Basemodel
         $media = json_decode($res->thumbnail);
         $res->thumbnail = [];
         foreach ($media as $mdia) {
-          $mdia = $this->request_base_url() . "uploads/photos/" . $mdia;
+          $mdia = $this->request_base_url() . "uploads/photos/" . rawurlencode($mdia);
           array_push($res->thumbnail, $mdia);
         }
       }
@@ -68,7 +68,7 @@ class Photos_model extends Basemodel
         $media = json_decode($res->thumbnail);
         $res->thumbnail = [];
         foreach ($media as $mdia) {
-          $mdia = $this->request_base_url() . "uploads/photos/" . $mdia;
+          $mdia = $this->request_base_url() . "uploads/photos/" . rawurlencode($mdia);
           array_push($res->thumbnail, $mdia);
         }
       }
