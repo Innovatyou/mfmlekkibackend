@@ -32,13 +32,13 @@ class LandingContent_model extends Basemodel
     }
 
     if ($row) {
-      $row->hero_image = $row->hero_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->hero_image : "";
-      $row->about_image = $row->about_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->about_image : "";
-      $row->seo_og_image = $row->seo_og_image != "" ? $this->request_base_url() . "uploads/landing/" . $row->seo_og_image : "";
+      $row->hero_image = $row->hero_image != "" ? $this->request_base_url() . "uploads/landing/" . rawurlencode($row->hero_image) : "";
+      $row->about_image = $row->about_image != "" ? $this->request_base_url() . "uploads/landing/" . rawurlencode($row->about_image) : "";
+      $row->seo_og_image = $row->seo_og_image != "" ? $this->request_base_url() . "uploads/landing/" . rawurlencode($row->seo_og_image) : "";
       $headerLogo = $row->header_logo ?? "";
       $faviconImage = $row->favicon_image ?? "";
-      $row->header_logo = $headerLogo !== "" ? $this->request_base_url() . "uploads/landing/" . $headerLogo : "";
-      $row->favicon_image = $faviconImage !== "" ? $this->request_base_url() . "uploads/landing/" . $faviconImage : "";
+      $row->header_logo = $headerLogo !== "" ? $this->request_base_url() . "uploads/landing/" . rawurlencode($headerLogo) : "";
+      $row->favicon_image = $faviconImage !== "" ? $this->request_base_url() . "uploads/landing/" . rawurlencode($faviconImage) : "";
       $row->header_text = $row->header_text ?? "";
       $row->favicon_text = $row->favicon_text ?? "";
       $row->hero_text_color = $row->hero_text_color ?? "#ffffff";

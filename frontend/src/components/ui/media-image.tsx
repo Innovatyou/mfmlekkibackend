@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { hasText } from "@/lib/utils";
 
 interface MediaImageProps {
@@ -26,8 +26,11 @@ interface MediaImageProps {
  *    timeout catches that case so the UI never gets stuck showing a
  *    permanently broken image icon.
  */
+const WATCHDOG_MS = 8000;
+
 export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: MediaImageProps) {
   const [failed, setFailed] = useState(false);
+  const watchdogRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Resets watchdog state whenever `src` changes, synchronizing with the
@@ -35,6 +38,14 @@ export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: 
     // setState-in-effect (this is not derivable from render: it must reset
     // exactly when a *new* image starts loading).
     setFailed(false);
+    if (watchdogRef.current !== null) window.clearTimeout(watchdogRef.current);
+    if (!hasText(src)) return;
+    // A slow-but-eventually-successful load must not get flagged as failed
+    // once the timeout fires - onLoad below clears this same handle.
+    watchdogRef.current = window.setTimeout(() => setFailed(true), WATCHDOG_MS);
+    return () => {
+      if (watchdogRef.current !== null) window.clearTimeout(watchdogRef.current);
+    };
   }, [src]);
 
   if (!hasText(src) || failed) {
@@ -48,8 +59,14 @@ export function MediaImage({ src, alt, className, fallback, loading = "lazy" }: 
       alt={alt}
       loading={loading}
       className={className}
-      onLoad={() => setFailed(false)}
-      onError={() => setFailed(true)}
+      onLoad={() => {
+        if (watchdogRef.current !== null) window.clearTimeout(watchdogRef.current);
+        setFailed(false);
+      }}
+      onError={() => {
+        if (watchdogRef.current !== null) window.clearTimeout(watchdogRef.current);
+        setFailed(true);
+      }}
     />
   );
 }
