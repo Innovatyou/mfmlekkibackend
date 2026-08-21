@@ -1,5 +1,4 @@
 import type { Church, LandingContent, SocialSettings } from "@/lib/api";
-import { API_URL } from "@/lib/api";
 import { MediaImage } from "@/components/ui/media-image";
 import { hasText } from "@/lib/utils";
 
@@ -86,13 +85,6 @@ export function Footer({
         <p className="text-sm text-muted-foreground">
           {hasText(content.footer_text) ? content.footer_text : `© ${year} ${church.name}. All rights reserved.`}
         </p>
-
-        <a
-          href={`${API_URL}/login`}
-          className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-[var(--primary)] hover:underline"
-        >
-          Admin Login
-        </a>
       </div>
     </footer>
   );
