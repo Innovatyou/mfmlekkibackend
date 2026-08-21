@@ -1095,6 +1095,12 @@ class Api extends BaseController
       exit;
     }
 
+    $sellerPhone = isset($data->seller_phone) ? trim(filter_var($data->seller_phone, FILTER_SANITIZE_FULL_SPECIAL_CHARS)) : '';
+    if (empty($sellerPhone)) {
+      header('Content-Type: application/json'); echo json_encode(['status' => 'error', 'message' => 'Phone number is required']);
+      exit;
+    }
+
     $isFree = isset($data->is_free) && ($data->is_free === true || $data->is_free === 1 || $data->is_free === '1');
     $price = $isFree ? 0.00 : (float)($data->price ?? 0);
     $condition = isset($data->item_condition) ? filter_var($data->item_condition, FILTER_SANITIZE_FULL_SPECIAL_CHARS) : 'used';
@@ -1320,6 +1326,12 @@ class Api extends BaseController
     $title = isset($data->title) ? trim(filter_var($data->title, FILTER_SANITIZE_FULL_SPECIAL_CHARS)) : '';
     if (empty($title)) {
       header('Content-Type: application/json'); echo json_encode(['status' => 'error', 'message' => 'Title is required']);
+      exit;
+    }
+
+    $sellerPhone = isset($data->seller_phone) ? trim(filter_var($data->seller_phone, FILTER_SANITIZE_FULL_SPECIAL_CHARS)) : '';
+    if (empty($sellerPhone)) {
+      header('Content-Type: application/json'); echo json_encode(['status' => 'error', 'message' => 'Phone number is required']);
       exit;
     }
 
