@@ -40,7 +40,7 @@ class Prayers extends BaseController
     $prayermodel = new prayermodel();
     $this->viewdata['prayer'] = $prayermodel->getItemInfo($id);
     if ($this->viewdata['prayer'] == NULL) {
-      return redirect()->to(base_url() . '/prayers');
+      return redirect()->to(base_url() . '/prayersListing');
     }
     return $this->view("prayers/edit", $this->viewdata);
   }
@@ -50,7 +50,7 @@ class Prayers extends BaseController
     $prayermodel = new prayermodel();
     $this->viewdata['prayer'] = $prayermodel->getItemInfo($id);
     if ($this->viewdata['prayer'] == NULL) {
-      return redirect()->to(base_url() . '/prayers');
+      return redirect()->to(base_url() . '/prayersListing');
     }
     return $this->view("prayers/view", $this->viewdata);
   }

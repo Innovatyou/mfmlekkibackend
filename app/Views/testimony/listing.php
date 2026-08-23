@@ -26,6 +26,7 @@
               <td><?php if($r->status==0):?><span class="lt-approved">Approved</span><?php else:?><span class="lt-pending">Pending</span><?php endif;?></td>
               <td>
                 <div style="display:flex;gap:4px;">
+                  <a href="<?=base_url('viewTestimony/'.$r->id)?>" class="lt-ab" style="background:#eef2ff;color:#6366f1;" title="View"><i class="dw dw-eye"></i></a>
                   <a href="<?=base_url('editTestimonyStatus/'.$r->id.'/'.$approved)?>" class="lt-ab" style="<?=$r->status==1?'background:#ecfdf5;color:#059669;':'background:#fef9c3;color:#92400e;'?>" title="<?=$r->status==1?'Approve':'Disapprove'?>"><i class="dw dw-<?=$r->status==1?'check':'close'?>-circle-2"></i></a>
                   <a href="<?=base_url('editTestimony/'.$r->id)?>" class="lt-ab lt-edit" title="Edit"><i class="dw dw-edit-2"></i></a>
                   <a href="javascript:void(0)" class="lt-ab lt-del" title="Delete" onclick="ltSDelConfirm('testimony',<?=$r->id?>)"><i class="dw dw-trash"></i></a>

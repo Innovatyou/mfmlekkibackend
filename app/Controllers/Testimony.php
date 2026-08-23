@@ -44,6 +44,16 @@ class Testimony extends BaseController
     return $this->view("testimony/edit", $this->viewdata);
   }
 
+  public function viewTestimony($id = 0)
+  {
+    $testimonymodel = new testimonymodel();
+    $this->viewdata['testimony'] = $testimonymodel->getItemInfo($id);
+    if ($this->viewdata['testimony'] == NULL) {
+      return redirect()->to(base_url() . '/testimonyListing');
+    }
+    return $this->view("testimony/view", $this->viewdata);
+  }
+
   function savenewtestimony()
   {
     $testimonymodel = new testimonymodel();

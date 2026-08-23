@@ -355,6 +355,7 @@ $routes->get('fetchlists/(:any)', 'Lists::fetchlists/$1', ['filter' => 'auth']);
 $routes->get('testimonyListing', 'Testimony::index', ['filter' => 'auth']);
 $routes->get('newTestimony', 'Testimony::newTestimony', ['filter' => 'auth']);
 $routes->post('savenewtestimony', 'Testimony::savenewtestimony', ['filter' => 'auth']);
+$routes->get('viewTestimony/(:any)', 'Testimony::viewTestimony/$1', ['filter' => 'auth']);
 $routes->get('editTestimony/(:any)', 'Testimony::editTestimony/$1', ['filter' => 'auth']);
 $routes->post('edittestimonydata', 'Testimony::edittestimonydata', ['filter' => 'auth']);
 $routes->get('deleteTestimony/(:any)', 'Testimony::deleteTestimony/$1', ['filter' => 'auth']);

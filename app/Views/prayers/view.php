@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h1 class="page-title"><?= $locale['prayer_requests'] ?></h1>
-        <nav class="lt-bc"><a href="<?= base_url() ?>">Dashboard</a><span>/</span><a href="<?= base_url('prayers') ?>"><?= $locale['prayer_requests'] ?></a><span>/</span><span><?= $locale['view_request'] ?></span></nav>
+        <nav class="lt-bc"><a href="<?= base_url() ?>">Dashboard</a><span>/</span><a href="<?= base_url('prayersListing') ?>"><?= $locale['prayer_requests'] ?></a><span>/</span><span><?= $locale['view_request'] ?></span></nav>
       </div>
       <?php $approved = $prayer->status == 0 ? 1 : 0; ?>
       <a href="<?= base_url('editPrayerStatus/' . $prayer->id . '/' . $approved) ?>" class="btn <?= $prayer->status == 1 ? 'btn-success' : 'btn-warning' ?> lt-cta">
