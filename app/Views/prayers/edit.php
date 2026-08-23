@@ -5,6 +5,10 @@
         <h1 class="page-title"><?= $locale['prayer_requests'] ?></h1>
         <nav class="lt-bc"><a href="<?= base_url() ?>">Dashboard</a><span>/</span><a href="<?= base_url('prayersListing') ?>"><?= $locale['prayer_requests'] ?></a><span>/</span><span><?= $locale['edit_prayer'] ?></span></nav>
       </div>
+      <?php $approved = $prayer->status == 0 ? 1 : 0; ?>
+      <a href="<?= base_url('editPrayerStatus/' . $prayer->id . '/' . $approved) ?>" class="btn <?= $prayer->status == 1 ? 'btn-success' : 'btn-warning' ?> lt-cta">
+        <i class="dw dw-<?= $prayer->status == 1 ? 'check' : 'close' ?>-circle-2"></i><?= $prayer->status == 1 ? 'Approve' : 'Disapprove' ?>
+      </a>
     </div>
     <?php if(session()->getFlashdata('success')):?><div class="lt-alert lt-success"><i class="dw dw-check-circle-2"></i><?=esc(session()->getFlashdata('success'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
     <?php if(session()->getFlashdata('error')):?><div class="lt-alert lt-danger"><i class="dw dw-close-circle-1"></i><?=esc(session()->getFlashdata('error'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>

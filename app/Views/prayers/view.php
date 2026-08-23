@@ -5,6 +5,10 @@
         <h1 class="page-title"><?= $locale['prayer_requests'] ?></h1>
         <nav class="lt-bc"><a href="<?= base_url() ?>">Dashboard</a><span>/</span><a href="<?= base_url('prayers') ?>"><?= $locale['prayer_requests'] ?></a><span>/</span><span><?= $locale['view_request'] ?></span></nav>
       </div>
+      <?php $approved = $prayer->status == 0 ? 1 : 0; ?>
+      <a href="<?= base_url('editPrayerStatus/' . $prayer->id . '/' . $approved) ?>" class="btn <?= $prayer->status == 1 ? 'btn-success' : 'btn-warning' ?> lt-cta">
+        <i class="dw dw-<?= $prayer->status == 1 ? 'check' : 'close' ?>-circle-2"></i><?= $prayer->status == 1 ? 'Approve' : 'Disapprove' ?>
+      </a>
     </div>
     <div class="row">
       <div class="col-lg-8">
