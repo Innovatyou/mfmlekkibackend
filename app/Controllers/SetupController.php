@@ -95,6 +95,18 @@ class SetupController extends BaseController
             // Marketplace Module
             ['name' => 'marketplace.view', 'display_name' => 'View Marketplace', 'module' => 'marketplace', 'description' => 'View marketplace listings and inquiries'],
             ['name' => 'marketplace.edit', 'display_name' => 'Manage Marketplace', 'module' => 'marketplace', 'description' => 'Manage and approve marketplace listings'],
+
+            // Partnership Module
+            ['name' => 'partnership.view', 'display_name' => 'View Partnership', 'module' => 'partnership', 'description' => 'View partnership programs and partners'],
+            ['name' => 'partnership.edit', 'display_name' => 'Manage Partnership', 'module' => 'partnership', 'description' => 'Create and manage partnership tiers and partners'],
+
+            // Landing / Website Module
+            ['name' => 'landing.view', 'display_name' => 'View Website & Signups', 'module' => 'landing', 'description' => 'View landing page content and member signup requests'],
+            ['name' => 'landing.edit', 'display_name' => 'Manage Website & Signups', 'module' => 'landing', 'description' => 'Edit landing page content and approve/reject member signups'],
+
+            // Mobile Adverts Module
+            ['name' => 'mobileadverts.view', 'display_name' => 'View Mobile Adverts', 'module' => 'mobileadverts', 'description' => 'View mobile app advertisement banners'],
+            ['name' => 'mobileadverts.edit', 'display_name' => 'Manage Mobile Adverts', 'module' => 'mobileadverts', 'description' => 'Create, edit, and manage mobile app advertisement banners'],
         ];
 
         $db->table('tbl_permissions')->insertBatch($permissions);
@@ -114,7 +126,8 @@ class SetupController extends BaseController
                   'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'locations.view', 'locations.edit',
                   'settings.view', 'settings.edit', 'admin.users.view', 'admin.users.edit', 'admin.roles.view', 'admin.roles.edit',
                   'counseling.view', 'counseling.edit', 'membercare.view', 'membercare.edit',
-                  'marketplace.view', 'marketplace.edit'],
+                  'marketplace.view', 'marketplace.edit',
+                  'partnership.view', 'partnership.edit', 'landing.view', 'landing.edit', 'mobileadverts.view', 'mobileadverts.edit'],
 
             // Admin - All except admin management (ID: 2)
             2 => ['members.view', 'members.edit', 'donations.view', 'donations.edit', 'media.view', 'media.edit',
@@ -122,18 +135,21 @@ class SetupController extends BaseController
                   'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'locations.view', 'locations.edit',
                   'settings.view', 'settings.edit',
                   'counseling.view', 'counseling.edit', 'membercare.view', 'membercare.edit',
-                  'marketplace.view', 'marketplace.edit'],
+                  'marketplace.view', 'marketplace.edit',
+                  'partnership.view', 'partnership.edit', 'landing.view', 'landing.edit', 'mobileadverts.view', 'mobileadverts.edit'],
 
             // Editor - Can view and edit content (ID: 3)
             3 => ['members.view', 'donations.view', 'media.view', 'media.edit', 'publications.view', 'publications.edit',
                   'connect.view', 'connect.edit', 'events.view', 'events.edit', 'hymns.view', 'hymns.edit',
                   'messaging.view', 'locations.view',
-                  'counseling.view', 'membercare.view', 'marketplace.view', 'marketplace.edit'],
+                  'counseling.view', 'membercare.view', 'marketplace.view', 'marketplace.edit',
+                  'partnership.view', 'partnership.edit', 'landing.view'],
 
             // Viewer - Can only view (ID: 4)
             4 => ['members.view', 'donations.view', 'media.view', 'publications.view', 'connect.view', 'events.view',
                   'hymns.view', 'messaging.view', 'locations.view',
-                  'counseling.view', 'membercare.view', 'marketplace.view'],
+                  'counseling.view', 'membercare.view', 'marketplace.view',
+                  'partnership.view', 'landing.view'],
 
             // Contributor - Can view and create content (ID: 5)
             5 => ['media.view', 'media.edit', 'publications.view', 'publications.edit', 'connect.view', 'connect.edit',

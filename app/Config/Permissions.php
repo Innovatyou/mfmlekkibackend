@@ -23,6 +23,8 @@ return [
         'membercare.view', 'membercare.edit',
         'marketplace.view', 'marketplace.edit',
         'partnership.view', 'partnership.edit',
+        'landing.view', 'landing.edit',
+        'mobileadverts.view', 'mobileadverts.edit',
         'admin.users.view', 'admin.users.edit',
         'admin.roles.view', 'admin.roles.edit',
     ],
@@ -41,6 +43,8 @@ return [
         'membercare.view', 'membercare.edit',
         'marketplace.view', 'marketplace.edit',
         'partnership.view', 'partnership.edit',
+        'landing.view', 'landing.edit',
+        'mobileadverts.view', 'mobileadverts.edit',
     ],
     3 => [ // Editor
         'members.view',
@@ -56,6 +60,7 @@ return [
         'membercare.view',
         'marketplace.view', 'marketplace.edit',
         'partnership.view', 'partnership.edit',
+        'landing.view',
     ],
     4 => [ // Viewer
         'members.view',
@@ -71,6 +76,7 @@ return [
         'membercare.view',
         'marketplace.view',
         'partnership.view',
+        'landing.view',
     ],
     5 => [ // Contributor
         'media.view', 'media.edit',
