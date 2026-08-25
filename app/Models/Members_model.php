@@ -140,7 +140,11 @@ class Members_model extends Basemodel
     $db = \Config\Database::connect("default");
     if (empty($this->checkMembersExists($info['email'], 0))) {
       $builder = $db->table('tbl_members');
-      $builder->insert($info);
+      if (!$builder->insert($info)) {
+        $this->status = $this->applocal['error'];
+        $this->message = 'Could not save the member. Please try again.';
+        return 0;
+      }
       $this->status = $this->applocal['ok'];
       $this->message = $this->applocal['member_add_success'];
       return $db->insertID();
@@ -271,5 +275,129 @@ class Members_model extends Basemodel
     $builder->update(['signup_status' => 'rejected']);
     $this->status = $this->applocal['ok'];
     $this->message = "Signup request rejected.";
+  }
+
+  // ─── Dashboard: overview stats ─────────────────────────────────────
+
+  public function getDashboardStats(): array
+  {
+    $db = \Config\Database::connect('default');
+
+    $total   = (int) $db->table('tbl_members')->countAllResults();
+    $pending = (int) $db->table('tbl_members')->where('signup_status', 'pending')->countAllResults();
+
+    $monthStart = date('Y-m-01 00:00:00');
+    $newThisMonth = (int) $db->table('tbl_members')
+      ->where('date_inserted >=', $monthStart)
+      ->countAllResults();
+
+    $lastMonthStart = date('Y-m-01 00:00:00', strtotime('-1 month'));
+    $newLastMonth = (int) $db->table('tbl_members')
+      ->where('date_inserted >=', $lastMonthStart)
+      ->where('date_inserted <', $monthStart)
+      ->countAllResults();
+
+    $avgAge = $db->table('tbl_members')->where('age >', 0)->selectAvg('age')->get()->getRow()->age ?? 0;
+
+    return [
+      'total'          => $total,
+      'pending'        => $pending,
+      'new_this_month' => $newThisMonth,
+      'new_last_month' => $newLastMonth,
+      'avg_age'        => round((float) $avgAge),
+    ];
+  }
+
+  // ─── Dashboard: gender split ────────────────────────────────────────
+
+  public function getGenderBreakdown(): array
+  {
+    $db  = \Config\Database::connect('default');
+    $rows = $db->table('tbl_members')
+      ->select("CASE
+                  WHEN LOWER(gender) = 'male' THEN 'Male'
+                  WHEN LOWER(gender) = 'female' THEN 'Female'
+                  ELSE 'Unspecified'
+                END AS gender_label, COUNT(*) AS total", false)
+      ->groupBy('gender_label')
+      ->get()->getResult();
+
+    $out = ['Male' => 0, 'Female' => 0, 'Unspecified' => 0];
+    foreach ($rows as $r) {
+      $out[$r->gender_label] = (int) $r->total;
+    }
+    return $out;
+  }
+
+  // ─── Dashboard: age distribution ────────────────────────────────────
+
+  public function getAgeBreakdown(): array
+  {
+    $db  = \Config\Database::connect('default');
+    $rows = $db->table('tbl_members')
+      ->select("CASE
+                  WHEN age IS NULL OR age <= 0 THEN 'Unknown'
+                  WHEN age < 18 THEN 'Under 18'
+                  WHEN age BETWEEN 18 AND 25 THEN '18–25'
+                  WHEN age BETWEEN 26 AND 35 THEN '26–35'
+                  WHEN age BETWEEN 36 AND 45 THEN '36–45'
+                  WHEN age BETWEEN 46 AND 60 THEN '46–60'
+                  ELSE '60+'
+                END AS bracket, COUNT(*) AS total", false)
+      ->groupBy('bracket')
+      ->get()->getResult();
+
+    $order = ['Under 18', '18–25', '26–35', '36–45', '46–60', '60+', 'Unknown'];
+    $out = array_fill_keys($order, 0);
+    foreach ($rows as $r) {
+      $out[$r->bracket] = (int) $r->total;
+    }
+    return $out;
+  }
+
+  // ─── Dashboard: signup growth, last 12 months ──────────────────────
+
+  public function getGrowthTrend(): array
+  {
+    $db = \Config\Database::connect('default');
+    $rows = $db->table('tbl_members')
+      ->select("DATE_FORMAT(date_inserted, '%Y-%m') AS ym, COUNT(*) AS total", false)
+      ->where('date_inserted >=', date('Y-m-01 00:00:00', strtotime('-11 months')))
+      ->groupBy('ym')
+      ->orderBy('ym', 'ASC')
+      ->get()->getResult();
+
+    $byMonth = [];
+    foreach ($rows as $r) {
+      $byMonth[$r->ym] = (int) $r->total;
+    }
+
+    $labels = [];
+    $data   = [];
+    for ($i = 11; $i >= 0; $i--) {
+      $ym = date('Y-m', strtotime("-$i months"));
+      $labels[] = date('M Y', strtotime("-$i months"));
+      $data[]   = $byMonth[$ym] ?? 0;
+    }
+
+    return ['labels' => $labels, 'data' => $data];
+  }
+
+  // ─── Dashboard: signup source (admin vs mobile) ────────────────────
+
+  public function getSignupSourceBreakdown(): array
+  {
+    $db  = \Config\Database::connect('default');
+    $rows = $db->table('tbl_members')
+      ->select('signup_source, COUNT(*) AS total')
+      ->groupBy('signup_source')
+      ->get()->getResult();
+
+    $out = [];
+    foreach ($rows as $r) {
+      $label = $r->signup_source !== '' ? ucfirst($r->signup_source) : 'Admin';
+      $out[$label] = ($out[$label] ?? 0) + (int) $r->total;
+    }
+    return $out;
   }
 }

@@ -104,7 +104,11 @@ class Partnership_model extends Basemodel
     public function addPartnership(array $info): int
     {
         $db = \Config\Database::connect();
-        $db->table('tbl_partnerships')->insert($info);
+        if (!$db->table('tbl_partnerships')->insert($info)) {
+            $this->status  = 'error';
+            $this->message = 'Could not save the partnership record. Please try again.';
+            return 0;
+        }
         $this->status  = 'ok';
         $this->message = 'Partnership record created successfully.';
         return (int) $db->insertID();

@@ -114,7 +114,11 @@ class Marketplace_model extends Basemodel
     public function addItem($info)
     {
         $db = \Config\Database::connect();
-        $db->table('tbl_marketplace_items')->insert($info);
+        if (!$db->table('tbl_marketplace_items')->insert($info)) {
+            $this->status  = 'error';
+            $this->message = 'Could not save the listing. Please try again.';
+            return 0;
+        }
         $this->status  = 'ok';
         $this->message = 'Listing created successfully.';
         return $db->insertID();

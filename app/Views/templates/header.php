@@ -424,6 +424,7 @@ if ('serviceWorker' in navigator) {
             <span class="micon fi-torsos-all"></span><span class="mtext"><?= $locale['members'] ?></span>
           </a>
           <ul class="submenu">
+            <li><a href="<?= base_url() ?>/membersDashboard" <?= strpos(strtolower($url), 'membersdashboard') !== false ? 'class="active"' : '' ?>>Dashboard</a></li>
             <li><a href="<?= base_url() ?>/membersListing" <?= (strpos(strtolower($url), 'memberslisting') !== false || strpos(strtolower($url), 'newmember') !== false || strpos(strtolower($url), 'editmember') !== false || strpos(strtolower($url), 'viewmember') !== false) ? 'class="active"' : '' ?>><?= $locale['all_members'] ?></a></li>
             <li><a href="<?= base_url() ?>/memberCare" <?= strpos(strtolower($url), 'membercare') !== false ? 'class="active"' : '' ?>>Member Care</a></li>
             <li><a href="<?= base_url() ?>/counseling" <?= strpos(strtolower($url), 'counseling') !== false ? 'class="active"' : '' ?>>Counseling</a></li>

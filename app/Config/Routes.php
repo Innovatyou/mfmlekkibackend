@@ -209,6 +209,7 @@ $routes->get('deleteDevotional/(:any)', 'Devotionals::deleteDevotional/$1', ['fi
 
 //members
 $routes->post('getMembers', 'Members::getMembers', ['filter' => 'auth']);
+$routes->get('membersDashboard', 'Members::dashboard', ['filter' => 'auth']);
 $routes->get('membersListing', 'Members::index', ['filter' => 'auth']);
 $routes->get('newMember', 'Members::newMember', ['filter' => 'auth']);
 $routes->post('saveNewMember', 'Members::saveNewMember', ['filter' => 'auth']);

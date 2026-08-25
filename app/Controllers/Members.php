@@ -30,6 +30,20 @@ class Members extends BaseController
     return $this->view("members/listing", $this->viewdata);
   }
 
+  public function dashboard()
+  {
+    $membersmodel = new membersmodel();
+
+    $this->viewdata['stats']        = $membersmodel->getDashboardStats();
+    $this->viewdata['genderData']   = $membersmodel->getGenderBreakdown();
+    $this->viewdata['ageData']      = $membersmodel->getAgeBreakdown();
+    $this->viewdata['growthData']   = $membersmodel->getGrowthTrend();
+    $this->viewdata['sourceData']   = $membersmodel->getSignupSourceBreakdown();
+    $this->viewdata['recentMembers'] = $membersmodel->getLatestMembers();
+
+    return $this->view("members/dashboard", $this->viewdata);
+  }
+
   function getMembers()
   {
     // Datatables Variables
@@ -140,11 +154,7 @@ class Members extends BaseController
     $linkedln = $this->request->getVar('linkedln');
     $dob = $this->request->getVar('dob');
 
-    $_date = \DateTime::createFromFormat("Y-m-d", $dob);
-    $year =  $_date->format("Y") + 0;
-    $month =  $_date->format("m") + 0;
-    $day =  $_date->format("d") + 0;
-
+    [$year, $month, $day] = $this->splitDob($dob);
 
     $info = array(
       'age' => $this->getAge($dob),
@@ -198,11 +208,7 @@ class Members extends BaseController
     $linkedln = $this->request->getVar('linkedln');
     $dob = $this->request->getVar('dob');
 
-    $_date = \DateTime::createFromFormat("Y-m-d", $dob);
-    $year =  $_date->format("Y") + 0;
-    $month =  $_date->format("m") + 0;
-    $day =  $_date->format("d") + 0;
-
+    [$year, $month, $day] = $this->splitDob($dob);
 
     $info = array(
       'age' => $this->getAge($dob),
@@ -253,9 +259,27 @@ class Members extends BaseController
 
   function getAge($dateofbirth)
   {
-    $today = date("Y-m-d");
-    $diff = date_diff(date_create($dateofbirth), date_create($today));
-    return $diff->format('%y');
+    if (empty($dateofbirth)) return 0;
+    $dt = date_create($dateofbirth);
+    if (!$dt) return 0;
+    return (int) date_diff($dt, date_create())->format('%y');
+  }
+
+  /**
+   * Parses a Y-m-d dob string into [year, month, day], or [null, null, null]
+   * if it's missing/malformed. DOB is optional on the member form, and
+   * DateTime::createFromFormat() returns false on bad input — calling
+   * ->format() on that false used to fatal-error and abort the save.
+   */
+  function splitDob($dob)
+  {
+    if (!empty($dob)) {
+      $_date = \DateTime::createFromFormat("Y-m-d", $dob);
+      if ($_date) {
+        return [(int) $_date->format("Y"), (int) $_date->format("m"), (int) $_date->format("d")];
+      }
+    }
+    return [null, null, null];
   }
 
   function upload_thumbnail()
