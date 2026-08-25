@@ -33,7 +33,7 @@
             </div>
             <div>
               <label class="nf-label"><?= $locale['request_content'] ?></label>
-              <textarea class="editor1" name="content" readonly><?= $prayer->content ?></textarea>
+              <div class="nf-input" style="min-height:120px;height:auto;white-space:pre-wrap;"><?= $prayer->content ?></div>
             </div>
           </div>
         </div>

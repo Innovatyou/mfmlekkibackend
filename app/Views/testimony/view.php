@@ -27,7 +27,7 @@
             </div>
             <div>
               <label class="nf-label"><?= $locale['testimony_content'] ?></label>
-              <textarea class="editor1" name="content" readonly><?= $testimony->content ?></textarea>
+              <div class="nf-input" style="min-height:120px;height:auto;white-space:pre-wrap;"><?= $testimony->content ?></div>
             </div>
           </div>
         </div>
