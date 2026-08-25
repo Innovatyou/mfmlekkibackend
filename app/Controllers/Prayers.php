@@ -121,6 +121,35 @@ class Prayers extends BaseController
   }
 
 
+  function replyPrayer()
+  {
+    $id    = (int) $this->request->getVar('id');
+    $reply = trim((string) $this->cleanup($this->request->getVar('reply')));
+
+    $prayermodel = new prayermodel();
+    $prayer = $prayermodel->getItemInfo($id);
+
+    if (!$prayer || $reply === '') {
+      $this->session->setFlashdata('error', 'Please enter a reply.');
+      return redirect()->to(base_url('viewPrayer/' . $id));
+    }
+
+    $prayermodel->saveReply($id, $reply, $this->session->get('name') ?? 'Admin');
+
+    if ($prayermodel->status == "ok") {
+      if (!empty($prayer->email)) {
+        $this->notify_user($prayer->email, '', 'Reply to your prayer request "' . $prayer->title . '": ' . $reply);
+        $this->session->setFlashdata('success', 'Reply sent to the requester.');
+      } else {
+        $this->session->setFlashdata('success', 'Reply saved (no linked app account to notify -- this request has no email on file).');
+      }
+    } else {
+      $this->session->setFlashdata('error', $prayermodel->message);
+    }
+
+    return redirect()->to(base_url('viewPrayer/' . $id));
+  }
+
   function deletePrayer($id = 0)
   {
     $prayermodel = new prayermodel();

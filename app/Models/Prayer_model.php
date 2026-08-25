@@ -121,4 +121,21 @@ class Prayer_model extends Basemodel
     $this->status = $this->applocal['ok'];
     $this->message = $this->applocal['prayer_del'];
   }
+
+  function saveReply($id, $reply, $repliedBy)
+  {
+    $db = \Config\Database::connect("default");
+    $ok = $db->table('tbl_prayers')->where('id', $id)->update([
+      'admin_reply' => $reply,
+      'replied_at'  => date('Y-m-d H:i:s'),
+      'replied_by'  => $repliedBy,
+    ]);
+    if ($ok) {
+      $this->status = $this->applocal['ok'];
+      $this->message = 'Reply saved.';
+    } else {
+      $this->status = $this->applocal['error'];
+      $this->message = 'Could not save the reply. Please try again.';
+    }
+  }
 }

@@ -565,6 +565,7 @@ class Api extends BaseController
 
   public function submittestimony()
   {
+    $email = $this->request->getVar('email');
     $title = $this->request->getVar('title');
     $testifier = $this->request->getVar('testifier');
     $content = $this->request->getVar('content');
@@ -575,6 +576,7 @@ class Api extends BaseController
       'branch' => 1,
       'content' => $content,
       'testifier' => $testifier,
+      'email' => $email,
       'status' => $status,
     );
     $testimonymodel = new testimonymodel();

@@ -116,6 +116,35 @@ class Testimony extends BaseController
   }
 
 
+  function replyTestimony()
+  {
+    $id    = (int) $this->request->getVar('id');
+    $reply = trim((string) $this->cleanup($this->request->getVar('reply')));
+
+    $testimonymodel = new testimonymodel();
+    $testimony = $testimonymodel->getItemInfo($id);
+
+    if (!$testimony || $reply === '') {
+      $this->session->setFlashdata('error', 'Please enter a reply.');
+      return redirect()->to(base_url('viewTestimony/' . $id));
+    }
+
+    $testimonymodel->saveReply($id, $reply, $this->session->get('name') ?? 'Admin');
+
+    if ($testimonymodel->status == "ok") {
+      if (!empty($testimony->email)) {
+        $this->notify_user($testimony->email, '', 'Reply to your testimony "' . $testimony->title . '": ' . $reply);
+        $this->session->setFlashdata('success', 'Reply sent to the submitter.');
+      } else {
+        $this->session->setFlashdata('success', 'Reply saved (no linked app account to notify -- this testimony has no email on file).');
+      }
+    } else {
+      $this->session->setFlashdata('error', $testimonymodel->message);
+    }
+
+    return redirect()->to(base_url('viewTestimony/' . $id));
+  }
+
   function deleteTestimony($id = 0)
   {
     $testimonymodel = new testimonymodel();

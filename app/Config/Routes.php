@@ -361,6 +361,7 @@ $routes->get('editTestimony/(:any)', 'Testimony::editTestimony/$1', ['filter' =>
 $routes->post('edittestimonydata', 'Testimony::edittestimonydata', ['filter' => 'auth']);
 $routes->get('deleteTestimony/(:any)', 'Testimony::deleteTestimony/$1', ['filter' => 'auth']);
 $routes->get('editTestimonyStatus/(:any)/(:any)', 'Testimony::editTestimonyStatus/$1/$2', ['filter' => 'auth']);
+$routes->post('replyTestimony', 'Testimony::replyTestimony', ['filter' => 'auth']);
 
 //prayers
 $routes->get('prayersListing', 'Prayers::index', ['filter' => 'auth']);
@@ -371,6 +372,7 @@ $routes->get('editPrayer/(:any)', 'Prayers::editPrayer/$1', ['filter' => 'auth']
 $routes->post('editprayerdata', 'Prayers::editprayerdata', ['filter' => 'auth']);
 $routes->get('deletePrayer/(:any)', 'Prayers::deletePrayer/$1', ['filter' => 'auth']);
 $routes->get('editPrayerStatus/(:any)/(:any)', 'Prayers::editPrayerStatus/$1/$2', ['filter' => 'auth']);
+$routes->post('replyPrayer', 'Prayers::replyPrayer', ['filter' => 'auth']);
 
 //groups
 $routes->get('groups', 'Groups::index', ['filter' => 'auth']);
