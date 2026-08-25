@@ -94,6 +94,7 @@ class Devotionals extends BaseController
       "recordsFiltered" => $total_feeds,
       "data" => $dat
     );
+    header('Content-Type: application/json');
     echo json_encode($output);
   }
 

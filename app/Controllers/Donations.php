@@ -79,6 +79,7 @@ class Donations extends BaseController
       "recordsFiltered" => $total,
       "data" => $dat
     );
+    header('Content-Type: application/json');
     echo json_encode($output);
   }
 

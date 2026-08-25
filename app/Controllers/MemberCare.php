@@ -80,6 +80,7 @@ class MemberCare extends BaseController
             $count++;
         }
 
+        header('Content-Type: application/json');
         echo json_encode([
             'draw'            => $draw,
             'recordsTotal'    => $total,

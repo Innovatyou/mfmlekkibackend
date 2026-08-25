@@ -48,26 +48,16 @@ class Members extends BaseController
   {
     // Datatables Variables
     $membersmodel = new membersmodel();
-    $draw = intval($_POST['draw']);
-    $start = intval($_POST['start']);
-    $length = intval($_POST['length']);
-    $columnIndex = $_POST['order'][0]['column']; // Column index
-    $columnName = $_POST['columns'][$columnIndex]['data']; // Column name
-    $columnSortOrder = $_POST['order'][0]['dir']; // asc or desc
-    $searchValue = "";
-    if (isset($_POST['search']['value'])) {
-      $searchValue = $_POST['search']['value']; // Search value
-    }
+    $draw = intval($_POST['draw'] ?? 1);
+    $start = intval($_POST['start'] ?? 0);
+    $length = intval($_POST['length'] ?? 10);
+    $searchValue = $_POST['search']['value'] ?? "";
 
+    // Client sends the sort column as a numeric index (0,1,2…), not a DB
+    // column name, so it can't be passed straight to ORDER BY — leaving
+    // it blank keeps the previous (safe, insertion-order) behaviour.
     $columnName = "";
-    if (isset($_POST['columns'][$columnIndex]['data'])) {
-      $columnSortOrder = $_POST['columns'][$columnIndex]['data']; // Search value
-    }
-
-    $columnSortOrder = "ASC";
-    if (isset($_POST['order'][0]['dir'])) {
-      $columnSortOrder = $_POST['order'][0]['dir']; // Search value
-    }
+    $columnSortOrder = $_POST['order'][0]['dir'] ?? "ASC";
 
 
     $feeds = $membersmodel->adminMembersListing($columnName, $columnSortOrder, $searchValue, $start, $length);
@@ -110,6 +100,7 @@ class Members extends BaseController
       "recordsFiltered" => $total_feeds,
       "data" => $dat
     );
+    header('Content-Type: application/json');
     echo json_encode($output);
   }
 

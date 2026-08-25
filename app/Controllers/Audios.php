@@ -93,6 +93,7 @@ class Audios extends BaseController
       "recordsFiltered" => $total_audios,
       "data" => $dat
     );
+    header('Content-Type: application/json');
     echo json_encode($output);
   }
 
