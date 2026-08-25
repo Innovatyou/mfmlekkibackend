@@ -319,72 +319,81 @@ function comment_action(e){
    });
 }
 
-$('.thumbs_dropify').dropify({
+// Guarded: if dropify.min.js 404s or is blocked, $.fn.dropify is undefined
+// and calling it throws -- since this file runs top-to-bottom as one
+// script, that uncaught error used to abort every DataTable init below
+// (members, marketplace, partnership, member care, etc.) as collateral
+// damage. Skipping cleanly here keeps the rest of the file running.
+if ($.fn.dropify) {
+  $('.thumbs_dropify').dropify({
+      messages: {
+          'default': 'Drag or drop thumbnail here',
+          'replace': 'Drag and drop or click to replace',
+          'remove':  'Remove',
+          'error':   'Ooops, something wrong happended.'
+      }
+  });
+
+  $('.bible_dropify').dropify({
+      messages: {
+          'default': 'Drag or drop bible json file here',
+          'replace': 'Drag and drop or click to replace',
+          'remove':  'Remove',
+          'error':   'Ooops, something wrong happended.'
+      }
+  });
+
+  $('.pdf_dropify').dropify({
+      messages: {
+          'default': 'Drag or drop PDF File here',
+          'replace': 'Drag and drop or click to replace',
+          'remove':  'Remove',
+          'error':   'Ooops, something wrong happended.'
+      }
+  });
+
+  //initialise dropify for song upload
+  $('.dropify').dropify({
+      messages: {
+          'default': 'Drag or drop mp3 here',
+          'replace': 'Drag and drop or click to replace',
+          'remove':  'Remove',
+          'error':   'Select only mp3 files.'
+      }
+  });
+
+  //initialise dropify for image upload
+  $('.dropify2').dropify({
+      messages: {
+          'default': 'Drag or drop cover photo here',
+          'replace': 'Drag and drop or click to replace',
+          'remove':  'Remove',
+          'error':   'Select only jpeg|jpg|png|JPEG|PNG image files.'
+      }
+  });
+
+  //initialise dropify for image upload
+  $('.dropify5').dropify({
     messages: {
-        'default': 'Drag or drop thumbnail here',
+        'default': 'Drag or drop firebase json here',
         'replace': 'Drag and drop or click to replace',
         'remove':  'Remove',
-        'error':   'Ooops, something wrong happended.'
+        'error':   'Select only json files.'
     }
-});
+  });
 
-$('.bible_dropify').dropify({
-    messages: {
-        'default': 'Drag or drop bible json file here',
-        'replace': 'Drag and drop or click to replace',
-        'remove':  'Remove',
-        'error':   'Ooops, something wrong happended.'
-    }
-});
-
-$('.pdf_dropify').dropify({
-    messages: {
-        'default': 'Drag or drop PDF File here',
-        'replace': 'Drag and drop or click to replace',
-        'remove':  'Remove',
-        'error':   'Ooops, something wrong happended.'
-    }
-});
-
-//initialise dropify for song upload
-$('.dropify').dropify({
-    messages: {
-        'default': 'Drag or drop mp3 here',
-        'replace': 'Drag and drop or click to replace',
-        'remove':  'Remove',
-        'error':   'Select only mp3 files.'
-    }
-});
-
-//initialise dropify for image upload
-$('.dropify2').dropify({
-    messages: {
-        'default': 'Drag or drop cover photo here',
-        'replace': 'Drag and drop or click to replace',
-        'remove':  'Remove',
-        'error':   'Select only jpeg|jpg|png|JPEG|PNG image files.'
-    }
-});
-
-//initialise dropify for image upload
-$('.dropify5').dropify({
-  messages: {
-      'default': 'Drag or drop firebase json here',
-      'replace': 'Drag and drop or click to replace',
-      'remove':  'Remove',
-      'error':   'Select only json files.'
-  }
-});
-
-//initialise dropify for video upload
-$('.dropify3').dropify({
-    messages: {
-        'default': 'Drag or drop mp4 here',
-        'replace': 'Drag and drop or click to replace',
-        'remove':  'Remove',
-        'error':   'Select only mp4 files.'
-    }
-});
+  //initialise dropify for video upload
+  $('.dropify3').dropify({
+      messages: {
+          'default': 'Drag or drop mp4 here',
+          'replace': 'Drag and drop or click to replace',
+          'remove':  'Remove',
+          'error':   'Select only mp4 files.'
+      }
+  });
+} else {
+  console.warn('dropify plugin not loaded -- skipping file-upload widgets on this page.');
+}
 
 
 $('#categories-table').DataTable({

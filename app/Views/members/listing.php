@@ -145,7 +145,17 @@ function _grad(name) {
   return _grads[c] || '#6366f1,#8b5cf6';
 }
 
-$(document).ready(function () {
+/* jQuery loads in the page footer, after this content -- poll for it
+   instead of assuming it already exists (referencing $ here directly
+   used to throw "$ is not defined" and skip this whole block). */
+(function initMembersTableWhenReady() {
+  if (!window.jQuery) {
+    setTimeout(initMembersTableWhenReady, 20);
+    return;
+  }
+  var $ = window.jQuery;
+
+  $(document).ready(function () {
   /* Destroy the instance initialised by common.js and reinit with richer config */
   if ($.fn.DataTable.isDataTable('#members_table')) {
     $('#members_table').DataTable().destroy();
@@ -225,7 +235,8 @@ $(document).ready(function () {
       }
     ]
   });
-});
+  });
+})();
 
 function confirmDeleteMember(id) {
   swal({
