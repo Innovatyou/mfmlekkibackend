@@ -31,7 +31,7 @@
             <?php foreach ($signupRequests as $index => $request): ?>
               <tr>
                 <td><?= $index + 1 ?></td>
-                <td><?= esc(trim($request->firstname . ' ' . $request->lastname)) ?></td>
+                <td><a href="javascript:void(0)" class="rq-clickable" onclick="openRequestModalFromEndpoint('<?= base_url('getSignupInfo/' . $request->id) ?>', 'Signup Request')"><?= esc(trim($request->firstname . ' ' . $request->lastname)) ?></a></td>
                 <td><?= esc($request->email) ?><br><span style="font-size:.75rem;color:var(--t3);"><?= esc($request->phonenumber) ?></span></td>
                 <td><?= esc($request->gender) ?></td>
                 <td><?= $request->date_inserted ? date('M j, Y g:i A', strtotime($request->date_inserted)) : '—' ?></td>
@@ -60,43 +60,50 @@
   #signups_table thead th { font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);border-bottom:2px solid var(--border)!important;border-top:none!important;padding:10px 14px;background:#f8fafc; }
   #signups_table tbody td { padding:10px 14px;border-color:var(--border)!important;font-size:.875rem;vertical-align:middle; }
   #signups_table tbody tr:hover td { background:#f8fafc; }
+  .rq-clickable{color:var(--t1);font-weight:600;text-decoration:none;cursor:pointer;}
+  .rq-clickable:hover{color:var(--accent);text-decoration:underline;}
 </style>
+<?= view('_request_modal') ?>
 <script>
-$(document).ready(function(){
-  var dt = $('#signups_table').DataTable({
-    pageLength: 15,
-    order: [[4, 'desc']],
-    dom: "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
-    language: {
-      search: '', searchPlaceholder: 'Search…',
-      lengthMenu: 'Show _MENU_',
-      info: 'Showing _START_–_END_ of _TOTAL_',
-      paginate: { previous: '‹', next: '›' },
-      emptyTable: "No pending signup requests — you're all caught up!",
-    },
-    columnDefs: [
-      { targets: 0, width: '50px', className: 'text-muted', orderable: false },
-      { targets: [2,3,4], orderable: false },
-      { targets: 5, orderable: false, className: 'text-center' },
-    ]
-  });
+(function initSignupsTableWhenReady() {
+  if (!window.jQuery) { setTimeout(initSignupsTableWhenReady, 20); return; }
+  var $ = window.jQuery;
+  $(document).ready(function(){
+    var dt = $('#signups_table').DataTable({
+      pageLength: 15,
+      order: [[4, 'desc']],
+      dom: "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+      language: {
+        search: '', searchPlaceholder: 'Search…',
+        lengthMenu: 'Show _MENU_',
+        info: 'Showing _START_–_END_ of _TOTAL_',
+        paginate: { previous: '‹', next: '›' },
+        emptyTable: "No pending signup requests — you're all caught up!",
+      },
+      columnDefs: [
+        { targets: 0, width: '50px', className: 'text-muted', orderable: false },
+        { targets: [2,3,4], orderable: false },
+        { targets: 5, orderable: false, className: 'text-center' },
+      ]
+    });
 
-  $(document).on('click', '.signup-approve-btn', function(e){
-    e.preventDefault();
-    var id = $(this).data('id');
-    swal({ title: 'Approve this member?', text: 'They will be added to your members list.', icon: 'success',
-      buttons: ['Cancel', 'Approve'], dangerMode: false }).then(function(ok){
-      if (ok) window.location.href = baseURL + '/approveSignupRequest/' + id;
+    $(document).on('click', '.signup-approve-btn', function(e){
+      e.preventDefault();
+      var id = $(this).data('id');
+      swal({ title: 'Approve this member?', text: 'They will be added to your members list.', icon: 'success',
+        buttons: ['Cancel', 'Approve'], dangerMode: false }).then(function(ok){
+        if (ok) window.location.href = baseURL + '/approveSignupRequest/' + id;
+      });
+    });
+
+    $(document).on('click', '.signup-reject-btn', function(e){
+      e.preventDefault();
+      var id = $(this).data('id');
+      swal({ title: 'Reject this request?', text: 'This request will be marked as rejected.', icon: 'warning',
+        buttons: ['Cancel', 'Reject'], dangerMode: true }).then(function(ok){
+        if (ok) window.location.href = baseURL + '/rejectSignupRequest/' + id;
+      });
     });
   });
-
-  $(document).on('click', '.signup-reject-btn', function(e){
-    e.preventDefault();
-    var id = $(this).data('id');
-    swal({ title: 'Reject this request?', text: 'This request will be marked as rejected.', icon: 'warning',
-      buttons: ['Cancel', 'Reject'], dangerMode: true }).then(function(ok){
-      if (ok) window.location.href = baseURL + '/rejectSignupRequest/' + id;
-    });
-  });
-});
+})();
 </script>

@@ -22,7 +22,7 @@
             <tr>
               <td class="text-muted"><?=$c?></td>
               <td><span class="lt-date"><?=esc($r->date)?></span></td>
-              <td style="font-weight:600;color:var(--t1);"><?=esc($r->requester)?></td>
+              <td><a href="javascript:void(0)" class="rq-clickable" onclick="showPrayerModal(<?= (int) $r->id ?>)"><?=esc($r->requester)?></a></td>
               <td style="color:var(--t2);"><?=esc($r->title)?></td>
               <td><?php if($r->status==0):?><span class="lt-approved">Approved</span><?php else:?><span class="lt-pending">Pending</span><?php endif;?></td>
               <td>
@@ -54,13 +54,56 @@
 #prayers_table_wrapper .dataTables_info{font-size:.8rem;color:var(--t3)}
 #prayers_table_wrapper .paginate_button{border-radius:7px!important;font-size:.82rem;font-weight:600}
 #prayers_table_wrapper .paginate_button.current,#prayers_table_wrapper .paginate_button.current:hover{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+.rq-clickable{color:var(--t1);font-weight:600;text-decoration:none;cursor:pointer;}
+.rq-clickable:hover{color:var(--accent);text-decoration:underline;}
 </style>
 <script>
-$(document).ready(function(){
-  if($.fn.DataTable.isDataTable('#prayers_table'))$('#prayers_table').DataTable().destroy();
-  $('#prayers_table').DataTable({pageLength:15,dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
-    language:{search:'',searchPlaceholder:'Search requests…',info:'Showing _START_–_END_ of _TOTAL_',paginate:{previous:'‹',next:'›'}},
-    columnDefs:[{targets:0,width:'50px',orderable:false},{targets:5,orderable:false}]});
-});
+var PRAYERS_DATA = <?= json_encode(array_map(function ($r) {
+  return [
+    'id' => (int) $r->id,
+    'requester' => $r->requester,
+    'title' => $r->title,
+    'content' => $r->content,
+    'date' => $r->date,
+    'status' => (int) $r->status,
+    'public' => (int) $r->public,
+    'email' => $r->email ?? '',
+    'admin_reply' => $r->admin_reply ?? '',
+    'replied_by' => $r->replied_by ?? '',
+    'replied_at' => $r->replied_at ?? '',
+  ];
+}, $prayers), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+
+function showPrayerModal(id) {
+  var r = PRAYERS_DATA.find(function (x) { return x.id === id; });
+  if (!r) return;
+  var fields = [
+    { label: 'Requester', value: r.requester },
+    { label: 'Email', value: r.email },
+    { label: 'Date', value: r.date },
+    { label: 'Visibility', value: r.public === 0 ? 'Public' : 'Private' },
+    { label: 'Title', value: r.title },
+    { label: 'Request', value: r.content },
+  ];
+  if (r.admin_reply) {
+    fields.push({ label: 'Your Reply' + (r.replied_by ? ' (' + r.replied_by + ')' : ''), value: r.admin_reply });
+  }
+  var approveUrl = r.status !== 0 ? (baseURL + '/editPrayerStatus/' + r.id + '/1') : null;
+  openRequestModal(r.requester, fields, approveUrl, 'Approve Request');
+}
+
+(function initPrayersTableWhenReady() {
+  if (!window.jQuery) { setTimeout(initPrayersTableWhenReady, 20); return; }
+  var $ = window.jQuery;
+  $(document).ready(function(){
+    if($.fn.DataTable.isDataTable('#prayers_table'))$('#prayers_table').DataTable().destroy();
+    $('#prayers_table').DataTable({pageLength:15,dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+      language:{search:'',searchPlaceholder:'Search requests…',info:'Showing _START_–_END_ of _TOTAL_',paginate:{previous:'‹',next:'›'}},
+      columnDefs:[{targets:0,width:'50px',orderable:false},{targets:5,orderable:false}]});
+  });
+})();
+
 function ltSDelConfirm(type,id){swal({title:'Delete?',text:'This cannot be undone.',type:'warning',showCancelButton:true,confirmButtonColor:'#ef4444',confirmButtonText:'Yes, delete'},function(){var u={inbox:'deleteInbox',message:'deleteMessage',book:'deleteBook',branch:'deleteBranch',events:'deleteEvent',groups:'deleteGroup',prayer:'deletePrayer',testimony:'deleteTestimony'};document.location.href=baseURL+'/'+(u[type]||'delete')+'/'+id;});}
 </script>
+
+<?= view('_request_modal') ?>

@@ -112,7 +112,7 @@ class Marketplace extends BaseController
 
             $dat[] = [
                 $count,
-                esc($r->title),
+                '<a href="javascript:void(0)" class="rq-clickable" onclick="openRequestModalFromEndpoint(\'' . base_url('getMarketplaceItemInfo/' . $r->id) . '\', \'Listing Details\')">' . esc($r->title) . '</a>',
                 esc($r->seller_name),
                 esc($r->category_name ?? '—'),
                 $priceLabel,
@@ -130,6 +130,46 @@ class Marketplace extends BaseController
             'recordsTotal'    => $total,
             'recordsFiltered' => $total,
             'data'            => $dat,
+        ]);
+    }
+
+    // ─── Record detail (modal) ──────────────────────────────────────────
+
+    public function getInfo(int $id)
+    {
+        $model = new MarketplaceModel();
+        $item  = $model->getItemInfo($id);
+
+        if (!$item) {
+            header('Content-Type: application/json'); echo json_encode(['status' => 'error', 'message' => 'Listing not found']);
+            return;
+        }
+
+        $sym = self::$currencySymbols[$this->viewdata['currency_code'] ?? 'USD'] ?? '$';
+
+        $fields = [
+            ['label' => 'Title', 'value' => $item->title],
+            ['label' => 'Description', 'value' => $item->description],
+            ['label' => 'Seller', 'value' => $item->seller_name],
+            ['label' => 'Email', 'value' => $item->seller_email],
+            ['label' => 'Phone', 'value' => $item->seller_phone],
+            ['label' => 'Category', 'value' => $item->category_name],
+            ['label' => 'Price', 'value' => $item->is_free ? 'Free' : $sym . number_format((float) $item->price, 2)],
+            ['label' => 'Condition', 'value' => ucfirst($item->item_condition)],
+            ['label' => 'Location', 'value' => $item->location],
+            ['label' => 'Status', 'value' => ucfirst($item->status)],
+            ['label' => 'Views', 'value' => (string) $item->views],
+            ['label' => 'Posted', 'value' => $item->created_at ? date('M j, Y', strtotime($item->created_at)) : null],
+        ];
+
+        $approveUrl = $item->status === 'pending' ? base_url('approveMarketplaceItem/' . $id) : null;
+
+        header('Content-Type: application/json'); echo json_encode([
+            'status'       => 'ok',
+            'title'        => $item->title,
+            'fields'       => $fields,
+            'approveUrl'   => $approveUrl,
+            'approveLabel' => 'Approve Listing',
         ]);
     }
 
@@ -375,7 +415,7 @@ class Marketplace extends BaseController
 
             $dat[] = [
                 $count,
-                esc($r->title),
+                '<a href="javascript:void(0)" class="rq-clickable" onclick="openRequestModalFromEndpoint(\'' . base_url('getMarketplaceItemInfo/' . $r->id) . '\', \'Listing Details\')">' . esc($r->title) . '</a>',
                 esc($r->seller_name) . '<br><span style="font-size:.75rem;color:var(--t3);">' . esc($r->seller_email) . '</span>',
                 esc($r->category_name ?? '—'),
                 $price,

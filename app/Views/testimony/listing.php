@@ -21,7 +21,7 @@
               $approved=$r->status==0?1:0; ?>
             <tr>
               <td class="text-muted"><?=$c?></td>
-              <td style="font-weight:600;color:var(--t1);"><?=esc($r->testifier)?></td>
+              <td><a href="javascript:void(0)" class="rq-clickable" onclick="showTestimonyModal(<?= (int) $r->id ?>)"><?=esc($r->testifier)?></a></td>
               <td style="color:var(--t2);"><?=esc($r->title)?></td>
               <td><?php if($r->status==0):?><span class="lt-approved">Approved</span><?php else:?><span class="lt-pending">Pending</span><?php endif;?></td>
               <td>
@@ -51,13 +51,54 @@
 #testimony_table_wrapper .dataTables_info{font-size:.8rem;color:var(--t3)}
 #testimony_table_wrapper .paginate_button{border-radius:7px!important;font-size:.82rem;font-weight:600}
 #testimony_table_wrapper .paginate_button.current,#testimony_table_wrapper .paginate_button.current:hover{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+.rq-clickable{color:var(--t1);font-weight:600;text-decoration:none;cursor:pointer;}
+.rq-clickable:hover{color:var(--accent);text-decoration:underline;}
 </style>
 <script>
-$(document).ready(function(){
-  if($.fn.DataTable.isDataTable('#testimony_table'))$('#testimony_table').DataTable().destroy();
-  $('#testimony_table').DataTable({pageLength:15,dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
-    language:{search:'',searchPlaceholder:'Search testimonies…',info:'Showing _START_–_END_ of _TOTAL_',paginate:{previous:'‹',next:'›'}},
-    columnDefs:[{targets:0,width:'50px',orderable:false},{targets:4,orderable:false}]});
-});
+var TESTIMONY_DATA = <?= json_encode(array_map(function ($r) {
+  return [
+    'id' => (int) $r->id,
+    'testifier' => $r->testifier,
+    'title' => $r->title,
+    'content' => $r->content,
+    'date' => $r->date,
+    'status' => (int) $r->status,
+    'email' => $r->email ?? '',
+    'admin_reply' => $r->admin_reply ?? '',
+    'replied_by' => $r->replied_by ?? '',
+    'replied_at' => $r->replied_at ?? '',
+  ];
+}, $testimonies), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>;
+
+function showTestimonyModal(id) {
+  var r = TESTIMONY_DATA.find(function (x) { return x.id === id; });
+  if (!r) return;
+  var fields = [
+    { label: 'Testifier', value: r.testifier },
+    { label: 'Email', value: r.email },
+    { label: 'Date', value: r.date },
+    { label: 'Title', value: r.title },
+    { label: 'Testimony', value: r.content },
+  ];
+  if (r.admin_reply) {
+    fields.push({ label: 'Your Reply' + (r.replied_by ? ' (' + r.replied_by + ')' : ''), value: r.admin_reply });
+  }
+  var approveUrl = r.status !== 0 ? (baseURL + '/editTestimonyStatus/' + r.id + '/1') : null;
+  openRequestModal(r.testifier, fields, approveUrl, 'Approve Testimony');
+}
+
+(function initTestimonyTableWhenReady() {
+  if (!window.jQuery) { setTimeout(initTestimonyTableWhenReady, 20); return; }
+  var $ = window.jQuery;
+  $(document).ready(function(){
+    if($.fn.DataTable.isDataTable('#testimony_table'))$('#testimony_table').DataTable().destroy();
+    $('#testimony_table').DataTable({pageLength:15,dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+      language:{search:'',searchPlaceholder:'Search testimonies…',info:'Showing _START_–_END_ of _TOTAL_',paginate:{previous:'‹',next:'›'}},
+      columnDefs:[{targets:0,width:'50px',orderable:false},{targets:4,orderable:false}]});
+  });
+})();
+
 function ltSDelConfirm(type,id){swal({title:'Delete?',text:'This cannot be undone.',type:'warning',showCancelButton:true,confirmButtonColor:'#ef4444',confirmButtonText:'Yes, delete'},function(){var u={inbox:'deleteInbox',message:'deleteMessage',book:'deleteBook',branch:'deleteBranch',events:'deleteEvent',groups:'deleteGroup',prayer:'deletePrayer',testimony:'deleteTestimony'};document.location.href=baseURL+'/'+(u[type]||'delete')+'/'+id;});}
 </script>
+
+<?= view('_request_modal') ?>

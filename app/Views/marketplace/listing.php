@@ -145,6 +145,8 @@
   </div>
 </div>
 
+<?= view('_request_modal') ?>
+
 <style>
   .mp-stat-card {
     background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);
@@ -214,6 +216,9 @@
     font-size:.875rem;vertical-align:middle;
   }
   #mp_pending_table tbody tr:hover td { background:#fffbeb; }
+
+  .rq-clickable{color:var(--t1);font-weight:600;text-decoration:none;cursor:pointer;}
+  .rq-clickable:hover{color:var(--accent);text-decoration:underline;}
 </style>
 
 <script>

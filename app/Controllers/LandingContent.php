@@ -345,6 +345,37 @@ class LandingContent extends BaseController
         ]);
     }
 
+    public function getSignupInfo($id = 0)
+    {
+        $model  = new membersmodel();
+        $member = $model->getMemberInfo($id);
+
+        if (!$member) {
+            return $this->response->setJSON(['status' => 'error', 'message' => 'Request not found']);
+        }
+
+        $fields = [
+            ['label' => 'Name', 'value' => trim($member->firstname . ' ' . $member->lastname)],
+            ['label' => 'Email', 'value' => $member->email],
+            ['label' => 'Phone', 'value' => $member->phonenumber],
+            ['label' => 'Gender', 'value' => $member->gender],
+            ['label' => 'Date of Birth', 'value' => $member->dob],
+            ['label' => 'Address', 'value' => $member->address],
+            ['label' => 'Occupation', 'value' => $member->occupation],
+            ['label' => 'Submitted', 'value' => $member->date_inserted ? date('M j, Y g:i A', strtotime($member->date_inserted)) : null],
+        ];
+
+        return $this->response->setJSON([
+            'status'       => 'ok',
+            'title'        => trim($member->firstname . ' ' . $member->lastname),
+            'fields'       => $fields,
+            'approveUrl'   => base_url('approveSignupRequest/' . $id),
+            'approveLabel' => 'Approve',
+            'rejectUrl'    => base_url('rejectSignupRequest/' . $id),
+            'rejectLabel'  => 'Reject',
+        ]);
+    }
+
     public function approveSignupRequest($id = 0)
     {
         $model = new membersmodel();

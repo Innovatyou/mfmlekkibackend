@@ -83,6 +83,7 @@ $routes->get('deleteLeader/(:num)', 'LandingContent::deleteLeader/$1', ['filter'
 
 $routes->get('signupRequests', 'LandingContent::signupRequests', ['filter' => 'auth']);
 $routes->get('getSignupRequests', 'LandingContent::getSignupRequests', ['filter' => 'auth']);
+$routes->get('getSignupInfo/(:num)', 'LandingContent::getSignupInfo/$1', ['filter' => 'auth']);
 $routes->get('approveSignupRequest/(:num)', 'LandingContent::approveSignupRequest/$1', ['filter' => 'auth']);
 $routes->get('rejectSignupRequest/(:num)', 'LandingContent::rejectSignupRequest/$1', ['filter' => 'auth']);
 
@@ -221,6 +222,7 @@ $routes->get('deleteMember/(:any)', 'Members::deleteMember/$1', ['filter' => 'au
 // marketplace
 $routes->get('marketplaceListing', 'Marketplace::index', ['filter' => 'auth']);
 $routes->post('getMarketplaceItems', 'Marketplace::getItems', ['filter' => 'auth']);
+$routes->get('getMarketplaceItemInfo/(:num)', 'Marketplace::getInfo/$1', ['filter' => 'auth']);
 $routes->get('newMarketplaceListing', 'Marketplace::newListing', ['filter' => 'auth']);
 $routes->post('saveNewMarketplaceListing', 'Marketplace::saveNewListing', ['filter' => 'auth']);
 $routes->get('editMarketplaceItem/(:num)', 'Marketplace::editListing/$1', ['filter' => 'auth']);
@@ -253,6 +255,7 @@ $routes->get('deleteMarketplaceCategory/(:num)', 'Marketplace::deleteCategory/$1
 $routes->get('partnership', 'Partnership::dashboard', ['filter' => 'auth']);
 $routes->get('partnershipListing', 'Partnership::index', ['filter' => 'auth']);
 $routes->post('getPartnershipList', 'Partnership::getList', ['filter' => 'auth']);
+$routes->get('getPartnershipInfo/(:num)', 'Partnership::getInfo/$1', ['filter' => 'auth']);
 $routes->get('newPartnership', 'Partnership::newPartnership', ['filter' => 'auth']);
 $routes->post('saveNewPartnership', 'Partnership::saveNewPartnership', ['filter' => 'auth']);
 $routes->get('editPartnership/(:num)', 'Partnership::editPartnership/$1', ['filter' => 'auth']);

@@ -114,7 +114,8 @@ class Partnership extends BaseController
 
             $data[] = [
                 $count,
-                esc($r->partner_name) . '<br><small style="color:var(--t3);">' . esc($r->partner_email ?? '') . '</small>',
+                '<a href="javascript:void(0)" class="rq-clickable" onclick="openRequestModalFromEndpoint(\'' . base_url('getPartnershipInfo/' . $r->id) . '\', \'Partnership Details\')">'
+                    . esc($r->partner_name) . '</a><br><small style="color:var(--t3);">' . esc($r->partner_email ?? '') . '</small>',
                 $tierBadge,
                 $pledged,
                 $paid,
@@ -131,6 +132,50 @@ class Partnership extends BaseController
             'recordsTotal'    => $total,
             'recordsFiltered' => $total,
             'data'            => $data,
+        ]));
+    }
+
+    // ─── Record detail (modal) ─────────────────────────────────────────
+
+    public function getInfo(int $id)
+    {
+        if (!hasPermission('partnership.view') && !isSuperAdmin()) {
+            return $this->response->setContentType('application/json')->setBody(json_encode(['status' => 'error', 'message' => 'Access denied']));
+        }
+
+        $model       = new PartnershipModel();
+        $partnership = $model->getPartnership($id);
+
+        if (!$partnership) {
+            return $this->response->setContentType('application/json')->setBody(json_encode(['status' => 'error', 'message' => 'Record not found']));
+        }
+
+        $currency  = $partnership->currency ?? 'USD';
+        $remaining = max(0, (float) $partnership->pledge_amount - (float) $partnership->paid_amount);
+
+        $fields = [
+            ['label' => 'Partner', 'value' => $partnership->partner_name],
+            ['label' => 'Email', 'value' => $partnership->partner_email],
+            ['label' => 'Phone', 'value' => $partnership->partner_phone],
+            ['label' => 'Tier', 'value' => $partnership->tier_name],
+            ['label' => 'Pledged', 'value' => $currency . ' ' . number_format((float) $partnership->pledge_amount, 2)],
+            ['label' => 'Paid', 'value' => $currency . ' ' . number_format((float) $partnership->paid_amount, 2)],
+            ['label' => 'Remaining', 'value' => $remaining > 0 ? $currency . ' ' . number_format($remaining, 2) : 'Fulfilled'],
+            ['label' => 'Frequency', 'value' => ucfirst(str_replace('-', ' ', $partnership->frequency))],
+            ['label' => 'Status', 'value' => ucfirst($partnership->status)],
+            ['label' => 'Start Date', 'value' => $partnership->start_date ? date('M j, Y', strtotime($partnership->start_date)) : null],
+            ['label' => 'Notes', 'value' => $partnership->notes],
+        ];
+
+        $canEdit     = hasPermission('partnership.edit') || isSuperAdmin();
+        $approveUrl  = ($partnership->status === 'pending' && $canEdit) ? base_url('approvePartnership/' . $id) : null;
+
+        return $this->response->setContentType('application/json')->setBody(json_encode([
+            'status'       => 'ok',
+            'title'        => $partnership->partner_name,
+            'fields'       => $fields,
+            'approveUrl'   => $approveUrl,
+            'approveLabel' => 'Approve Partnership',
         ]));
     }
 

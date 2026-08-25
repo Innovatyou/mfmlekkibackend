@@ -76,6 +76,8 @@
 #ps_table_wrapper .dataTables_info{font-size:.8rem;color:var(--t3);}
 #ps_table_wrapper .paginate_button{border-radius:7px!important;font-size:.82rem;font-weight:600;}
 #ps_table_wrapper .paginate_button.current,#ps_table_wrapper .paginate_button.current:hover{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;}
+.rq-clickable{color:var(--t1);font-weight:600;text-decoration:none;cursor:pointer;}
+.rq-clickable:hover{color:var(--accent);text-decoration:underline;}
 </style>
 
 <script>
@@ -84,3 +86,5 @@ function ltPDelConfirm(id) {
     function () { document.location.href = baseURL + '/deletePartnership/' + id; });
 }
 </script>
+
+<?= view('_request_modal') ?>
