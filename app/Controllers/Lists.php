@@ -20,6 +20,9 @@ class Lists extends BaseController
 
     public function index()
     {
+        if (!hasPermission('lists.view') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $listsmodel = new listsmodel();
         $this->viewdata['lists'] = $listsmodel->listsListing();
         return $this->view("lists/listing", $this->viewdata);
@@ -35,11 +38,17 @@ class Lists extends BaseController
 
     public function newList()
     {
+        if (!hasPermission('lists.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         return $this->view("lists/new", $this->viewdata);
     }
 
     public function editList($id = 0)
     {
+        if (!hasPermission('lists.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $listsmodel = new listsmodel();
         $this->viewdata['lists'] = $listsmodel->getListInfo($id);
         if (count((array)$this->viewdata['event']) == 0) {
@@ -50,6 +59,9 @@ class Lists extends BaseController
 
     function savenewlist()
     {
+        if (!hasPermission('lists.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $listsmodel = new listsmodel();
         $title = $this->request->getVar('title');
         //$members = $this->request->getVar('members');
@@ -79,6 +91,9 @@ class Lists extends BaseController
 
     function editListData()
     {
+        if (!hasPermission('lists.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $id = $this->request->getVar('id');
         $title = $this->request->getVar('title');
         $info = array(
@@ -99,6 +114,9 @@ class Lists extends BaseController
 
     function deleteList($id = 0)
     {
+        if (!hasPermission('lists.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $listsmodel = new listsmodel();
         $listsmodel->deleteListMembers($id);
         $listsmodel->deleteList($id);
@@ -112,6 +130,9 @@ class Lists extends BaseController
 
     function removeFromList($id, $listid)
     {
+        if (!hasPermission('lists.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $listsmodel = new listsmodel();
         $listsmodel->removeFromList($id);
         if ($listsmodel->status == "ok") {
@@ -124,6 +145,9 @@ class Lists extends BaseController
 
     public function viewListMembers($listid)
     {
+        if (!hasPermission('lists.view') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $listsmodel = new listsmodel();
         $this->viewdata['lists'] = $listsmodel->getListInfo($listid);
         if (count((array)$this->viewdata['lists']) == 0) {
@@ -136,6 +160,9 @@ class Lists extends BaseController
 
     public function addMemberstoList($listid)
     {
+        if (!hasPermission('lists.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $listsmodel = new listsmodel();
         $this->viewdata['list'] = $listsmodel->getListInfo($listid);
         if (count((array)$this->viewdata['list']) == 0) {
@@ -148,6 +175,9 @@ class Lists extends BaseController
 
     function savenewmemberslist()
     {
+        if (!hasPermission('lists.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $listsmodel = new listsmodel();
         $listid = $this->request->getVar('id');
         $members = $this->request->getVar('members');

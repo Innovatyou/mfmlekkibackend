@@ -24,6 +24,34 @@ $brandColorDark = '#' . implode('', array_map(
   fn($c) => str_pad(dechex((int) max(0, round(hexdec($c) * 0.8))), 2, '0', STR_PAD_LEFT),
   str_split(ltrim($brandColor, '#'), 2)
 ));
+
+// Sidebar visibility -- a role with no permission for a module shouldn't
+// see it listed at all. Computed once here (rather than calling
+// hasPermission() inline per menu item) since it hits the DB per call.
+$isSuperAdmin     = isSuperAdmin();
+$canMembers       = $isSuperAdmin || hasPermission('members.view');
+$canMemberCare    = $isSuperAdmin || hasPermission('membercare.view');
+$canCounseling    = $isSuperAdmin || hasPermission('counseling.view');
+$canLists         = $isSuperAdmin || hasPermission('lists.view');
+$canDonations     = $isSuperAdmin || hasPermission('donations.view');
+$canMarketplace   = $isSuperAdmin || hasPermission('marketplace.view');
+$canMobileAdverts = $isSuperAdmin || hasPermission('mobileadverts.view');
+$canLanding       = $isSuperAdmin || hasPermission('landing.view');
+$canPartnership   = $isSuperAdmin || hasPermission('partnership.view');
+$canMedia         = $isSuperAdmin || hasPermission('media.view');
+$canPublications  = $isSuperAdmin || hasPermission('publications.view');
+$canConnect       = $isSuperAdmin || hasPermission('connect.view');
+$canPrayers       = $isSuperAdmin || hasPermission('prayers.view');
+$canTestimony     = $isSuperAdmin || hasPermission('testimony.view');
+$canEvents        = $isSuperAdmin || hasPermission('events.view');
+$canHymns         = $isSuperAdmin || hasPermission('hymns.view');
+$canMessaging     = $isSuperAdmin || hasPermission('messaging.view');
+$canLocations     = $isSuperAdmin || hasPermission('locations.view');
+
+$showMembersGroup   = $canMembers || $canMemberCare || $canCounseling || $canLists;
+$showContentGroup   = $canMedia || $canPublications;
+$showCommunityGroup = $canConnect || $canPrayers || $canTestimony || $canEvents || $canHymns;
+$showToolsGroup     = $canMessaging || $canLocations;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -419,37 +447,54 @@ if ('serviceWorker' in navigator) {
           </a>
         </li>
 
+        <?php if ($showMembersGroup): ?>
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'members') !== false || strpos(strtolower($url), '/list') !== false || strpos(strtolower($url), 'membercare') !== false || strpos(strtolower($url), 'counseling') !== false) ? 'active' : '' ?>">
             <span class="micon fi-torsos-all"></span><span class="mtext"><?= $locale['members'] ?></span>
           </a>
           <ul class="submenu">
+            <?php if ($canMembers): ?>
             <li><a href="<?= base_url() ?>/membersDashboard" <?= strpos(strtolower($url), 'membersdashboard') !== false ? 'class="active"' : '' ?>>Dashboard</a></li>
             <li><a href="<?= base_url() ?>/membersListing" <?= (strpos(strtolower($url), 'memberslisting') !== false || strpos(strtolower($url), 'newmember') !== false || strpos(strtolower($url), 'editmember') !== false || strpos(strtolower($url), 'viewmember') !== false) ? 'class="active"' : '' ?>><?= $locale['all_members'] ?></a></li>
+            <?php endif; ?>
+            <?php if ($canMemberCare): ?>
             <li><a href="<?= base_url() ?>/memberCare" <?= strpos(strtolower($url), 'membercare') !== false ? 'class="active"' : '' ?>>Member Care</a></li>
+            <?php endif; ?>
+            <?php if ($canCounseling): ?>
             <li><a href="<?= base_url() ?>/counseling" <?= strpos(strtolower($url), 'counseling') !== false ? 'class="active"' : '' ?>>Counseling</a></li>
+            <?php endif; ?>
+            <?php if ($canLists): ?>
             <li><a href="<?= base_url() ?>/lists" <?= strpos(strtolower($url), '/list') !== false ? 'class="active"' : '' ?>><?= $locale['email_sms_list'] ?></a></li>
+            <?php endif; ?>
           </ul>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canDonations): ?>
         <li>
           <a href="<?= base_url() ?>/donations" class="dropdown-toggle no-arrow <?= strpos(strtolower($url), 'donation') !== false ? 'active' : '' ?>">
             <span class="micon dw dw-wallet1"></span><span class="mtext"><?= $locale['donations'] ?></span>
           </a>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canMarketplace): ?>
         <li>
           <a href="<?= base_url() ?>/marketplaceListing" class="dropdown-toggle no-arrow <?= strpos(strtolower($url), 'marketplace') !== false ? 'active' : '' ?>">
             <span class="micon dw dw-shop"></span><span class="mtext">Marketplace</span>
           </a>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canMobileAdverts): ?>
         <li>
           <a href="<?= base_url() ?>/mobileAdverts" class="dropdown-toggle no-arrow <?= strpos(strtolower($url), 'mobileadverts') !== false ? 'active' : '' ?>">
             <span class="micon dw dw-image"></span><span class="mtext">Mobile Adverts</span>
           </a>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canLanding): ?>
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'landingcontent') !== false || strpos(strtolower($url), 'servicetimes') !== false || strpos(strtolower($url), 'leadership') !== false || strpos(strtolower($url), 'signuprequests') !== false || strpos(strtolower($url), 'membershipform') !== false || strpos(strtolower($url), 'contactmessage') !== false) ? 'active' : '' ?>">
             <span class="micon dw dw-browser"></span><span class="mtext">Website</span>
@@ -463,7 +508,9 @@ if ('serviceWorker' in navigator) {
             <li><a href="<?= base_url() ?>/contactMessages" <?= strpos(strtolower($url), 'contactmessage') !== false ? 'class="active"' : '' ?>>Contact Messages</a></li>
           </ul>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canPartnership): ?>
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'partnership') !== false) ? 'active' : '' ?>">
             <span class="micon dw dw-handshake"></span><span class="mtext">Partnership</span>
@@ -474,9 +521,12 @@ if ('serviceWorker' in navigator) {
             <li><a href="<?= base_url() ?>/partnershipTiers" <?= strpos(strtolower($url), 'partnershiptiers') !== false ? 'class="active"' : '' ?>>Tiers</a></li>
           </ul>
         </li>
+        <?php endif; ?>
 
+        <?php if ($showContentGroup): ?>
         <li class="nav-label">Content</li>
 
+        <?php if ($canMedia): ?>
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle">
             <span class="micon dw dw-video-camera"></span><span class="mtext"><?= $locale['media'] ?></span>
@@ -489,7 +539,9 @@ if ('serviceWorker' in navigator) {
             <li><a href="<?= base_url() ?>/photos"      <?= strpos(strtolower($url), 'photo')      !== false ? 'class="active"' : '' ?>><?= $locale['photos'] ?></a></li>
           </ul>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canPublications): ?>
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle">
             <span class="micon dw dw-books"></span><span class="mtext"><?= $locale['publications'] ?></span>
@@ -500,34 +552,52 @@ if ('serviceWorker' in navigator) {
             <li><a href="<?= base_url() ?>/articlesListing"    <?= strpos(strtolower($url), 'article')     !== false ? 'class="active"' : '' ?>><?= $locale['articles'] ?></a></li>
           </ul>
         </li>
+        <?php endif; ?>
+        <?php endif; ?>
 
+        <?php if ($showCommunityGroup): ?>
         <li class="nav-label">Community</li>
 
+        <?php if ($canConnect || $canPrayers || $canTestimony): ?>
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle">
             <span class="micon dw dw-group"></span><span class="mtext"><?= $locale['connect'] ?></span>
           </a>
           <ul class="submenu">
+            <?php if ($canConnect): ?>
             <li><a href="<?= base_url() ?>/groups"           <?= strpos(strtolower($url), 'group')   !== false ? 'class="active"' : '' ?>><?= $locale['groups'] ?></a></li>
+            <?php endif; ?>
+            <?php if ($canPrayers): ?>
             <li><a href="<?= base_url() ?>/prayersListing"   <?= strpos(strtolower($url), 'prayer')  !== false ? 'class="active"' : '' ?>><?= $locale['prayers'] ?></a></li>
+            <?php endif; ?>
+            <?php if ($canTestimony): ?>
             <li><a href="<?= base_url() ?>/testimonyListing" <?= strpos(strtolower($url), 'testimo') !== false ? 'class="active"' : '' ?>><?= $locale['testimonies'] ?></a></li>
+            <?php endif; ?>
           </ul>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canEvents): ?>
         <li>
           <a href="<?= base_url() ?>/eventsListing" class="dropdown-toggle no-arrow <?= strpos(strtolower($url), 'event') !== false ? 'active' : '' ?>">
             <span class="micon dw dw-calendar1"></span><span class="mtext"><?= $locale['events'] ?></span>
           </a>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canHymns): ?>
         <li>
           <a href="<?= base_url() ?>/hymnsListing" class="dropdown-toggle no-arrow <?= strpos(strtolower($url), 'hymn') !== false ? 'active' : '' ?>">
             <span class="micon dw dw-open-book"></span><span class="mtext"><?= $locale['hymns'] ?></span>
           </a>
         </li>
+        <?php endif; ?>
+        <?php endif; ?>
 
+        <?php if ($showToolsGroup): ?>
         <li class="nav-label">Tools</li>
 
+        <?php if ($canMessaging): ?>
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle">
             <span class="micon dw dw-email"></span><span class="mtext"><?= $locale['messaging'] ?></span>
@@ -537,12 +607,16 @@ if ('serviceWorker' in navigator) {
             <li><a href="<?= base_url() ?>/inbox"     <?= strpos(strtolower($url), 'inbox')  !== false ? 'class="active"' : '' ?>><?= $locale['notifications'] ?></a></li>
           </ul>
         </li>
+        <?php endif; ?>
 
+        <?php if ($canLocations): ?>
         <li>
           <a href="<?= base_url() ?>/branchesListing" class="dropdown-toggle no-arrow <?= strpos(strtolower($url), 'branch') !== false ? 'active' : '' ?>">
             <span class="micon dw dw-city"></span><span class="mtext"><?= $locale['locations'] ?></span>
           </a>
         </li>
+        <?php endif; ?>
+        <?php endif; ?>
 
         <?php if (isSuperAdmin()): ?>
         <li class="nav-label">Administration</li>

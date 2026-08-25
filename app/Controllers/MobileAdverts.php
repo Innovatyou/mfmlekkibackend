@@ -8,12 +8,18 @@ class MobileAdverts extends BaseController
 {
     public function index()
     {
+        if (!hasPermission('mobileadverts.view') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $this->viewdata['adverts'] = (new MobileAdvertModel())->orderBy('sort_order', 'ASC')->findAll();
         return $this->view('mobile_adverts/index', $this->viewdata);
     }
 
     public function store()
     {
+        if (!hasPermission('mobileadverts.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $image = $this->request->getFile('image');
         if (!$image || !$image->isValid()) return redirect()->back()->with('error', 'Please select a valid banner image.');
         if (!in_array($image->getMimeType(), ['image/jpeg', 'image/png', 'image/webp'], true)) {
@@ -39,6 +45,9 @@ class MobileAdverts extends BaseController
 
     public function toggle($id)
     {
+        if (!hasPermission('mobileadverts.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         $model = new MobileAdvertModel();
         $advert = $model->find((int) $id);
         if ($advert) $model->update((int) $id, ['active' => $advert->active ? 0 : 1]);
@@ -47,6 +56,9 @@ class MobileAdverts extends BaseController
 
     public function delete($id)
     {
+        if (!hasPermission('mobileadverts.edit') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setBody('Access Denied');
+        }
         (new MobileAdvertModel())->delete((int) $id);
         return redirect()->to(base_url('mobileAdverts'))->with('success', 'Mobile advert deleted.');
     }

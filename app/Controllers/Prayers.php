@@ -25,6 +25,9 @@ class Prayers extends BaseController
 
   public function index()
   {
+    if (!hasPermission('prayers.view') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $prayermodel = new prayermodel();
     $this->viewdata['prayers'] = $prayermodel->itemsListing();
     return $this->view("prayers/listing", $this->viewdata);
@@ -32,11 +35,17 @@ class Prayers extends BaseController
 
   public function newPrayer()
   {
+    if (!hasPermission('prayers.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     return $this->view("prayers/new", $this->viewdata);
   }
 
   public function editPrayer($id = 0)
   {
+    if (!hasPermission('prayers.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $prayermodel = new prayermodel();
     $this->viewdata['prayer'] = $prayermodel->getItemInfo($id);
     if ($this->viewdata['prayer'] == NULL) {
@@ -47,6 +56,9 @@ class Prayers extends BaseController
 
   public function viewPrayer($id = 0)
   {
+    if (!hasPermission('prayers.view') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $prayermodel = new prayermodel();
     $this->viewdata['prayer'] = $prayermodel->getItemInfo($id);
     if ($this->viewdata['prayer'] == NULL) {
@@ -57,6 +69,9 @@ class Prayers extends BaseController
 
   function savenewprayer()
   {
+    if (!hasPermission('prayers.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $prayermodel = new prayermodel();
     $title = $this->request->getVar('title');
     $requester = $this->request->getVar('requester');
@@ -82,6 +97,9 @@ class Prayers extends BaseController
 
   function editprayerdata()
   {
+    if (!hasPermission('prayers.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $prayermodel = new prayermodel();
     $id = $this->request->getVar('id');
     $title = $this->request->getVar('title');
@@ -107,6 +125,9 @@ class Prayers extends BaseController
 
   function editPrayerStatus($id, $status)
   {
+    if (!hasPermission('prayers.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $prayermodel = new prayermodel();
     $info = array(
       'status' => $status,
@@ -123,6 +144,9 @@ class Prayers extends BaseController
 
   function replyPrayer()
   {
+    if (!hasPermission('prayers.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $id    = (int) $this->request->getVar('id');
     $reply = trim((string) $this->cleanup($this->request->getVar('reply')));
 
@@ -152,6 +176,9 @@ class Prayers extends BaseController
 
   function deletePrayer($id = 0)
   {
+    if (!hasPermission('prayers.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $prayermodel = new prayermodel();
     $prayermodel->deleteItem($id);
     if ($prayermodel->status == "ok") {

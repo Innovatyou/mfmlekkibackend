@@ -41,6 +41,19 @@ class Home extends BaseController
 
   public function index()
   {
+    // Dashboard sections are keyed to the same module permissions as the
+    // sidebar, so a role that can't see "Marketplace" in the menu doesn't
+    // see the Marketplace stats/tables here either.
+    $isSuperAdmin = isSuperAdmin();
+    $this->viewdata['canLocations']  = $isSuperAdmin || hasPermission('locations.view');
+    $this->viewdata['canMembers']    = $isSuperAdmin || hasPermission('members.view');
+    $this->viewdata['canConnect']    = $isSuperAdmin || hasPermission('connect.view');
+    $this->viewdata['canDonations']  = $isSuperAdmin || hasPermission('donations.view');
+    $this->viewdata['canMemberCare'] = $isSuperAdmin || hasPermission('membercare.view');
+    $this->viewdata['canCounseling'] = $isSuperAdmin || hasPermission('counseling.view');
+    $this->viewdata['canMarketplace']= $isSuperAdmin || hasPermission('marketplace.view');
+    $this->viewdata['canPartnership']= $isSuperAdmin || hasPermission('partnership.view');
+
     $settingsmodel = new settingsmodel();
     $settings = $settingsmodel->getSettings();
     if ($settings) {

@@ -80,6 +80,18 @@ class PermissionSeeder extends Seeder
             // Mobile Adverts Module
             ['name' => 'mobileadverts.view', 'display_name' => 'View Mobile Adverts', 'module' => 'mobileadverts', 'description' => 'View mobile app advertisement banners'],
             ['name' => 'mobileadverts.edit', 'display_name' => 'Manage Mobile Adverts', 'module' => 'mobileadverts', 'description' => 'Create, edit, and manage mobile app advertisement banners'],
+
+            // Prayer Requests Module
+            ['name' => 'prayers.view', 'display_name' => 'View Prayer Requests', 'module' => 'prayers', 'description' => 'View prayer requests'],
+            ['name' => 'prayers.edit', 'display_name' => 'Manage Prayer Requests', 'module' => 'prayers', 'description' => 'Create, approve, reply to, and delete prayer requests'],
+
+            // Testimonies Module
+            ['name' => 'testimony.view', 'display_name' => 'View Testimonies', 'module' => 'testimony', 'description' => 'View testimonies'],
+            ['name' => 'testimony.edit', 'display_name' => 'Manage Testimonies', 'module' => 'testimony', 'description' => 'Create, approve, reply to, and delete testimonies'],
+
+            // Email & SMS Lists Module
+            ['name' => 'lists.view', 'display_name' => 'View Email & SMS Lists', 'module' => 'lists', 'description' => 'View mailing/SMS lists and their members'],
+            ['name' => 'lists.edit', 'display_name' => 'Manage Email & SMS Lists', 'module' => 'lists', 'description' => 'Create, edit, and delete mailing/SMS lists and their members'],
         ];
 
         $this->db->table('tbl_permissions')->insertBatch($data);
@@ -94,29 +106,34 @@ class PermissionSeeder extends Seeder
         $rolePermissions = [
             // Super Admin - All permissions
             1 => ['members.view', 'members.edit', 'donations.view', 'donations.edit', 'media.view', 'media.edit',
-                  'publications.view', 'publications.edit', 'connect.view', 'connect.edit', 'events.view', 'events.edit',
-                  'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'locations.view', 'locations.edit',
+                  'publications.view', 'publications.edit', 'connect.view', 'connect.edit',
+                  'prayers.view', 'prayers.edit', 'testimony.view', 'testimony.edit', 'events.view', 'events.edit',
+                  'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'lists.view', 'lists.edit', 'locations.view', 'locations.edit',
                   'settings.view', 'settings.edit', 'admin.users.view', 'admin.users.edit', 'admin.roles.view', 'admin.roles.edit',
                   'counseling.view', 'counseling.edit', 'membercare.view', 'membercare.edit', 'marketplace.view', 'marketplace.edit',
                   'partnership.view', 'partnership.edit', 'landing.view', 'landing.edit', 'mobileadverts.view', 'mobileadverts.edit'],
             // Admin - All except admin management
             2 => ['members.view', 'members.edit', 'donations.view', 'donations.edit', 'media.view', 'media.edit',
-                  'publications.view', 'publications.edit', 'connect.view', 'connect.edit', 'events.view', 'events.edit',
-                  'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'locations.view', 'locations.edit',
+                  'publications.view', 'publications.edit', 'connect.view', 'connect.edit',
+                  'prayers.view', 'prayers.edit', 'testimony.view', 'testimony.edit', 'events.view', 'events.edit',
+                  'hymns.view', 'hymns.edit', 'messaging.view', 'messaging.edit', 'lists.view', 'lists.edit', 'locations.view', 'locations.edit',
                   'settings.view', 'settings.edit',
                   'counseling.view', 'counseling.edit', 'membercare.view', 'membercare.edit', 'marketplace.view', 'marketplace.edit',
                   'partnership.view', 'partnership.edit', 'landing.view', 'landing.edit', 'mobileadverts.view', 'mobileadverts.edit'],
             // Editor - Can view and edit content
             3 => ['members.view', 'donations.view', 'media.view', 'media.edit', 'publications.view', 'publications.edit',
-                  'connect.view', 'connect.edit', 'events.view', 'events.edit', 'hymns.view', 'hymns.edit',
-                  'messaging.view', 'locations.view', 'counseling.view', 'membercare.view', 'marketplace.view', 'marketplace.edit',
+                  'connect.view', 'connect.edit', 'prayers.view', 'prayers.edit', 'testimony.view', 'testimony.edit',
+                  'events.view', 'events.edit', 'hymns.view', 'hymns.edit',
+                  'messaging.view', 'lists.view', 'locations.view', 'counseling.view', 'membercare.view', 'marketplace.view', 'marketplace.edit',
                   'partnership.view', 'partnership.edit', 'landing.view'],
             // Viewer - Can only view
-            4 => ['members.view', 'donations.view', 'media.view', 'publications.view', 'connect.view', 'events.view',
-                  'hymns.view', 'messaging.view', 'locations.view', 'counseling.view', 'membercare.view', 'marketplace.view',
+            4 => ['members.view', 'donations.view', 'media.view', 'publications.view', 'connect.view',
+                  'prayers.view', 'testimony.view', 'events.view',
+                  'hymns.view', 'messaging.view', 'lists.view', 'locations.view', 'counseling.view', 'membercare.view', 'marketplace.view',
                   'partnership.view', 'landing.view'],
             // Contributor - Can view and create content
             5 => ['media.view', 'media.edit', 'publications.view', 'publications.edit', 'connect.view', 'connect.edit',
+                  'prayers.view', 'prayers.edit', 'testimony.view', 'testimony.edit',
                   'events.view', 'hymns.view', 'marketplace.view', 'marketplace.edit'],
         ];
 

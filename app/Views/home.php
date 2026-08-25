@@ -17,6 +17,7 @@
     <!-- ── Row 1: Count metrics ── -->
     <div class="row" style="margin-bottom:4px;">
 
+      <?php if ($canLocations): ?>
       <!-- Branches -->
       <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
         <a href="<?= base_url() ?>/branchesListing" style="text-decoration:none;">
@@ -32,7 +33,9 @@
           </div>
         </a>
       </div>
+      <?php endif; ?>
 
+      <?php if ($canMembers): ?>
       <!-- Members -->
       <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
         <a href="<?= base_url() ?>/membersListing" style="text-decoration:none;">
@@ -48,7 +51,9 @@
           </div>
         </a>
       </div>
+      <?php endif; ?>
 
+      <?php if ($canConnect): ?>
       <!-- Groups -->
       <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
         <a href="<?= base_url() ?>/groups" style="text-decoration:none;">
@@ -64,7 +69,9 @@
           </div>
         </a>
       </div>
+      <?php endif; ?>
 
+      <?php if ($canDonations): ?>
       <!-- Total donations count -->
       <div class="col-xl-3 col-lg-3 col-md-6 mb-20">
         <a href="<?= base_url() ?>/donations" style="text-decoration:none;">
@@ -80,9 +87,11 @@
           </div>
         </a>
       </div>
+      <?php endif; ?>
 
     </div>
 
+    <?php if ($canDonations): ?>
     <!-- ── Row 2: Donation amounts ── -->
     <div class="row mb-20">
 
@@ -123,7 +132,9 @@
       </div>
 
     </div>
+    <?php endif; ?>
 
+    <?php if ($canMemberCare): ?>
     <!-- ── Member Care Intelligence ── -->
     <div style="margin-bottom:24px;">
 
@@ -309,7 +320,9 @@
 
       </div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($canCounseling): ?>
     <!-- ── Counseling & Case Tracker ── -->
     <div style="margin-bottom:24px;">
 
@@ -508,7 +521,9 @@
 
       </div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($canMarketplace): ?>
     <!-- ── Church Marketplace ── -->
     <div style="margin-bottom:24px;">
 
@@ -696,7 +711,9 @@
 
       </div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($canPartnership): ?>
     <!-- ── Partnership ── -->
     <div style="margin-bottom:24px;">
 
@@ -884,7 +901,9 @@
 
       </div>
     </div>
+    <?php endif; ?>
 
+    <?php if ($canDonations): ?>
     <!-- ── Recent Donations table ── -->
     <div class="card-box" style="padding:0;overflow:hidden;">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);">
@@ -947,6 +966,7 @@
         </table>
       </div>
     </div>
+    <?php endif; ?>
 
   </div>
 </div>

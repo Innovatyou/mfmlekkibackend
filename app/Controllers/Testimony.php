@@ -24,6 +24,9 @@ class Testimony extends BaseController
 
   public function index()
   {
+    if (!hasPermission('testimony.view') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $testimonymodel = new testimonymodel();
     $this->viewdata['testimonies'] = $testimonymodel->itemsListing();
     return $this->view("testimony/listing", $this->viewdata);
@@ -31,11 +34,17 @@ class Testimony extends BaseController
 
   public function newTestimony()
   {
+    if (!hasPermission('testimony.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     return $this->view("testimony/new", $this->viewdata);
   }
 
   public function editTestimony($id = 0)
   {
+    if (!hasPermission('testimony.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $testimonymodel = new testimonymodel();
     $this->viewdata['testimony'] = $testimonymodel->getItemInfo($id);
     if ($this->viewdata['testimony'] == NULL) {
@@ -46,6 +55,9 @@ class Testimony extends BaseController
 
   public function viewTestimony($id = 0)
   {
+    if (!hasPermission('testimony.view') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $testimonymodel = new testimonymodel();
     $this->viewdata['testimony'] = $testimonymodel->getItemInfo($id);
     if ($this->viewdata['testimony'] == NULL) {
@@ -56,6 +68,9 @@ class Testimony extends BaseController
 
   function savenewtestimony()
   {
+    if (!hasPermission('testimony.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $testimonymodel = new testimonymodel();
     $title = $this->request->getVar('title');
     $testifier = $this->request->getVar('testifier');
@@ -79,6 +94,9 @@ class Testimony extends BaseController
 
   function edittestimonydata()
   {
+    if (!hasPermission('testimony.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $testimonymodel = new testimonymodel();
     $id = $this->request->getVar('id');
     $title = $this->request->getVar('title');
@@ -102,6 +120,9 @@ class Testimony extends BaseController
 
   function editTestimonyStatus($id, $status)
   {
+    if (!hasPermission('testimony.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $testimonymodel = new testimonymodel();
     $info = array(
       'status' => $status,
@@ -118,6 +139,9 @@ class Testimony extends BaseController
 
   function replyTestimony()
   {
+    if (!hasPermission('testimony.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $id    = (int) $this->request->getVar('id');
     $reply = trim((string) $this->cleanup($this->request->getVar('reply')));
 
@@ -147,6 +171,9 @@ class Testimony extends BaseController
 
   function deleteTestimony($id = 0)
   {
+    if (!hasPermission('testimony.edit') && !isSuperAdmin()) {
+      return $this->response->setStatusCode(403)->setBody('Access Denied');
+    }
     $testimonymodel = new testimonymodel();
     $testimonymodel->deleteItem($id);
     if ($testimonymodel->status == "ok") {
