@@ -10,11 +10,18 @@
     <?php if(session()->getFlashdata('success')):?><div class="lt-alert lt-success"><i class="dw dw-check-circle-2"></i><?=esc(session()->getFlashdata('success'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
     <?php if(session()->getFlashdata('error')):?><div class="lt-alert lt-danger"><i class="dw dw-close-circle-1"></i><?=esc(session()->getFlashdata('error'))?><button class="lt-x" onclick="this.parentElement.remove()">&times;</button></div><?php endif;?>
     <div class="card-box" style="padding:0;overflow:hidden;">
-      <div class="lt-head"><h3 class="lt-htitle">All Videos</h3><p class="lt-hsub">Church video library</p></div>
+      <div class="lt-head">
+        <div><h3 class="lt-htitle">All Videos</h3><p class="lt-hsub">Church video library</p></div>
+        <div id="videoBulkBar" class="lt-bulkbar">
+          <span id="videoSelCount"></span>
+          <button type="button" class="lt-bulk-del-btn" onclick="bulkDeleteVideosSelected()"><i class="dw dw-trash"></i> Delete Selected</button>
+        </div>
+      </div>
       <div style="padding:16px 22px 22px;overflow-x:auto;">
         <table id="videos_table" class="table nowrap" style="width:100%;">
           <thead>
             <tr>
+              <th style="width:36px;"><input type="checkbox" id="videoSelectAll"></th>
               <th>#</th>
               <th><?= $locale['player'] ?></th>
               <th><?= $locale['title'] ?></th>
@@ -30,9 +37,14 @@
 <?= view('_nf_styles') ?>
 <style>
 .lt-cta{border-radius:8px;font-weight:600;padding:9px 20px;font-size:.875rem;display:inline-flex;align-items:center;gap:6px}
-.lt-head{display:flex;flex-direction:column;padding:18px 22px;border-bottom:1px solid var(--border)}
+.lt-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:18px 22px;border-bottom:1px solid var(--border)}
 .lt-htitle{font-size:1rem;font-weight:700;color:var(--t1);margin:0}
 .lt-hsub{font-size:.8rem;color:var(--t3);margin:2px 0 0}
+.lt-bulkbar{display:none;align-items:center;gap:10px}
+.lt-bulkbar.active{display:flex}
+.lt-bulkbar span{font-size:.8rem;color:var(--t3);font-weight:600}
+.lt-bulk-del-btn{background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:7px 14px;font-size:.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all .15s}
+.lt-bulk-del-btn:hover{background:#ef4444;color:#fff;border-color:#ef4444}
 .lt-ab{width:30px;height:30px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:.85rem;text-decoration:none;transition:all .15s;cursor:pointer;border:none}
 .lt-edit{background:#fffbeb;color:#d97706}.lt-edit:hover{background:#f59e0b;color:#fff}
 .lt-del{background:#fef2f2;color:#ef4444}.lt-del:hover{background:#ef4444;color:#fff}
@@ -66,31 +78,99 @@ $(document).ready(function(){
       zeroRecords:'<div style="padding:40px;text-align:center;color:var(--t3);">No matching videos found</div>'
     },
     columnDefs:[
-      {targets:0,width:'50px',className:'text-muted',orderable:false},
-      {targets:1,orderable:false,render:function(html,type){
+      {targets:0,orderable:false,searchable:false,className:'text-center',width:'36px'},
+      {targets:1,width:'50px',className:'text-muted',orderable:false},
+      {targets:2,orderable:false,render:function(html,type){
         if(type!=='display')return'';
         return'<div class="lt-player-wrap">'+html+'</div>';
       }},
-      {targets:2,render:function(title,type){
+      {targets:3,render:function(title,type){
         if(type!=='display')return title;
         return'<span style="font-weight:600;color:var(--t1);">'+$('<div>').text(title).html()+'</span>';
       }},
-      {targets:3,render:function(desc,type){
+      {targets:4,render:function(desc,type){
         if(type!=='display')return desc||'';
         var s=$('<div>').text(desc||'').html();
         return'<span style="color:var(--t2);font-size:.8rem;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;" title="'+s+'">'+s+'</span>';
       }},
-      {targets:4,orderable:false,className:'text-center',render:function(html,type){
+      {targets:5,orderable:false,className:'text-center',render:function(html,type){
         if(type!=='display')return'';
         var m=html.match(/editVideo\/(\d+)/);
         if(!m)return html;
         var id=m[1],base=(typeof baseURL!=='undefined'?baseURL:'');
         return'<div style="display:flex;gap:5px;justify-content:center;">'+
           '<a href="'+base+'/editVideo/'+id+'" class="lt-ab lt-edit" title="Edit"><i class="dw dw-edit-2"></i></a>'+
-          '<a href="javascript:void(0)" class="lt-ab lt-del" title="Delete" data-type="video" data-id="'+id+'" onclick="delete_item(event); return false;"><i class="dw dw-trash"></i></a>'+ 
+          '<a href="javascript:void(0)" class="lt-ab lt-del" title="Delete" data-type="video" data-id="'+id+'" onclick="delete_item(event); return false;"><i class="dw dw-trash"></i></a>'+
           '</div>';
       }}
     ]
   });
+
+  var videoSelected = new Set();
+
+  function updateVideoBulkBar(){
+    var bar = document.getElementById('videoBulkBar');
+    var count = document.getElementById('videoSelCount');
+    if(videoSelected.size > 0){
+      bar.classList.add('active');
+      count.textContent = videoSelected.size + ' selected';
+    } else {
+      bar.classList.remove('active');
+    }
+  }
+
+  $('#videos_table').on('draw.dt', function(){
+    videoSelected.clear();
+    updateVideoBulkBar();
+    var sa = document.getElementById('videoSelectAll');
+    if(sa) sa.checked = false;
+  });
+
+  $(document).on('change', '#videos_table tbody .row-check', function(){
+    var id = $(this).val();
+    if(this.checked){ videoSelected.add(id); } else { videoSelected.delete(id); }
+    updateVideoBulkBar();
+    var all = $('#videos_table tbody .row-check').length;
+    var checked = $('#videos_table tbody .row-check:checked').length;
+    document.getElementById('videoSelectAll').checked = all > 0 && all === checked;
+  });
+
+  $(document).on('change', '#videoSelectAll', function(){
+    var checked = this.checked;
+    $('#videos_table tbody .row-check').each(function(){
+      this.checked = checked;
+      var id = $(this).val();
+      if(checked){ videoSelected.add(id); } else { videoSelected.delete(id); }
+    });
+    updateVideoBulkBar();
+  });
+
+  window.bulkDeleteVideosSelected = function(){
+    if(videoSelected.size === 0) return;
+    var ids = Array.from(videoSelected);
+    swal({
+      title: 'Delete ' + ids.length + ' video(s)?',
+      text: 'This action cannot be undone.',
+      type: 'warning',
+      confirmButtonColor: '#ef4444',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete'
+    }, function(){
+      var fd = new FormData();
+      fd.append('data', JSON.stringify({ids: ids}));
+      makeAjaxCall((typeof baseURL!=='undefined'?baseURL:'') + '/bulkDeleteVideos', 'POST', fd).then(function(data){
+        videoSelected.clear();
+        updateVideoBulkBar();
+        $('#videos_table').DataTable().ajax.reload(null, false);
+        if(data.status === 'ok'){
+          success_alert(data.msg);
+        } else {
+          error_alert(data.msg);
+        }
+      }, function(status){
+        error_alert('Request failed with status ' + status);
+      });
+    });
+  };
 });
 </script>

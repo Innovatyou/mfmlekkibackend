@@ -46,6 +46,16 @@
       </div>
 
     <?php else: ?>
+      <!-- Bulk action bar -->
+      <div class="pg-toolbar">
+        <label class="pg-selectall">
+          <input type="checkbox" id="pgSelectAll"> Select all
+        </label>
+        <div id="pgBulkBar" class="pg-bulkbar">
+          <span id="pgSelCount"></span>
+          <button type="button" class="pg-bulk-del-btn" onclick="bulkDeletePhotosSelected()"><i class="dw dw-trash"></i> Delete Selected</button>
+        </div>
+      </div>
       <!-- Albums grid -->
       <div class="pg-grid">
         <?php foreach ($photos as $record): ?>
@@ -53,6 +63,9 @@
 
             <!-- Thumbnail strip -->
             <div class="pg-thumb-strip">
+              <label class="pg-select-check">
+                <input type="checkbox" class="pg-row-check" value="<?= $record->id ?>">
+              </label>
               <?php
                 $thumbs = is_array($record->thumbnail) ? $record->thumbnail : [];
                 $shown  = array_slice($thumbs, 0, 4);
@@ -119,6 +132,21 @@
   .pg-alert-close { position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:1.2rem;cursor:pointer;color:inherit;opacity:.6;line-height:1;padding:0; }
   .pg-alert-close:hover { opacity:1; }
 
+  /* Bulk action toolbar */
+  .pg-toolbar {
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    margin-bottom:14px;
+  }
+  .pg-selectall { display:inline-flex;align-items:center;gap:7px;font-size:.8rem;color:var(--t3);font-weight:600;cursor:pointer;user-select:none; }
+  .pg-bulkbar { display:none;align-items:center;gap:10px; }
+  .pg-bulkbar.active { display:flex; }
+  .pg-bulkbar span { font-size:.8rem;color:var(--t3);font-weight:600; }
+  .pg-bulk-del-btn {
+    background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:7px 14px;
+    font-size:.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all .15s;
+  }
+  .pg-bulk-del-btn:hover { background:#ef4444;color:#fff;border-color:#ef4444; }
+
   /* Grid */
   .pg-grid {
     display:grid;
@@ -130,6 +158,12 @@
 
   /* Thumbnail strip */
   .pg-thumb-strip { width:100%;height:160px;position:relative;overflow:hidden;background:#f1f5f9; }
+  .pg-select-check {
+    position:absolute;top:8px;left:8px;z-index:2;width:26px;height:26px;border-radius:7px;
+    background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+  .pg-select-check input { width:16px;height:16px;cursor:pointer;margin:0; }
   .pg-thumb-placeholder { width:100%;height:100%;display:flex;align-items:center;justify-content:center; }
   .pg-thumb-single { width:100%;height:100%;object-fit:cover; }
 
@@ -175,6 +209,66 @@ function confirmDeletePhoto(id) {
     confirmButtonText: 'Yes, delete'
   }, function () {
     document.location.href = (typeof baseURL !== 'undefined' ? baseURL : '') + '/deletePhoto/' + id;
+  });
+}
+
+var pgSelected = new Set();
+
+function updatePgBulkBar() {
+  var bar = document.getElementById('pgBulkBar');
+  var count = document.getElementById('pgSelCount');
+  if (!bar) return;
+  if (pgSelected.size > 0) {
+    bar.classList.add('active');
+    count.textContent = pgSelected.size + ' selected';
+  } else {
+    bar.classList.remove('active');
+  }
+}
+
+document.addEventListener('change', function (e) {
+  if (e.target && e.target.classList && e.target.classList.contains('pg-row-check')) {
+    var id = e.target.value;
+    if (e.target.checked) { pgSelected.add(id); } else { pgSelected.delete(id); }
+    updatePgBulkBar();
+    var boxes = document.querySelectorAll('.pg-row-check');
+    var checked = document.querySelectorAll('.pg-row-check:checked');
+    var sa = document.getElementById('pgSelectAll');
+    if (sa) sa.checked = boxes.length > 0 && boxes.length === checked.length;
+    return;
+  }
+  if (e.target && e.target.id === 'pgSelectAll') {
+    var isChecked = e.target.checked;
+    document.querySelectorAll('.pg-row-check').forEach(function (cb) {
+      cb.checked = isChecked;
+      if (isChecked) { pgSelected.add(cb.value); } else { pgSelected.delete(cb.value); }
+    });
+    updatePgBulkBar();
+  }
+});
+
+function bulkDeletePhotosSelected() {
+  if (pgSelected.size === 0) return;
+  var ids = Array.from(pgSelected);
+  swal({
+    title: 'Delete ' + ids.length + ' album(s)?',
+    text: 'This will permanently delete the selected albums and all their photos.',
+    type: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    confirmButtonText: 'Yes, delete'
+  }, function () {
+    var fd = new FormData();
+    fd.append('data', JSON.stringify({ ids: ids }));
+    makeAjaxCall((typeof baseURL !== 'undefined' ? baseURL : '') + '/bulkDeletePhotos', 'POST', fd).then(function (data) {
+      if (data.status === 'ok') {
+        success_alert(data.msg, function () { document.location.reload(); });
+      } else {
+        error_alert(data.msg);
+      }
+    }, function (status) {
+      error_alert('Request failed with status ' + status);
+    });
   });
 }
 </script>

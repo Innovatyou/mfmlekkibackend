@@ -64,6 +64,7 @@ class Audios extends BaseController
     $count = $start + 1;
     foreach ($audios as $r) {
       $dat[] = array(
+        '<input type="checkbox" class="row-check" value="' . $r->id . '">',
         $count, //'.site_url()."stream?m=".$r->id.'
         '<audio controls preload="none">
                   <source src="' . $r->source . '" type="audio/mpeg">
@@ -240,6 +241,33 @@ class Audios extends BaseController
       $this->session->setFlashdata('error', $audiomodel->message);
     }
     return redirect()->to(base_url() . '/audios');
+  }
+
+  function bulkDeleteAudios()
+  {
+    $data = $this->get_data();
+    $ids = isset($data->ids) ? $data->ids : [];
+    if (!is_array($ids) || count($ids) == 0) {
+      echo json_encode(array("status" => "error", "msg" => "No audio files selected."));
+      exit;
+    }
+
+    $audiomodel = new audiomodel();
+    $deleted = 0;
+    foreach ($ids as $id) {
+      $id = intval($id);
+      if ($id <= 0) continue;
+      $audio = $audiomodel->getAudioInfo($id);
+      if (count((array)$audio) > 0) {
+        @unlink('./uploads/audios/' . $audio->source);
+        @unlink('./uploads/thumbnails/' . $audio->cover_photo);
+      }
+      $audiomodel->deleteAudio($id);
+      $deleted++;
+    }
+
+    echo json_encode(array("status" => "ok", "msg" => $deleted . ' audio file(s) deleted.'));
+    exit;
   }
 
   public function upload_audio()

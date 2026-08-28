@@ -83,6 +83,7 @@ class Videos extends BaseController
                     </video-js>";
       }
       $dat[] = array(
+        '<input type="checkbox" class="row-check" value="' . $r->id . '">',
         $count,
         $vid,
         $r->title,
@@ -327,6 +328,35 @@ class Videos extends BaseController
       $this->session->setFlashdata('error', $videomodel->message);
     }
     return redirect()->to(base_url() . '/videos');
+  }
+
+  function bulkDeleteVideos()
+  {
+    $data = $this->get_data();
+    $ids = isset($data->ids) ? $data->ids : [];
+    if (!is_array($ids) || count($ids) == 0) {
+      echo json_encode(array("status" => "error", "msg" => "No videos selected."));
+      exit;
+    }
+
+    $videomodel = new videomodel();
+    $deleted = 0;
+    foreach ($ids as $id) {
+      $id = intval($id);
+      if ($id <= 0) continue;
+      $video = $videomodel->getVideoInfo($id);
+      if (count((array)$video) > 0) {
+        @unlink('./uploads/videos/' . $video->source);
+        @unlink('./uploads/thumbnails/' . $video->cover_photo);
+      }
+      $videomodel->deleteVideo($id);
+      if ($videomodel->status == "ok") {
+        $deleted++;
+      }
+    }
+
+    echo json_encode(array("status" => "ok", "msg" => $deleted . ' video(s) deleted.'));
+    exit;
   }
 
   public function upload_video()

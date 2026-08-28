@@ -34,16 +34,21 @@
 
     <!-- Livestreams table card -->
     <div class="card-box" style="padding:0;overflow:hidden;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:18px 22px;border-bottom:1px solid var(--border);">
         <div>
           <h3 style="font-size:1rem;font-weight:700;color:var(--t1);margin:0;">Livestream Channels</h3>
           <p style="font-size:.8rem;color:var(--t3);margin:2px 0 0;">Manage church livestream sources</p>
+        </div>
+        <div id="lsBulkBar" class="ml-bulkbar">
+          <span id="lsSelCount"></span>
+          <button type="button" class="ml-bulk-del-btn" onclick="bulkDeleteLivestreamsSelected()"><i class="dw dw-trash"></i> Delete Selected</button>
         </div>
       </div>
       <div style="padding:16px 22px 22px;overflow-x:auto;">
         <table id="livestreams_table" class="table nowrap" style="width:100%;">
           <thead>
             <tr>
+              <th style="width:36px;"><input type="checkbox" id="lsSelectAll"></th>
               <th>#</th>
               <th><?= $locale['title'] ?></th>
               <th><?= $locale['link'] ?></th>
@@ -54,6 +59,11 @@
           <tbody>
             <?php $count = 1; foreach ($livestreams as $record): ?>
             <tr>
+              <td class="text-center">
+                <?php if ($record->id != 1): ?>
+                  <input type="checkbox" class="ls-row-check" value="<?= $record->id ?>">
+                <?php endif; ?>
+              </td>
               <td class="text-muted"><?= $count ?></td>
               <td>
                 <span style="font-weight:600;color:var(--t1);"><?= esc($record->title) ?></span>
@@ -153,6 +163,15 @@
   .ml-action-edit:hover   { background:#f59e0b;color:#fff; }
   .ml-action-delete { background:#fef2f2;color:#ef4444; }
   .ml-action-delete:hover { background:#ef4444;color:#fff; }
+
+  .ml-bulkbar { display:none; align-items:center; gap:10px; }
+  .ml-bulkbar.active { display:flex; }
+  .ml-bulkbar span { font-size:.8rem;color:var(--t3);font-weight:600; }
+  .ml-bulk-del-btn {
+    background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:7px 14px;
+    font-size:.8rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:all .15s;
+  }
+  .ml-bulk-del-btn:hover { background:#ef4444;color:#fff;border-color:#ef4444; }
 </style>
 
 <script>
@@ -174,7 +193,8 @@ function initLivestreamsTable() {
       paginate: { previous: '‹', next: '›' }
     },
     columnDefs: [
-      { targets: 0, width: '50px', orderable: false }
+      { targets: 0, orderable: false, searchable: false, className: 'text-center', width: '36px' },
+      { targets: 1, width: '50px', orderable: false }
     ]
   });
 }
@@ -191,6 +211,65 @@ function confirmDeleteLivestream(id) {
     confirmButtonText: 'Yes, delete'
   }, function () {
     document.location.href = '<?= base_url('deleteLivestream') ?>/' + id;
+  });
+}
+
+var lsSelected = new Set();
+
+function updateLsBulkBar() {
+  var bar = document.getElementById('lsBulkBar');
+  var count = document.getElementById('lsSelCount');
+  if (lsSelected.size > 0) {
+    bar.classList.add('active');
+    count.textContent = lsSelected.size + ' selected';
+  } else {
+    bar.classList.remove('active');
+  }
+}
+
+document.addEventListener('change', function (e) {
+  if (e.target && e.target.classList && e.target.classList.contains('ls-row-check')) {
+    var id = e.target.value;
+    if (e.target.checked) { lsSelected.add(id); } else { lsSelected.delete(id); }
+    updateLsBulkBar();
+    var boxes = document.querySelectorAll('#livestreams_table tbody .ls-row-check');
+    var checked = document.querySelectorAll('#livestreams_table tbody .ls-row-check:checked');
+    var sa = document.getElementById('lsSelectAll');
+    if (sa) sa.checked = boxes.length > 0 && boxes.length === checked.length;
+    return;
+  }
+  if (e.target && e.target.id === 'lsSelectAll') {
+    var isChecked = e.target.checked;
+    document.querySelectorAll('#livestreams_table tbody .ls-row-check').forEach(function (cb) {
+      cb.checked = isChecked;
+      if (isChecked) { lsSelected.add(cb.value); } else { lsSelected.delete(cb.value); }
+    });
+    updateLsBulkBar();
+  }
+});
+
+function bulkDeleteLivestreamsSelected() {
+  if (lsSelected.size === 0) return;
+  var ids = Array.from(lsSelected);
+  swal({
+    title: 'Delete ' + ids.length + ' livestream channel(s)?',
+    text: 'This action cannot be undone.',
+    type: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    confirmButtonText: 'Yes, delete'
+  }, function () {
+    var fd = new FormData();
+    fd.append('data', JSON.stringify({ ids: ids }));
+    makeAjaxCall((typeof baseURL !== 'undefined' ? baseURL : '') + '/bulkDeleteLivestreams', 'POST', fd).then(function (data) {
+      if (data.status === 'ok') {
+        success_alert(data.msg, function () { document.location.reload(); });
+      } else {
+        error_alert(data.msg);
+      }
+    }, function (status) {
+      error_alert('Request failed with status ' + status);
+    });
   });
 }
 </script>

@@ -154,6 +154,40 @@ class Livestream extends BaseController
     return redirect()->to(base_url() . '/livestreams');
   }
 
+  function bulkDeleteLivestreams()
+  {
+    $data = $this->get_data();
+    $ids = isset($data->ids) ? $data->ids : [];
+    if (!is_array($ids) || count($ids) == 0) {
+      echo json_encode(array("status" => "error", "msg" => "No livestream channels selected."));
+      exit;
+    }
+
+    $livestreammodel = new livestreammodel();
+    $deleted = 0;
+    $skipped = 0;
+    foreach ($ids as $id) {
+      $id = intval($id);
+      if ($id <= 0) continue;
+      if ($id == 1) {
+        // Primary channel cannot be deleted
+        $skipped++;
+        continue;
+      }
+      $livestreammodel->deleteLivestream($id);
+      if ($livestreammodel->status == "ok") {
+        $deleted++;
+      }
+    }
+
+    $msg = $deleted . ' livestream channel(s) deleted.';
+    if ($skipped > 0) {
+      $msg .= ' Primary channel cannot be deleted and was skipped.';
+    }
+    echo json_encode(array("status" => "ok", "msg" => $msg));
+    exit;
+  }
+
   function upload_thumbnail()
   {
     $uploadPath = rtrim(FCPATH, '/\\') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'thumbnails';

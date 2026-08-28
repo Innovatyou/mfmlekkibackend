@@ -121,6 +121,7 @@ $routes->post('saveNewAudio', 'Audios::saveNewAudio', ['filter' => 'auth']);
 $routes->get('editAudio/(:any)', 'Audios::editAudio/$1', ['filter' => 'auth']);
 $routes->post('editAudioData', 'Audios::editAudioData', ['filter' => 'auth']);
 $routes->get('deleteAudio/(:any)', 'Audios::deleteAudio/$1', ['filter' => 'auth']);
+$routes->post('bulkDeleteAudios', 'Audios::bulkDeleteAudios', ['filter' => 'auth']);
 
 //branches
 $routes->get('branchesListing', 'Branches::index', ['filter' => 'auth']);
@@ -138,6 +139,7 @@ $routes->post('saveNewVideo', 'Videos::saveNewVideo', ['filter' => 'auth']);
 $routes->get('editVideo/(:any)', 'Videos::editVideo/$1', ['filter' => 'auth']);
 $routes->post('editVideoData', 'Videos::editVideoData', ['filter' => 'auth']);
 $routes->get('deleteVideo/(:num)', 'Videos::deleteVideo/$1', ['filter' => 'auth']);
+$routes->post('bulkDeleteVideos', 'Videos::bulkDeleteVideos', ['filter' => 'auth']);
 
 //livestream
 $routes->get('livestreams', 'Livestream::index', ['filter' => 'auth']);
@@ -146,6 +148,7 @@ $routes->post('savenewlivestream', 'Livestream::savenewlivestream', ['filter' =>
 $routes->get('editLivestream/(:num)', 'Livestream::editLivestream/$1', ['filter' => 'auth']);
 $routes->post('editLivestreamData', 'Livestream::editLivestreamData', ['filter' => 'auth']);
 $routes->get('deleteLivestream/(:num)', 'Livestream::deleteLivestream/$1', ['filter' => 'auth']);
+$routes->post('bulkDeleteLivestreams', 'Livestream::bulkDeleteLivestreams', ['filter' => 'auth']);
 
 //livestream
 $routes->get('radio', 'Radio::index', ['filter' => 'auth']);
@@ -162,6 +165,7 @@ $routes->post('savenewphoto', 'Photos::savenewphoto', ['filter' => 'auth']);
 $routes->get('deletePhoto/(:any)', 'Photos::deletePhoto/$1', ['filter' => 'auth']);
 $routes->get('editPhoto/(:any)', 'Photos::editPhoto/$1', ['filter' => 'auth']);
 $routes->post('editPhotoData', 'Photos::editPhotoData', ['filter' => 'auth']);
+$routes->post('bulkDeletePhotos', 'Photos::bulkDeletePhotos', ['filter' => 'auth']);
 
 //admin users
 $routes->get('adminListing', 'User::index', ['filter' => 'authadmin']);

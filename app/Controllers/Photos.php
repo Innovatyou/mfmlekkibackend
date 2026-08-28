@@ -105,4 +105,26 @@ class Photos extends BaseController
     }
     return redirect()->to(base_url() . '/photos');
   }
+
+  function bulkDeletePhotos()
+  {
+    $data = $this->get_data();
+    $ids = isset($data->ids) ? $data->ids : [];
+    if (!is_array($ids) || count($ids) == 0) {
+      echo json_encode(array("status" => "error", "msg" => "No albums selected."));
+      exit;
+    }
+
+    $photosmodel = new photosmodel();
+    $deleted = 0;
+    foreach ($ids as $id) {
+      $id = intval($id);
+      if ($id <= 0) continue;
+      $photosmodel->deletePhoto($id);
+      $deleted++;
+    }
+
+    echo json_encode(array("status" => "ok", "msg" => $deleted . ' album(s) deleted.'));
+    exit;
+  }
 }

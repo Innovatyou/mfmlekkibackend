@@ -519,13 +519,13 @@ function error_alert(msg){
   });
 }
 
-function success_alert(msg){
+function success_alert(msg, callback){
   swal({
     title: 'Success!',
     text: msg,
     type: 'success',
     confirmButtonClass: 'btn btn-success'
-  });
+  }, callback);
 }
 
 
