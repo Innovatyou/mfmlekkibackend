@@ -65,6 +65,7 @@ $(document).ready(function(){
   if($.fn.DataTable.isDataTable('#audios_table'))$('#audios_table').DataTable().destroy();
   $('#audios_table').DataTable({
     processing:true,serverSide:true,pageLength:10,
+    order:[[3,'asc']],
     ajax:{url:baseURL+'/fetchAudios',type:'POST'},
     dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
     language:{

@@ -185,6 +185,7 @@ function initLivestreamsTable() {
   }
   $('#livestreams_table').DataTable({
     pageLength : 15,
+    order      : [[2, 'asc']],
     dom        : "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
     language   : {
       search: '', searchPlaceholder: 'Search channels…',
