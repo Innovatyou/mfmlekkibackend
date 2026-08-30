@@ -70,6 +70,9 @@
   var $ = window.jQuery;
   $(document).ready(function(){
     var dt = $('#signups_table').DataTable({
+      processing: true,
+      serverSide: true,
+      ajax: '<?= base_url('getSignupRequests') ?>',
       pageLength: 15,
       order: [[4, 'desc']],
       dom: "<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",

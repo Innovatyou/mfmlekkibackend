@@ -299,17 +299,21 @@ class LandingContent extends BaseController
         if (!hasPermission('landing.view') && !isSuperAdmin()) {
             return $this->response->setStatusCode(403)->setBody('Access Denied');
         }
-        $model = new membersmodel();
-        $this->viewdata['signupRequests'] = $model->getPendingSignupsListing('', 0, 1000);
+        // Rows are fetched page-by-page by DataTables below.
+        $this->viewdata['signupRequests'] = [];
         return $this->view('landing_content/signups', $this->viewdata);
     }
 
     public function getSignupRequests()
     {
+        if (!hasPermission('landing.view') && !isSuperAdmin()) {
+            return $this->response->setStatusCode(403)->setJSON(['error' => 'Access denied']);
+        }
+
         $model = new membersmodel();
         $draw = (int) $this->request->getGet('draw');
         $start = max(0, (int) $this->request->getGet('start'));
-        $length = max(1, (int) ($this->request->getGet('length') ?: 15));
+        $length = min(100, max(1, (int) ($this->request->getGet('length') ?: 15)));
         $searchInput = $this->request->getGet('search');
         $search = is_array($searchInput) ? ($searchInput['value'] ?? '') : '';
 

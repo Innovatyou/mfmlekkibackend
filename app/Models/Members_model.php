@@ -224,7 +224,8 @@ class Members_model extends Basemodel
   {
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_members');
-    $builder->select('tbl_members.*');
+    // Avoid hydrating large profile/form fields for a lightweight table row.
+    $builder->select('id, firstname, lastname, email, phonenumber, gender, date_inserted');
     $builder->where('signup_status', 'pending');
     if ($searchValue != "") {
       $builder->groupStart();
