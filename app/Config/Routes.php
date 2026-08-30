@@ -224,6 +224,7 @@ $routes->post('editMemberData', 'Members::editMemberData', ['filter' => 'auth'])
 $routes->get('deleteMember/(:any)', 'Members::deleteMember/$1', ['filter' => 'auth']);
 
 // marketplace
+$routes->get('marketplace', 'Marketplace::index', ['filter' => 'auth']);
 $routes->get('marketplaceListing', 'Marketplace::index', ['filter' => 'auth']);
 $routes->post('getMarketplaceItems', 'Marketplace::getItems', ['filter' => 'auth']);
 $routes->get('getMarketplaceItemInfo/(:num)', 'Marketplace::getInfo/$1', ['filter' => 'auth']);
