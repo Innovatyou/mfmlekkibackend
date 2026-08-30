@@ -48,7 +48,7 @@ $canHymns         = $isSuperAdmin || hasPermission('hymns.view');
 $canMessaging     = $isSuperAdmin || hasPermission('messaging.view');
 $canLocations     = $isSuperAdmin || hasPermission('locations.view');
 
-$showMembersGroup   = $canMembers || $canMemberCare || $canCounseling || $canLists;
+$showMembersGroup   = $canMembers || $canMemberCare || $canCounseling || $canLists || $canLanding;
 $showContentGroup   = $canMedia || $canPublications;
 $showCommunityGroup = $canConnect || $canPrayers || $canTestimony || $canEvents || $canHymns;
 $showToolsGroup     = $canMessaging || $canLocations;
@@ -449,13 +449,16 @@ if ('serviceWorker' in navigator) {
 
         <?php if ($showMembersGroup): ?>
         <li class="dropdown">
-          <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'members') !== false || strpos(strtolower($url), '/list') !== false || strpos(strtolower($url), 'membercare') !== false || strpos(strtolower($url), 'counseling') !== false) ? 'active' : '' ?>">
+          <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'members') !== false || strpos(strtolower($url), '/list') !== false || strpos(strtolower($url), 'membercare') !== false || strpos(strtolower($url), 'counseling') !== false || strpos(strtolower($url), 'signuprequests') !== false) ? 'active' : '' ?>">
             <span class="micon fi-torsos-all"></span><span class="mtext"><?= $locale['members'] ?></span>
           </a>
           <ul class="submenu">
             <?php if ($canMembers): ?>
             <li><a href="<?= base_url() ?>/membersDashboard" <?= strpos(strtolower($url), 'membersdashboard') !== false ? 'class="active"' : '' ?>>Dashboard</a></li>
             <li><a href="<?= base_url() ?>/membersListing" <?= (strpos(strtolower($url), 'memberslisting') !== false || strpos(strtolower($url), 'newmember') !== false || strpos(strtolower($url), 'editmember') !== false || strpos(strtolower($url), 'viewmember') !== false) ? 'class="active"' : '' ?>><?= $locale['all_members'] ?></a></li>
+            <?php endif; ?>
+            <?php if ($canLanding): ?>
+            <li><a href="<?= base_url() ?>/signupRequests" <?= strpos(strtolower($url), 'signuprequests') !== false ? 'class="active"' : '' ?>>New Member Requests</a></li>
             <?php endif; ?>
             <?php if ($canMemberCare): ?>
             <li><a href="<?= base_url() ?>/memberCare" <?= strpos(strtolower($url), 'membercare') !== false ? 'class="active"' : '' ?>>Member Care</a></li>
@@ -496,7 +499,7 @@ if ('serviceWorker' in navigator) {
 
         <?php if ($canLanding): ?>
         <li class="dropdown">
-          <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'landingcontent') !== false || strpos(strtolower($url), 'servicetimes') !== false || strpos(strtolower($url), 'leadership') !== false || strpos(strtolower($url), 'signuprequests') !== false || strpos(strtolower($url), 'membershipform') !== false || strpos(strtolower($url), 'contactmessage') !== false) ? 'active' : '' ?>">
+          <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'landingcontent') !== false || strpos(strtolower($url), 'servicetimes') !== false || strpos(strtolower($url), 'leadership') !== false || strpos(strtolower($url), 'membershipform') !== false || strpos(strtolower($url), 'contactmessage') !== false) ? 'active' : '' ?>">
             <span class="micon dw dw-browser"></span><span class="mtext">Website</span>
           </a>
           <ul class="submenu">
@@ -504,7 +507,6 @@ if ('serviceWorker' in navigator) {
             <li><a href="<?= base_url() ?>/serviceTimesListing" <?= strpos(strtolower($url), 'servicetime') !== false ? 'class="active"' : '' ?>>Service Times</a></li>
             <li><a href="<?= base_url() ?>/leadershipListing" <?= strpos(strtolower($url), 'leader') !== false ? 'class="active"' : '' ?>>Leadership</a></li>
             <li><a href="<?= base_url() ?>/membershipFormListing" <?= strpos(strtolower($url), 'membershipfield') !== false || strpos(strtolower($url), 'membershipform') !== false ? 'class="active"' : '' ?>>Membership Form</a></li>
-            <li><a href="<?= base_url() ?>/signupRequests" <?= strpos(strtolower($url), 'signuprequests') !== false ? 'class="active"' : '' ?>>Signup Requests</a></li>
             <li><a href="<?= base_url() ?>/contactMessages" <?= strpos(strtolower($url), 'contactmessage') !== false ? 'class="active"' : '' ?>>Contact Messages</a></li>
           </ul>
         </li>

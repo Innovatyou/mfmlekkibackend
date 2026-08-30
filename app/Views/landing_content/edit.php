@@ -7,7 +7,7 @@
       </div>
       <div style="display:flex;gap:8px;">
         <a href="<?= base_url('signupRequests') ?>" class="btn btn-outline-secondary">
-          <i class="dw dw-user2" style="margin-right:6px;"></i>Signup Requests
+          <i class="dw dw-user2" style="margin-right:6px;"></i>New Member Requests
           <?php if($pendingCount > 0): ?><span class="lc-nav-badge"><?= $pendingCount ?></span><?php endif; ?>
         </a>
         <a href="<?= base_url('contactMessages') ?>" class="btn btn-outline-secondary">
@@ -240,7 +240,7 @@
           <!-- ══ Join Us Form ══ -->
           <div class="st-panel" id="tab-signup">
             <div class="st-panel-head">
-              <div><h2 class="st-panel-title">"Join Us" Signup Form</h2><p class="st-panel-sub">The public membership form. Manage its questions on the <a href="<?= base_url('membershipFormListing') ?>">Membership Form</a> page. New submissions appear under <a href="<?= base_url('signupRequests') ?>">Signup Requests</a> for your review.</p></div>
+              <div><h2 class="st-panel-title">"Join Us" Signup Form</h2><p class="st-panel-sub">The public membership form. Manage its questions on the <a href="<?= base_url('membershipFormListing') ?>">Membership Form</a> page. New submissions appear under <a href="<?= base_url('signupRequests') ?>">New Member Requests</a> for your review.</p></div>
               <label class="lc-toggle"><input type="checkbox" name="show_signup" value="1" <?= $content->show_signup ? 'checked' : '' ?>><span class="lc-toggle-track"><span class="lc-toggle-thumb"></span></span></label>
             </div>
             <div class="nf-card">

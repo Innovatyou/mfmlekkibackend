@@ -1,5 +1,5 @@
 <!-- ── Shared "view record" modal ──
-     Include once per page (<?= view('_request_modal') ?>), then either:
+     Include this partial once per page, then either:
        - openRequestModal(title, fields, approveUrl, approveLabel, rejectUrl, rejectLabel)
          directly with data already on hand (server-rendered rows), or
        - openRequestModalFromEndpoint(endpointUrl, title) to fetch JSON first

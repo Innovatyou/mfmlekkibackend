@@ -2,11 +2,11 @@
   <div class="xs-pd-20-10 pd-ltr-20">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Signup Requests</h1>
+        <h1 class="page-title">New Member Requests</h1>
         <p class="page-subtitle">New members who joined through the public website, awaiting your review</p>
       </div>
-      <a href="<?= base_url('landingContent') ?>" class="btn btn-secondary" style="border-radius:8px;font-weight:600;padding:9px 20px;font-size:.875rem;">
-        <i class="dw dw-left-arrow" style="margin-right:6px;"></i>Back to Website
+      <a href="<?= base_url('membersDashboard') ?>" class="btn btn-secondary" style="border-radius:8px;font-weight:600;padding:9px 20px;font-size:.875rem;">
+        <i class="dw dw-left-arrow" style="margin-right:6px;"></i>Back to Members
       </a>
     </div>
 
