@@ -189,10 +189,13 @@ class Partnership extends BaseController
 
         $model = new PartnershipModel();
         $this->viewdata['tiers']   = $model->getAllTiers();
+        // Do not render the entire members table into a <select>. Large churches can
+        // otherwise create hundreds of MB of HTML and exhaust PHP's view buffer.
         $this->viewdata['members'] = \Config\Database::connect()
             ->table('tbl_members')
             ->select('id, firstname, lastname, email')
-            ->orderBy('firstname', 'ASC')
+            ->orderBy('id', 'DESC')
+            ->limit(1000)
             ->get()->getResult();
 
         return $this->view('partnership/new', $this->viewdata);
@@ -249,11 +252,28 @@ class Partnership extends BaseController
         $this->viewdata['partnership'] = $partnership;
         $this->viewdata['tiers']       = $model->getAllTiers();
         $this->viewdata['payments']    = $model->getPaymentHistory($id);
-        $this->viewdata['members']     = \Config\Database::connect()
+        $membersQuery = \Config\Database::connect()
             ->table('tbl_members')
             ->select('id, firstname, lastname, email')
-            ->orderBy('firstname', 'ASC')
-            ->get()->getResult();
+            ->orderBy('id', 'DESC')
+            ->limit(1000);
+        $this->viewdata['members'] = $membersQuery->get()->getResult();
+
+        // Keep the currently linked member selectable even when it is older than
+        // the bounded list above.
+        if ($partnership->member_id && !array_filter(
+            $this->viewdata['members'],
+            static fn ($member) => (int) $member->id === (int) $partnership->member_id
+        )) {
+            $linkedMember = \Config\Database::connect()
+                ->table('tbl_members')
+                ->select('id, firstname, lastname, email')
+                ->where('id', (int) $partnership->member_id)
+                ->get()->getRow();
+            if ($linkedMember) {
+                array_unshift($this->viewdata['members'], $linkedMember);
+            }
+        }
 
         return $this->view('partnership/edit', $this->viewdata);
     }

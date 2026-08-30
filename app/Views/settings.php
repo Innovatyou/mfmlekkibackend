@@ -80,7 +80,7 @@
                     'marketplace'   => ['Marketplace',      'dw-shopping-cart'],
                     'counseling'    => ['Counseling',       'dw-chat-3'],
                     'wellness'      => ['Wellness',         'dw-heart-1'],
-                    'partnership'   => ['Partnership',      'dw-handshake'],
+                    'partnership'   => ['Partnership',      'dw-briefcase'],
                     'audiomessages' => ['Audio Messages',   'dw-music'],
                     'videomessages' => ['Video Messages',   'dw-video-1'],
                     'donations'     => ['Donations',        'dw-heart'],

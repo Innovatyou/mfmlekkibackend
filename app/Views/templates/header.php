@@ -513,7 +513,7 @@ if ('serviceWorker' in navigator) {
         <?php if ($canPartnership): ?>
         <li class="dropdown">
           <a href="javascript:;" class="dropdown-toggle <?= (strpos(strtolower($url), 'partnership') !== false) ? 'active' : '' ?>">
-            <span class="micon dw dw-handshake"></span><span class="mtext">Partnership</span>
+            <span class="micon fa fa-handshake-o"></span><span class="mtext">Partnership</span>
           </a>
           <ul class="submenu">
             <li><a href="<?= base_url() ?>/partnership" <?= ($url === base_url() . '/partnership' || strpos(strtolower($url), '/partnership') !== false && strpos(strtolower($url), 'listing') === false && strpos(strtolower($url), 'tier') === false && strpos(strtolower($url), 'new') === false && strpos(strtolower($url), 'edit') === false && strpos(strtolower($url), 'delete') === false) ? 'class="active"' : '' ?>>Overview</a></li>
