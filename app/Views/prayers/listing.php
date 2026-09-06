@@ -97,7 +97,7 @@ function showPrayerModal(id) {
   var $ = window.jQuery;
   $(document).ready(function(){
     if($.fn.DataTable.isDataTable('#prayers_table'))$('#prayers_table').DataTable().destroy();
-    $('#prayers_table').DataTable({pageLength:15,dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+    $('#prayers_table').DataTable({pageLength:15,order:[[1,'desc']],dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
       language:{search:'',searchPlaceholder:'Search requests…',info:'Showing _START_–_END_ of _TOTAL_',paginate:{previous:'‹',next:'›'}},
       columnDefs:[{targets:0,width:'50px',orderable:false},{targets:5,orderable:false}]});
   });

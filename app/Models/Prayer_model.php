@@ -75,6 +75,7 @@ class Prayer_model extends Basemodel
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_prayers');
     $builder->select('tbl_prayers.*');
+    $builder->orderBy('date', 'DESC');
     $builder->orderBy('id', 'DESC');
     $query = $builder->get();
     return $query->getResult();

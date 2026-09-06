@@ -63,7 +63,8 @@ class Testimony_model extends Basemodel
     $db = \Config\Database::connect("default");
     $builder = $db->table('tbl_testimonies');
     $builder->select('tbl_testimonies.*');
-    $builder->orderBy('title', 'ASC');
+    $builder->orderBy('date', 'DESC');
+    $builder->orderBy('id', 'DESC');
     $query = $builder->get();
     return $query->getResult();
   }

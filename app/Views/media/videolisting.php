@@ -26,6 +26,7 @@
               <th><?= $locale['player'] ?></th>
               <th><?= $locale['title'] ?></th>
               <th><?= $locale['description'] ?></th>
+              <th><?= $locale['date'] ?></th>
               <th style="width:90px;"><?= $locale['action'] ?></th>
             </tr>
           </thead>
@@ -66,7 +67,7 @@ $(document).ready(function(){
   if($.fn.DataTable.isDataTable('#videos_table'))$('#videos_table').DataTable().destroy();
   $('#videos_table').DataTable({
     processing:true,serverSide:true,pageLength:10,
-    order:[[3,'asc']],
+    order:[[5,'desc']],
     ajax:{url:baseURL+'/fetchVideos',type:'POST'},
     dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
     language:{
@@ -94,7 +95,7 @@ $(document).ready(function(){
         var s=$('<div>').text(desc||'').html();
         return'<span style="color:var(--t2);font-size:.8rem;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;" title="'+s+'">'+s+'</span>';
       }},
-      {targets:5,orderable:false,className:'text-center',render:function(html,type){
+      {targets:6,orderable:false,className:'text-center',render:function(html,type){
         if(type!=='display')return'';
         var m=html.match(/editVideo\/(\d+)/);
         if(!m)return html;

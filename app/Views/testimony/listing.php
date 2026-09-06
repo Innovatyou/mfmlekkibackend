@@ -14,13 +14,14 @@
       <div style="padding:16px 22px 22px;overflow-x:auto;">
         <table id="testimony_table" class="table nowrap" style="width:100%;">
           <thead><tr>
-            <th>#</th><th><?=$locale['testifier']?></th><th><?=$locale['title']?></th><th><?=$locale['status']?></th><th style="width:110px;"><?=$locale['action']?></th>
+            <th>#</th><th><?=$locale['date']?></th><th><?=$locale['testifier']?></th><th><?=$locale['title']?></th><th><?=$locale['status']?></th><th style="width:110px;"><?=$locale['action']?></th>
           </tr></thead>
           <tbody>
             <?php $c=1; foreach($testimonies as $r):
               $approved=$r->status==0?1:0; ?>
             <tr>
               <td class="text-muted"><?=$c?></td>
+              <td><span class="lt-date"><?=esc($r->date)?></span></td>
               <td><a href="javascript:void(0)" class="rq-clickable" onclick="showTestimonyModal(<?= (int) $r->id ?>)"><?=esc($r->testifier)?></a></td>
               <td style="color:var(--t2);"><?=esc($r->title)?></td>
               <td><?php if($r->status==0):?><span class="lt-approved">Approved</span><?php else:?><span class="lt-pending">Pending</span><?php endif;?></td>
@@ -92,9 +93,9 @@ function showTestimonyModal(id) {
   var $ = window.jQuery;
   $(document).ready(function(){
     if($.fn.DataTable.isDataTable('#testimony_table'))$('#testimony_table').DataTable().destroy();
-    $('#testimony_table').DataTable({pageLength:15,dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
+    $('#testimony_table').DataTable({pageLength:15,order:[[1,'desc']],dom:"<'row mb-2'<'col-sm-6'l><'col-sm-6 text-right'f>>t<'row mt-2'<'col-sm-6'i><'col-sm-6 text-right'p>>",
       language:{search:'',searchPlaceholder:'Search testimonies…',info:'Showing _START_–_END_ of _TOTAL_',paginate:{previous:'‹',next:'›'}},
-      columnDefs:[{targets:0,width:'50px',orderable:false},{targets:4,orderable:false}]});
+      columnDefs:[{targets:0,width:'50px',orderable:false},{targets:5,orderable:false}]});
   });
 })();
 

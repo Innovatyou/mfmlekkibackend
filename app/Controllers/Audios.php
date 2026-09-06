@@ -37,24 +37,15 @@ class Audios extends BaseController
     $draw = intval($_POST['draw']);
     $start = intval($_POST['start']);
     $length = intval($_POST['length']);
-    $columnIndex = $_POST['order'][0]['column']; // Column index
-    $columnName = $_POST['columns'][$columnIndex]['data']; // Column name
-    $columnSortOrder = $_POST['order'][0]['dir']; // asc or desc
+    $columnIndex = $_POST['order'][0]['column'] ?? 0; // Column index
+    // Maps the client-side column position to the actual DB column it sorts by.
+    $sortableColumns = ['', '', '', 'title', 'description', 'dateInserted', ''];
+    $columnName = $sortableColumns[$columnIndex] ?? ''; // Column name
+    $columnSortOrder = $_POST['order'][0]['dir'] ?? 'desc'; // asc or desc
     $searchValue = "";
     if (isset($_POST['search']['value'])) {
       $searchValue = $_POST['search']['value']; // Search value
     }
-
-    $columnName = "";
-    if (isset($_POST['columns'][$columnIndex]['data'])) {
-      $columnSortOrder = $_POST['columns'][$columnIndex]['data']; // Search value
-    }
-
-    $columnSortOrder = "ASC";
-    if (isset($_POST['order'][0]['dir'])) {
-      $columnSortOrder = $_POST['order'][0]['dir']; // Search value
-    }
-
 
     $audios = $audiomodel->audioListing($columnName, $columnSortOrder, $searchValue, $start, $length);
     $total_audios = $audiomodel->get_total_audios($searchValue);
@@ -72,6 +63,7 @@ class Audios extends BaseController
                 </audio>',
         $r->title,
         $r->description,
+        $r->dateInserted ? date('M j, Y', strtotime($r->dateInserted)) : '',
         '
                 <div class="dropdown">
                   <a class="btn btn-link font-24 p-0 line-height-1 no-arrow dropdown-toggle" href="#" role="button" data-toggle="dropdown">

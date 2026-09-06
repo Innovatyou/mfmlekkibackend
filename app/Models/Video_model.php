@@ -41,6 +41,8 @@ class Video_model extends Basemodel
     }
     if ($columnName != "") {
       $builder->orderby($columnName, $columnSortOrder);
+    } else {
+      $builder->orderby('dateInserted', 'DESC');
     }
     $builder->limit($length, $start);
 
